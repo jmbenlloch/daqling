@@ -1,5 +1,9 @@
+#include <iostream>
+
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_sinks.h"
+
+//using namespace spdlog;
 
 int main() {
     std::cout << "Hello c++17!" << std::endl;
