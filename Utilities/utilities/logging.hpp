@@ -5,11 +5,13 @@
 #include <sstream>
 
 #include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_sinks.h"
+#include "spdlog/sinks/rotating_file_sink.h"
 
 namespace daq {
 namespace utilities
 {
-	class logging
+	class Logger
 	{
 		static std::shared_ptr<spdlog::logger> logger;
 
@@ -70,12 +72,12 @@ typedef spdlog::level::level_enum level;
 
 #undef INFO
 
-#define DEBUG(MSG) do { std::ostringstream writer; writer << MSG; felix::base::Logger::instance()->debug(writer.str()); } while (0)
-#define INFO(MSG) do { std::ostringstream writer; writer << MSG; felix::base::Logger::instance()->info(writer.str()); } while (0)
-#define NOTICE(MSG) do { std::ostringstream writer; writer << MSG; felix::base::Logger::instance()->notice(writer.str()); } while (0)
-#define WARNING(MSG) do { std::ostringstream writer; writer << MSG; felix::base::Logger::instance()->warn(writer.str()); } while (0)
-#define ERROR(MSG) do { std::ostringstream writer; writer << MSG; felix::base::Logger::instance()->error(writer.str()); } while (0)
-#define CRITICAL(MSG) do { std::ostringstream writer; writer << MSG; felix::base::Logger::instance()->critical(writer.str()); } while (0)
-#define ALERT(MSG) do { std::ostringstream writer; writer << MSG; felix::base::Logger::instance()->alert(writer.str()); } while (0)
+#define DEBUG(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->debug(writer.str()); } while (0)
+#define INFO(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->info(writer.str()); } while (0)
+#define NOTICE(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->notice(writer.str()); } while (0)
+#define WARNING(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->warn(writer.str()); } while (0)
+#define ERROR(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->error(writer.str()); } while (0)
+#define CRITICAL(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->critical(writer.str()); } while (0)
+#define ALERT(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->alert(writer.str()); } while (0)
 
 #endif

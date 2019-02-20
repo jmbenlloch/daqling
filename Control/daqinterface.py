@@ -1,10 +1,10 @@
 import zmq
 import msgpack
-from xmlrpc.client import ServerProxy
+import supervisord
 
-s = ServerProxy('http://rd51:9001/RPC2')
+sd = supervisord.supervisord('rd51')
 
-print(s.supervisor.getAllProcessInfo())
+print(sd.getAllProcessInfo())
 
 exit(0)
 

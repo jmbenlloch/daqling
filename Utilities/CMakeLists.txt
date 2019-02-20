@@ -1,13 +1,7 @@
 cmake_minimum_required(VERSION 3.4.3)
 
-set(PACKAGE rd51core)
+set(PACKAGE utilities)
 set(PACKAGE_VERSION 0.0.1)
-
-set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_FLAGS -DGIT_DESCRIBE="`cd ${CMAKE_CURRENT_SOURCE_DIR}; git describe --tags --always --dirty`")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -O3 -g -pedantic")
-
-include(AUTOLOAD)
 
 include_directories(src)
 
@@ -30,27 +24,6 @@ add_external(spdlog ${spdlog_version})
 #add_external(cereal ${cereal_version})
 #add_external(evpp   ${evpp_version})
 
-SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-#library
-PROJECT(Utilities)
-INCLUDE_DIRECTORIES("Utilities/")
-FILE(GLOB_RECURSE UTILITIES_SOURCES "Utilities/src/*.cpp")
-ADD_LIBRARY(utilities SHARED ${UTILITIES_SOURCES})
-
-INCLUDE_DIRECTORIES("Core/")
-
-PROJECT(Modules)
-INCLUDE_DIRECTORIES("Modules/")
-FILE(GLOB_RECURSE BOARDREADER_SOURCES "Modules/src/BoardReader.cpp")
-ADD_LIBRARY(boardreader SHARED ${BOARDREADER_SOURCES})
-
-FILE(GLOB_RECURSE EVENTBUILDER_SOURCES "Modules/src/EventBuilder.cpp")
-ADD_LIBRARY(eventbuilder SHARED ${EVENTBUILDER_SOURCES})
-
-
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
     message(FATAL_ERROR "GCC version must be at least 4.8!")
@@ -65,11 +38,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
 
 #set(SOURCES src/card_queue_source.cpp src/configuration.cpp src/pipeline.cpp src/random_queue_source.cpp src/ttc_generator_queue_source.cpp src/statistics.cpp src/toflx.cpp src/block_source.cpp src/trace.cpp src/busythread.cpp src/poor_mans_statistics.cpp)
 
-FILE(GLOB_RECURSE RD51_LIBS lib/*.a)
+#add_executable(rd51 src/main.cpp)
+#target_link_libraries(rd51 pthread rt)
 
-add_executable(rd51 src/main.cpp)
-target_link_libraries(rd51 utilities pthread rt)
-
-
-install(TARGETS rd51 EXPORT DESTINATION bin)
+#install(TARGETS rd51 EXPORT DESTINATION bin)
 

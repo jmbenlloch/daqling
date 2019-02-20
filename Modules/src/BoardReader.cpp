@@ -1,6 +1,6 @@
 // enrico.gamberini@cern.ch
 
-#include "BoardReader.hpp"
+#include "modules/BoardReader.hpp"
 
 extern "C" BoardReader *create_object()
 {

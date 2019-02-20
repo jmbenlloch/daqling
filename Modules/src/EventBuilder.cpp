@@ -1,6 +1,6 @@
 // enrico.gamberini@cern.ch
 
-#include "EventBuilder.hpp"
+#include "modules/EventBuilder.hpp"
 
 extern "C" EventBuilder *create_object()
 {
