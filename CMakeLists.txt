@@ -74,3 +74,8 @@ target_link_libraries(rd51 utilities pthread rt)
 
 install(TARGETS rd51 EXPORT DESTINATION bin)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -ldl")
+add_executable(test_plugin Test/src/test_plugin.cpp)
+target_link_libraries(test_plugin boardreader eventbuilder utilities pthread rt)
+install(TARGETS test_plugin EXPORT DESTINATION bin)
