@@ -47,10 +47,11 @@ PROJECT(Modules)
 INCLUDE_DIRECTORIES("Modules/")
 FILE(GLOB_RECURSE BOARDREADER_SOURCES "Modules/src/BoardReader.cpp")
 ADD_LIBRARY(boardreader SHARED ${BOARDREADER_SOURCES})
+target_link_libraries(boardreader PUBLIC utilities)
 
 FILE(GLOB_RECURSE EVENTBUILDER_SOURCES "Modules/src/EventBuilder.cpp")
 ADD_LIBRARY(eventbuilder SHARED ${EVENTBUILDER_SOURCES})
-
+target_link_libraries(eventbuilder PUBLIC utilities)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
@@ -74,3 +75,8 @@ target_link_libraries(rd51 utilities pthread rt)
 
 install(TARGETS rd51 EXPORT DESTINATION bin)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -ldl")
+add_executable(test_plugin Test/src/test_plugin.cpp)
+target_link_libraries(test_plugin boardreader eventbuilder utilities pthread rt)
+install(TARGETS test_plugin EXPORT DESTINATION bin)
