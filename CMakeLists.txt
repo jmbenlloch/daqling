@@ -26,7 +26,7 @@ include_directories(src)
 #link_directories(${ZEROMQ_DIR}/lib)
 
 # others
-#add_external(spdlog ${spdlog_version})
+add_external(spdlog ${spdlog_version})
 #add_external(cereal ${cereal_version})
 #add_external(evpp   ${evpp_version})
 

@@ -2,17 +2,19 @@
 
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_sinks.h"
+//./sinks/stdout_color_sinks.h
+//#include <spdlog/spdlog.h>
 
 //using namespace spdlog;
 
 int main() {
     std::cout << "Hello c++17!" << std::endl;
     // create color multi threaded logger
-    auto console = spdlog::stdout_color_mt("console");
+    auto console = spdlog::sinks::stdout_color_mt("console");
     console->info("Welcome to spdlog!");
     console->error("Some error message with arg: {}", 1);
 
-    auto err_logger = spdlog::stderr_color_mt("stderr");
+    auto err_logger = spdlog::sinks::stderr_color_mt("stderr");
     err_logger->error("Some error message");
 
     // Formatting examples
