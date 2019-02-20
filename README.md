@@ -40,10 +40,10 @@ TBA
 ¬
 ###Spdlog
 
-    git submodule add https://github.com/gabime/spdlog.git vendor/spdlog2 --single branch
+    git submodule add https://github.com/gabime/spdlog.git vendor/spdlog --single branch
 
     cd vendor/spdlog
-    git checkout v0.17.0
+    git checkout 1.3.1
     git add
     git commit
 
@@ -53,6 +53,16 @@ TBA
 
     cd vendor/docopt
     git checkout v0.6.2
+    cd ../
+    git add
+    git commit
+
+### Json
+
+    git submodule add https://github.com/nlohmann/json.git vendor/json --single branch
+
+    cd vendor/json
+    git checkout v3.5.0
     cd ../
     git add
     git commit

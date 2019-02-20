@@ -28,6 +28,9 @@ include_directories(src)
 # others
 add_external(spdlog ${spdlog_version})
 add_external(docopt ${docopt_version})
+#SET(JSON_BuildTests OFF CACHE BOOL "Build the unit tests when BUILD_TESTING is enabled.")
+OPTION(JSON_BuildTests "Build the unit tests when BUILD_TESTING is enabled.")
+add_external(json ${json_version})
 #add_external(cereal ${cereal_version})
 #add_external(evpp   ${evpp_version})
 
