@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-#include "BaseClass.hpp"
+#include "core/BaseClass.hpp"
 
 class EventBuilder : public BaseClass
 {

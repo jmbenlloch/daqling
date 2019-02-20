@@ -5,7 +5,7 @@
 
 #include <iostream>
 #include <atomic>
-#include "BaseClass.hpp"
+#include "core/BaseClass.hpp"
 
 class BoardReader : public BaseClass
 {
