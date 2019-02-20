@@ -27,6 +27,7 @@ include_directories(src)
 
 # others
 add_external(spdlog ${spdlog_version})
+add_external(docopt ${docopt_version})
 #add_external(cereal ${cereal_version})
 #add_external(evpp   ${evpp_version})
 
