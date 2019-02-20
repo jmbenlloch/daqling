@@ -8,7 +8,13 @@ TBA
 
 ### Prerequisites and installing
 
-TBA
+    git submodule init
+    git submodule update
+
+    mkdir build
+    cd build
+    cmake3 ../
+    make
 
 ### Running
 
