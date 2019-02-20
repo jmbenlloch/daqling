@@ -1,0 +1,16 @@
+#Marco Boretto <marco.boretto@cern.ch> 2019
+---
+
+- name: Install packages
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - git
+    - vim
+    - wget
+    - cmake3
+    - mlocate
+
+- name: Updatedb
+  shell: updatedb
