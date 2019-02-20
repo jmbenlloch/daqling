@@ -1,6 +1,7 @@
 // enrico.gamberini@cern.ch
 
 #include "modules/EventBuilder.hpp"
+#include "utilities/logging.hpp"
 
 extern "C" EventBuilder *create_object()
 {
@@ -14,22 +15,22 @@ extern "C" void destroy_object(EventBuilder *object)
 
 EventBuilder::EventBuilder()
 {
-    std::cout << "EventBuilder::EventBuilder" << std::endl;
+    INFO("EventBuilder::EventBuilder");
 }
 
 EventBuilder::~EventBuilder()
 {
-    std::cout << "EventBuilder::~EventBuilder" << std::endl;
+    INFO("EventBuilder::~EventBuilder");
 }
 
 void EventBuilder::start()
 {
-    std::cout << "EventBuilder::start" << std::endl;
+    INFO("EventBuilder::start");
 }
 
 void EventBuilder::stop()
 {
-    std::cout << "EventBuilder::stop" << std::endl;
+    INFO("EventBuilder::stop");
 }
 
 void EventBuilder::runner()

@@ -1,6 +1,7 @@
 // enrico.gamberini@cern.ch
 
 #include "modules/BoardReader.hpp"
+#include "utilities/logging.hpp"
 
 extern "C" BoardReader *create_object()
 {
@@ -15,28 +16,28 @@ extern "C" void destroy_object(BoardReader *object)
 BoardReader::BoardReader()
 {
     m_run = false;
-    std::cout << "BoardReader::BoardReader()" << std::endl;
+    INFO("BoardReader::BoardReader()");
 }
 
 BoardReader::~BoardReader()
 {
-    std::cout << "BoardReader::~BoardReader()" << std::endl;
+    INFO("BoardReader::~BoardReader()");
 }
 
 void BoardReader::start()
 {
-    std::cout << "BoardReader::start" << std::endl;
+    INFO("BoardReader::start");
 }
 
 void BoardReader::stop()
 {
-    std::cout << "BoardReader::stop" << std::endl;
+    INFO("BoardReader::stop");
 }
 
 void BoardReader::runner()
 {
     while (m_run)
     {
-        std::cout << "BoardReader::runner" << std::endl;
+        INFO("BoardReader::runner");
     }
 }
