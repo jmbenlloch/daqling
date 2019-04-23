@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="keywords" content="">
+        <meta name="author" content="">
+        <meta charset="utf-8">
+
+        <!-- <link href="../static/css/main.css" rel="stylesheet" type="text/css" /> -->
+
+        <!-- SUPPORT FOR IE6-8 OF HTML5 ELEMENTS -->
+        <!--[if lt IE 9]>
+                    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+            <![endif]-->
+
+        <!-- <link rel="shortcut icon" href="{{ url_for('static', filename='ico/favicon.ico') }}"> -->
+        {% block head %}
+            <title>{% block title %} Monitor system{% endblock %}</title>
+        {% endblock %}
+    </head>
+
+    <body>
+
+
+<div id="container" style="height: 400px; min-width: 310px"></div>			<!--[if lt IE 9]>
+		   	<script src="https://code.highcharts.com/modules/oldie.js"></script>
+		    <![endif]-->
+
+<script src="https://assets.highcharts.com/js/code_prettify.js" type="text/javascript"></script>
+<script src="https://www.highcharts.com/lib/jquery-3.1.1.js" type="text/javascript"></script>
+
+<script src="https://code.highcharts.com/stock/highstock.js"></script>
+<script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/stock/modules/export-data.js"></script>
+
+
+<script>
+	jQuery.noConflict();
+	var example = 'dynamic-update', 
+		theme = 'default';
+	(function($){ // encapsulate jQuery
+		// Create the chart
+		Highcharts.stockChart('container', {
+			chart: {
+				events: {
+					load: function () {
+
+						// set up the updating of the chart each second
+						var data1 = [];
+						var series = this.series[0];
+						setInterval(function () {
+							$.ajax({
+								url: 'http://0.0.0.0:5000/lastMeas.json',
+								async: false,
+								dataType: 'json',
+								success: function (json) {   
+									assignVariable(json);
+								}
+							});
+
+							function assignVariable(data) {
+								data1 = data;
+							}
+								
+							var x = data1[0], 
+							y = data1[1];
+
+							console.log(x);
+							if (typeof x !== 'undefined') {
+								series.addPoint([x, y]);
+							}
+						}, 1000);
+					}
+				}
+			},
+
+			time: {
+        		useUTC: false
+    		},
+
+			rangeSelector: {
+				buttons: [{
+					count: 1,
+					type: 'minute',
+					text: '1M'
+				}, {
+					count: 5,
+					type: 'minute',
+					text: '5M'
+				}, {
+					type: 'all',
+					text: 'All'
+				}],
+				inputEnabled: false,
+				selected: 0
+			},
+
+			title: {
+				text: 'Datarate'
+			},
+
+			exporting: {
+				enabled: false
+			},
+			series: [{
+				name: 'Datarate',
+				data: (function () {
+					var data1 = [];
+					$.ajax({
+						url: 'http://0.0.0.0:5000/data.json',
+						async: false,
+						dataType: 'json',
+						success: function (json) {   
+							assignVariable(json);
+						}
+					});
+
+					function assignVariable(data) {
+						data1 = data;
+					}
+
+					console.log("data1 ");
+					console.log(data1);
+            		return data1;
+        		}())
+    		}]
+		});
+	})(jQuery);
+</script>
+
+ 
+
+    </body>
+</html>

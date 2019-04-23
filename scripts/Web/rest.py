@@ -9,6 +9,7 @@ from multiprocessing.pool import ThreadPool
 from collections import deque
 import threading
 from datetime import datetime, timedelta
+import time
 import json
 
 import flask
@@ -27,33 +28,55 @@ dataList = {}
 def setupMetrics():
   dataList['datarate'] = [] 
   dataList['cpuutil'] = []
+  dataList['numberOfPackages'] = []
 
 setupMetrics()
+timestamp = []
 
 '''
 Main app
 '''
 app = Flask(__name__,
-            static_url_path='',
-            static_folder='web/static',
-            template_folder='web/templates')
+			static_url_path='',
+			static_folder='.',
+			template_folder='templates')
 api = Api(app)
 parser = reqparse.RequestParser()
 parser.add_argument('value')
 
 class Add(Resource):
-    def post(self, metric):
-        args = parser.parse_args()
-        print(args)
-        dataList[metric].append(args['value'])
+	def post(self, metric):
+		args = parser.parse_args()
+		print(args)
+		#dataList[metric].append(args['value'])
+		value = str(args['value'])
+		for s in value.split():
+			if s.isdigit():
+				dataList[metric].append(int(s))
+				timestamp.append(time.time()*1000)
 
-class Metrics(Resource):
-    def get(self):
-        resp = flask.make_response(flask.jsonify(dataList))
-        return resp
+
+@app.route("/graph")
+def graph():
+    return render_template('graph2.html')
+
+
+@app.route("/data.json")
+def data():
+	print(json.dumps(zip(timestamp, dataList['numberOfPackages'])))
+	return json.dumps(zip(timestamp, dataList['numberOfPackages']))
+
+@app.route("/lastMeas.json")
+def lastMeas():
+	if not timestamp:
+		return '0'
+	else:
+		return json.dumps([timestamp[-1], dataList['numberOfPackages'][-1]])
+
+
 
 api.add_resource(Add, "/add/<string:metric>", methods=['POST'])
-api.add_resource(Metrics, "/metrics", methods=['GET'])
+#api.add_resource(Metrics, "/metrics", methods=['GET'])
 
 # As a testserver.
 app.run(host= '0.0.0.0', port=5000, debug=True)
