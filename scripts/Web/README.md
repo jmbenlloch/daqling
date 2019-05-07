@@ -19,6 +19,15 @@ Post data with curl with the available metrics (datarate and cpuutil):
 curl -d '{"value":5}' -H "Content-Type: application/json" -X POST http://rd51pro:5000/add/datarate
 ```
 
-Should be extended to register/unregister metrics and adding highcharts for real-time data visualization.
-(And proper storage backend... we can start with an in-memory one.)
+To run the full metrics example:
+1) run the metrics publisher:
+./build/bin/test_metrics
+2) run test server:
+cd scripts/Web
+python3 rest.py
+3) run metrics subscriber:
+cd scripts/Monitoring/
+python3 metrics_sub.py
 
+Go to URL:
+http://0.0.0.0:5000/graph

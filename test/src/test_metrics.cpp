@@ -14,8 +14,8 @@ int main(int argc, char** argv)
 	Statistics stat;
 	stat.Start();
 	cout<<"Called start"<<'\n'; 
-	stat.RegisterVariable("Buffer occupation", &buffer_occupation);
-	stat.RegisterVariable("Number of packets", &packets);
+	stat.RegisterVariable("BufferOccupation", &buffer_occupation);
+	stat.RegisterVariable("NumberOfPackets", &packets);
 	while(1){
 		usleep(500000);
 		//std::cout<<"bla"<<std::endl;

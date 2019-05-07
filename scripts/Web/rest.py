@@ -1,8 +1,7 @@
-__author__ = "Roland Sipos"
+__author__ = "Wojciech Brylinski"
 __credits__ = [""]
 __version__ = "0.0.1"
-__maintainer__ = "Roland Sipos"
-__email__ = "roland.sipos@cern.ch"
+__email__ = "wobrylin@cern.ch"
 
 import ctypes
 from multiprocessing.pool import ThreadPool
@@ -25,13 +24,6 @@ from flask_restful import Api, Resource, reqparse
 global dataList
 dataList = {}
 
-def setupMetrics():
-  dataList['datarate'] = [] 
-  dataList['cpuutil'] = []
-  dataList['numberOfPackages'] = []
-
-setupMetrics()
-timestamp = []
 
 '''
 Main app
@@ -48,30 +40,35 @@ class Add(Resource):
 	def post(self, metric):
 		args = parser.parse_args()
 		print(args)
-		#dataList[metric].append(args['value'])
 		value = str(args['value'])
 		for s in value.split():
 			if s.isdigit():
-				dataList[metric].append(int(s))
-				timestamp.append(time.time()*1000)
+				if not metric in dataList:
+					dataList[metric] = []
+				dataList[metric].append([time.time()*1000 ,int(s)])
 
 
 @app.route("/graph")
 def graph():
-    return render_template('graph2.html')
+	return render_template('graph2.html', metrics=dataList.keys())
 
 
-@app.route("/data.json")
-def data():
-	print(json.dumps(zip(timestamp, dataList['numberOfPackages'])))
-	return json.dumps(zip(timestamp, dataList['numberOfPackages']))
+@app.route("/data/<string:metric>")
+def data(metric):
+	return json.dumps(dataList[metric])
 
-@app.route("/lastMeas.json")
-def lastMeas():
-	if not timestamp:
+
+@app.route("/metrics")
+def metric():
+	return json.dumps(dataList.keys())
+
+
+@app.route("/lastMeas/<string:metric>")
+def lastMeas(metric):
+	if not dataList[metric]:
 		return '0'
 	else:
-		return json.dumps([timestamp[-1], dataList['numberOfPackages'][-1]])
+		return json.dumps(dataList[metric][-1])
 
 
 
