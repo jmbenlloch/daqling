@@ -21,13 +21,19 @@ curl -d '{"value":5}' -H "Content-Type: application/json" -X POST http://rd51pro
 
 To run the full metrics example:
 1) run the metrics publisher:
+```
 ./build/bin/test_metrics
+```
 2) run test server:
+```
 cd scripts/Web
 python3 rest.py
+```
 3) run metrics subscriber:
+```
 cd scripts/Monitoring/
 python3 metrics_sub.py
+```
 
 Go to URL:
 http://0.0.0.0:5000/graph
