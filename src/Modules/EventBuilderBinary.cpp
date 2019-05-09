@@ -33,27 +33,18 @@ void EventBuilder::stop() {
 
 void EventBuilder::runner() {
   INFO(__METHOD_NAME__ << " Running...");
-  const unsigned c_packing = 20;
   while (m_run) {
-    std::string packed = "";
-    for (unsigned i = 0; i < c_packing;) {
-      std::string s1{m_connections.getStr(1)};
-      std::string s2{m_connections.getStr(2)};
-      if (s1 != "") {
-        INFO("Received on channel 1 " << s1);
-        packed += s1;
-        i++;
-      }
-      if (s2 != "") {
-        INFO("Received on channel 2 " << s2);
-        packed += s2;
-        i++;
-      }
+    daq::utilities::Binary b1, b2;
+    while(!m_connections.get(1, b1) && m_run) {
+      std::this_thread::sleep_for(100ms);
     }
-    if (packed != "") {
-      INFO("Sending mega string on channel 3 " << packed);
-      m_connections.putStr(3, packed);
+    while(!m_connections.get(2, b2) && m_run) {
+      std::this_thread::sleep_for(100ms);
     }
+
+    daq::utilities::Binary b3(b1);
+    b3 += b2;
+    m_connections.put(3, b3);
   }
   INFO(__METHOD_NAME__ << " Runner stopped");
 }

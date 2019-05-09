@@ -1,12 +1,12 @@
 {
-  "version": 1,
+  "version": 2,
   "foo": "bar",
   "components": [
     {
       "name": "boardreader01",
-      "host": "rd51pro",
+      "host": "localhost",
       "port": 5555,
-      "type": "boardreader",
+      "type": "boardreaderbinary",
       "settings": {
         "some_int": 42,
         "some_string": "test"
@@ -15,8 +15,9 @@
         "sources": [],
         "destinations": [
           {
+            "type": "pubsub",
             "chid": 1,
-            "host": "localhost",
+            "host": "*",
             "port": 8101
           }
         ]
@@ -24,9 +25,9 @@
     },
     {
       "name": "boardreader02",
-      "host": "rd51pro",
+      "host": "localhost",
       "port": 5556,
-      "type": "boardreader",
+      "type": "boardreaderbinary",
       "settings": {
         "some_int": 42,
         "some_string": "test"
@@ -35,8 +36,9 @@
         "sources": [],
         "destinations": [
           {
+            "type": "pair",
             "chid": 1,
-            "host": "localhost",
+            "host": "*",
             "port": 8102
           }
         ]
@@ -44,9 +46,9 @@
     },
     {
       "name": "eventbuilder01",
-      "host": "rd51pro",
+      "host": "localhost",
       "port": 5557,
-      "type": "eventbuilder",
+      "type": "eventbuilderbinary",
       "settings": {
         "some_int": 42,
         "some_string": "test"
@@ -54,20 +56,23 @@
       "connections": {
         "sources": [
           {
+            "type": "pubsub",
             "chid": 1,
-            "host": "*",
+            "host": "localhost",
             "port": 8101
           },
           {
+            "type": "pair",
             "chid": 2,
-            "host": "*",
+            "host": "localhost",
             "port": 8102
           }
         ],
         "destinations": [
           {
+            "type": "pair",
             "chid": 3,
-            "host": "localhost",
+            "host": "*",
             "port": 8103
           }
         ]
@@ -75,8 +80,8 @@
     },
     {
       "name": "datalogger01",
-      "host": "rd51pro",
-      "port": 6003,
+      "host": "localhost",
+      "port": 5558,
       "type": "cassandradatalogger",
       "settings": {
         "some_int": 42,
@@ -86,8 +91,9 @@
       "connections": {
         "sources": [
           {
+            "type": "pair",
             "chid": 1,
-            "host": "*",
+            "host": "localhost",
             "port": 8103
           }
         ],

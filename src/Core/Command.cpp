@@ -22,7 +22,7 @@ bool daq::core::Command::startCommandHandler() {
   unsigned tid = 1;
   bool rv = false;
   m_commandFunctors.push_back([&, tid] {
-    INFO("CommandThread  ->>> Should handle message: " << m_message);
+    DEBUG("CommandThread  ->>> Should handle message: " << m_message);
     std::string response;
     rv = executeCommand(response);
     setResponse(response);
@@ -34,9 +34,9 @@ bool daq::core::Command::startCommandHandler() {
 bool daq::core::Command::executeCommand(std::string& response) {
   Configuration& cfg = Configuration::instance();
   cfg.load(m_message);
-  INFO("Loaded configuration");
+  // INFO("Loaded configuration");
   auto command = cfg.get<std::string>("command");
-  INFO("Get command: " << command);
+  // INFO("Get command: " << command);
   auto& m_plugin = daq::core::PluginManager::instance();
   auto& cm = daq::core::ConnectionManager::instance();
 
@@ -49,59 +49,68 @@ bool daq::core::Command::executeCommand(std::string& response) {
     INFO("sources empty " << srcs.empty());
     for (auto& it : srcs) {
       INFO("key" << it);
-
-      cm.addChannel(it["chid"], ConnectionManager::EDirection::SERVER, 0, it["host"], it["port"],
-                    100, false);
+      if (it["type"] == "pair") {
+        cm.addChannel(it["chid"], ConnectionManager::EDirection::CLIENT, 0, it["host"], it["port"],
+                      100, false);
+      } else if (it["type"] == "pubsub") {
+        cm.addChannel(it["chid"], ConnectionManager::EDirection::SUBSCRIBER, 0, it["host"],
+                      it["port"], 100, false);
+      } else {
+        ERROR("Connection type not recognized!");
+        response = "Failure";
+        ERROR("Shutting down...");
+        stop_and_notify();
+      }
     }
 
     auto dests = j["connections"]["destinations"];
     INFO("destinations empty " << dests.empty());
     for (auto& it : dests) {
       INFO("key" << it);
-
-      cm.addChannel(it["chid"], ConnectionManager::EDirection::CLIENT, 0, it["host"], it["port"],
-                    100, false);
+      if (it["type"] == "pair") {
+        cm.addChannel(it["chid"], ConnectionManager::EDirection::SERVER, 0, it["host"], it["port"],
+                      100, false);
+      } else if (it["type"] == "pubsub") {
+        cm.addChannel(it["chid"], ConnectionManager::EDirection::PUBLISHER, 0, it["host"],
+                      it["port"], 100, false);
+      } else {
+        ERROR("Connection type not recognized!");
+        response = "Failure";
+        ERROR("Shutting down...");
+        stop_and_notify();
+      }
     }
 
-  
-    
     bool rv = m_plugin.load(type);
-    if(rv == true) {
+    if (rv == true) {
       response = "Success";
-      m_plugin.setState("ready");
-    }
-    else {
+    } else {
       response = "Failure";
       ERROR("Shutting down...");
-      std::lock_guard<std::mutex> lk(m_mtx);
-      m_should_stop = true;
-      m_cv.notify_one();
+      stop_and_notify();
     }
-  }
-  else if(command == "start")
-  {
+  } else if (command == "start") {
     cm.start();
 
     m_plugin.start();
     response = "Success";
-    m_plugin.setState("running");
 
     INFO("Started connection manager");
   } else if (command == "stop") {
-    m_plugin.setState("ready");
     m_plugin.stop();
 
     cm.stop();
 
     response = "Success";
-    m_plugin.setState("ready");
   } else if (command == "shutdown") {
-    std::lock_guard<std::mutex> lk(m_mtx);
-    m_should_stop = true;
-    m_cv.notify_one();
+    stop_and_notify();
     response = "Success";
   } else if (command == "status") {
-    response = m_plugin.getState();
+    if (m_plugin.getLoaded()) {
+      response = m_plugin.getState();
+    } else {
+      response = "booted";
+    }
   }
   return true;  // TODO put some meaning or return void
 }

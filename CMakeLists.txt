@@ -31,8 +31,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-prefetch -unroll-aggressive -march=native -mtune=native")
 endif()
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 include(AUTOLOAD)
 
 set(CMAKE_CXX_FLAGS -DGIT_DESCRIBE="`cd ${CMAKE_CURRENT_SOURCE_DIR}; git describe --tags --always --dirty`")
@@ -45,12 +44,16 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-#find_package(TBB ${tbb_version} EXACT REQUIRED)
-#include_directories(${TBB_INCLUDE_DIRS})
-#link_directories(${TBB_DIR}/lib)
-#
-#find_package(Boost ${boost_version} EXACT REQUIRED COMPONENTS system filesystem regex)
-#include_directories(${Boost_INCLUDE_DIRS})
+find_package(TBB ${tbb_version} EXACT REQUIRED)
+include_directories(${TBB_INCLUDE_DIRS})
+link_directories(${TBB_ROOT_DIR}/lib)
+#message(INFO " TBB_INCLUDE_DIRS: " ${TBB_INCLUDE_DIRS})
+#message(INFO " TBB_LIBRARY: " ${TBB_LIBRARY})
+#message(INFO " TBB_LIBRARIES: " ${TBB_LIBRARIES})
+#message(INFO " TBB_ROOT_DIR: " ${TBB_ROOT_DIR})
+
+find_package(Boost ${boost_version} EXACT REQUIRED COMPONENTS system filesystem regex)
+include_directories(${Boost_INCLUDE_DIRS})
 
 # ZeroMQ
 #felix_add_external(zeromq ${zeromq_version} ${BINARY_TAG})
