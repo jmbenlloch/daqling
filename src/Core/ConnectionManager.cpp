@@ -101,9 +101,12 @@ bool ConnectionManager::addReceiveHandler(uint64_t chn) {
       if ((m_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) == true) {
         m_pcqs[chn]->write(std::move(msg));
         DEBUG("    -> wrote to queue");
+      } else {
+        std::this_thread::sleep_for(10ms);
       }
-      DEBUG("SERVER -> queue population: " << m_pcqs[chn]->sizeGuess());
-      std::this_thread::sleep_for(10ms);
+      if (m_pcqs[chn]->sizeGuess() != 0) {
+        DEBUG("SERVER -> queue population: " << m_pcqs[chn]->sizeGuess());
+      }
     }
     INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
   });
@@ -136,10 +139,13 @@ bool ConnectionManager::addSubscribeHandler(uint64_t chn) {
       if ((m_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) == true) {
         m_pcqs[chn]->write(std::move(msg));
         DEBUG("    -> wrote to queue");
+      } else {
+        std::this_thread::sleep_for(10ms);
       }
       // INFO(m_className << " No messages for some time... sleeping a second...");
-      DEBUG("SUB -> queue population: " << m_pcqs[chn]->sizeGuess());
-      std::this_thread::sleep_for(10ms);
+      if (m_pcqs[chn]->sizeGuess() != 0) {
+        DEBUG("SUB -> queue population: " << m_pcqs[chn]->sizeGuess());
+      }
     }
     INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
   });

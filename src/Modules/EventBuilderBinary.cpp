@@ -44,6 +44,7 @@ void EventBuilder::runner() {
 
     daq::utilities::Binary b3(b1);
     b3 += b2;
+    INFO(__METHOD_NAME__ << " Size of build event: " << b3.size());
     m_connections.put(3, b3);
   }
   INFO(__METHOD_NAME__ << " Runner stopped");
