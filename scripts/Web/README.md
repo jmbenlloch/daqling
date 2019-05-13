@@ -2,6 +2,10 @@ Dependencies:
 ```
 pip3 install Flask
 pip3 install Flask-Restful
+pip3 install redis
+sudo yum install redis
+sudo systemctl start redis
+sudo systemctl enable redis
 ```
 
 Run test server: 

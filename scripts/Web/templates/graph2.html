@@ -7,197 +7,56 @@
         <meta name="author" content="">
         <meta charset="utf-8">
 
-        <!-- <link href="../static/css/main.css" rel="stylesheet" type="text/css" /> -->
 
-        <!-- SUPPORT FOR IE6-8 OF HTML5 ELEMENTS -->
-        <!--[if lt IE 9]>
-                    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-            <![endif]-->
-
-        <!-- <link rel="shortcut icon" href="{{ url_for('static', filename='ico/favicon.ico') }}"> -->
         {% block head %}
             <title>{% block title %} Monitor system{% endblock %}</title>
         {% endblock %}
 		<link rel="stylesheet" type="text/css" href="http://www.jeasyui.com/easyui/themes/ui-cupertino/easyui.css">
 		<link rel="stylesheet" type="text/css" href="http://www.jeasyui.com/easyui/themes/icon.css">
 
-
-<script>
-	function addGraph(names, tabName){
-		$(document).ready(function() {
-			var series = [];
-			for (i in names) {
-				series.push({
-					name: names[i],
-					data: (function () {
-						var data3 = [];
-						$.ajax({
-							url: 'http://0.0.0.0:5000/data/'+names[i],
-							async: false,
-							dataType: 'json',
-							success: function (json) {   
-								assignVariable(json);
-							}
-						});
-
-						function assignVariable(data) {
-							data3 = data;
-						}
-
-						return data3;
-					}())
-				})
-
-			}
-			jQuery.noConflict();
-			var theme = 'default';
-			(function($){ // encapsulate jQuery
-				// Create the chart
-				Highcharts.stockChart(tabName, {
-					chart: {
-						events: {
-							load: function () {
-								// set up the updating of the chart each second
-								var series = this.series;
-								setInterval(function () {
-									for (i in names) {
-
-										var url = 'http://0.0.0.0:5000/lastMeas/'+names[i];
-										var data2 = [];
-
-										$.ajax({
-											url: url,
-											async: false,
-											dataType: 'json',
-											success: function (json) {   
-												assignVariable(json);
-											}
-										});
-
-										function assignVariable(data) {
-											data2 = data;
-										}
-											
-										var x = data2[0], 
-										y = data2[1];
-
-										console.log(series[i].data.length);
-										if (typeof x !== 'undefined') {
-											if(series[i].data.length < 1000){
-												series[i].addPoint([x, y]);
-											}
-											else{
-												series[i].addPoint([x, y], true, true);
-											}
-										}
-									}
-								}, 1000);
-							}
-						}
-					},
-
-					time: {
-						useUTC: false
-					},
-
-					plotOptions: {
-						line: {
-							animation: false
-						}
-					},
-
-					xAxis: {
-						type: 'datarate',
-						dateTimeLabelFormats: { // don't display the dummy year
-							month: '%e. %b',
-							year: '%b'
-						},
-						title: {
-							text: 'Time'
-						},
-						ordinal: false
-					},
-
-
-					rangeSelector: {
-						buttons: [{
-							count: 1,
-							type: 'minute',
-							text: '1M'
-						}, {
-							count: 5,
-							type: 'minute',
-							text: '5M'
-						}, {
-							type: 'all',
-							text: 'All'
-						}],
-						inputEnabled: false,
-						selected: 0
-					},
-
-					title: {
-						text: 'data'
-					},
-
-					exporting: {
-						enabled: false
-					},
-
-					series: series
-
-				});
-			})(jQuery);
-
-
-		});
-
-	}
-</script>
-
-
+		<script type = "text/javascript" src = "addGraph.js" ></script>
 	
-	<script>
-		function createNewTab(){
-			$(document).ready(function() {
-				var names = [];
-				
-				{% for metric in metrics %}
-					if(($('input[name="{{metric}}"').attr("checked")) == true){
-						names.push('{{metric}}');
+		<script>
+			function createNewTab(){
+				$(document).ready(function() {
+					var names = [];
+					
+					{% for metric in metrics %}
+						if(($('input[name="{{metric}}"').attr("checked")) == true){
+							names.push('{{metric}}');
+						}
+					{% endfor %}
+
+					if(names.length == 0){
+						return;
 					}
-				{% endfor %}
 
-				if(names.length == 0){
-					return;
-				}
-
-				var tabName = "";
-				for (i in names){
-					if(i != names.length - 1){
-						tabName += names[i]+",";
+					var tabName = "";
+					for (i in names){
+						if(i != names.length - 1){
+							tabName += names[i]+";";
+						}
+						else{
+							tabName += names[i];
+						}
 					}
-					else{
-						tabName += names[i];
-					}
-				}
 
 
-				if ($('#tt').tabs('exists', tabName)){
-					$('#tt').tabs('select', tabName);
-				} else {
-					$('#tt').tabs('add',{
-						title:tabName,
-						content:'<div id='+tabName+' style="height: 400px; min-width: 300px">',
-						closable:true
-					});
-					$(document).ready(function() {
-						addGraph(names, tabName);
-					});
-				}	
-			});
-		}
-	</script>
+					if ($('#tt').tabs('exists', tabName)){
+						$('#tt').tabs('select', tabName);
+					} else {
+						$('#tt').tabs('add',{
+							title:tabName,
+							content:'<div id='+tabName+' style="height: 400px; min-width: 300px">',
+							closable:true
+						});
+						$(document).ready(function() {
+							addGraph(names, tabName);
+						});
+					}	
+				});
+			}
+		</script>
 
 
 
@@ -205,63 +64,52 @@
     </head>
 
     <body>
-	<script type="text/javascript" src="http://code.jquery.com/jquery-1.4.4.min.js"></script>
-	<script type="text/javascript" src="http://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
+		<script type="text/javascript" src="http://code.jquery.com/jquery-1.4.4.min.js"></script>
+		<script type="text/javascript" src="http://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
 
 
 
-	<div id="tt" class="easyui-tabs" style="height: 500px; min-width: 310px">
-		<div title='monitor'>
-			<div id='monitor' style="height: 400px; min-width: 300px">
-				<h2>Metrics monitor:</h2>
-					<form id="ff">
-						{% for metric in metrics %}
-							<div style="margin-bottom:20px">
-								<input class="easyui-checkbox" name={{metric}} value={{metric}} label={{metric}}>
-							</div>
-						{% endfor %}
-					</form>
-				<a href="#" class="easyui-linkbutton" onclick="createNewTab()">New Tab</a>
+		<div id="tt" class="easyui-tabs" style="height: 500px; min-width: 210px">
+			<div title='monitor'>
+				<div id='monitor' style="height: 400px; min-width: 200px; margin-left:2%; margin-top:2%;">
+					<h2>Welcome to operational monitor!</h2>
+					<h3>Available metrics:</h3>
+						<form id="ff">
+							{% for metric in metrics %}
+								<div style="margin-bottom:20px">
+									<input class="easyui-checkbox" name={{metric}} value={{metric}} label={{metric}}>
+								</div>
+							{% endfor %}
+						</form>
+					<a href="#" class="easyui-linkbutton" onclick="createNewTab()">New Tab</a>
+				</div>
 			</div>
+			{% for metric in metrics %}
+				<div title={{metric}} closable=true>
+					<div id={{metric}} style="height: 400px; min-width: 300px"></div>
+				</div>
+			{% endfor %}
 		</div>
-		{% for metric in metrics %}
-			<div title={{metric}} closable=true>
-				<div id={{metric}} style="height: 400px; min-width: 300px"></div>
-			</div>
-		{% endfor %}
-	</div>
 
-<script>
-$(document).ready(function() {
-	var names = []
-	{% for metric in metrics %}
-		names.push('{{ metric }}');
-		addGraph(['{{metric}}'], '{{metric}}');
-	{% endfor %}
+		<script>
+		$(document).ready(function() {
+			var names = []
+			{% for metric in metrics %}
+				names.push('{{ metric }}');
+				addGraph(['{{metric}}'], '{{metric}}');
+			{% endfor %}
 
 
-/*	
-	for (var i = 0; i < data1.length; i++) {
-		addTab(data1[i]);
-        //Do something
-    }
-*/
-			
-//	createNewTab(names, 'tab2');
-
-  	});
-</script>
+			});
+		</script>
 
 
 
-<div id="container" style="height: 400px; min-width: 310px"></div>			<!--[if lt IE 9]>
-		   	<script src="https://code.highcharts.com/modules/oldie.js"></script>
-		    <![endif]-->
-<script src="https://assets.highcharts.com/js/code_prettify.js" type="text/javascript"></script>
-<script src="https://www.highcharts.com/lib/jquery-3.1.1.js" type="text/javascript"></script>
+		<script src="https://assets.highcharts.com/js/code_prettify.js" type="text/javascript"></script>
+		<script src="https://www.highcharts.com/lib/jquery-3.1.1.js" type="text/javascript"></script>
 
-<script src="https://code.highcharts.com/stock/highstock.js"></script>
-<script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
-<script src="https://code.highcharts.com/stock/modules/export-data.js"></script>
+		<script src="https://code.highcharts.com/stock/highstock.js"></script>
+		<script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+		<script src="https://code.highcharts.com/stock/modules/export-data.js"></script>
     </body>
 </html>
