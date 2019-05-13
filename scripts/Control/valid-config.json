@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "foo": "bar",
   "components": [
     {
@@ -9,7 +9,8 @@
       "type": "boardreaderbinary",
       "settings": {
         "some_int": 42,
-        "some_string": "test"
+        "some_string": "test",
+        "board_id": 0
       },
       "connections": {
         "sources": [],
@@ -30,7 +31,8 @@
       "type": "boardreaderbinary",
       "settings": {
         "some_int": 42,
-        "some_string": "test"
+        "some_string": "test",
+        "board_id": 1
       },
       "connections": {
         "sources": [],
