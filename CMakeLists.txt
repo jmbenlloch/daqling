@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.4.3)
 
-project(rd51 VERSION 0.0.1
-                  DESCRIPTION "Data acquisition framework"
-                  LANGUAGES CXX)
-
-set(PACKAGE rd51core)
+set(PACKAGE daqling)
 set(PACKAGE_VERSION 0.0.1)
+
+project(${PACKAGE} VERSION ${PACKAGE_VERSION}
+        DESCRIPTION "Data acquisition framework"
+        LANGUAGES CXX)
 
 find_package(Doxygen)
 if (DOXYGEN_FOUND)
@@ -44,16 +44,16 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-find_package(TBB ${tbb_version} EXACT REQUIRED)
-include_directories(${TBB_INCLUDE_DIRS})
-link_directories(${TBB_ROOT_DIR}/lib)
-#message(INFO " TBB_INCLUDE_DIRS: " ${TBB_INCLUDE_DIRS})
-#message(INFO " TBB_LIBRARY: " ${TBB_LIBRARY})
-#message(INFO " TBB_LIBRARIES: " ${TBB_LIBRARIES})
-#message(INFO " TBB_ROOT_DIR: " ${TBB_ROOT_DIR})
+if (ENABLE_TBB)
+  find_package(TBB ${tbb_version} EXACT REQUIRED)
+  include_directories(${TBB_INCLUDE_DIRS})
+  link_directories(${TBB_ROOT_DIR}/lib)
+endif (ENABLE_TBB)
 
-find_package(Boost ${boost_version} EXACT REQUIRED COMPONENTS system filesystem regex)
-include_directories(${Boost_INCLUDE_DIRS})
+if (ENABLE_BOOST)
+  find_package(Boost ${boost_version} EXACT REQUIRED COMPONENTS system filesystem regex)
+  include_directories(${Boost_INCLUDE_DIRS})
+endif (ENABLE_BOOST)
 
 # ZeroMQ
 #felix_add_external(zeromq ${zeromq_version} ${BINARY_TAG})

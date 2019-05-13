@@ -49,7 +49,27 @@ You can also do incremental compilation like:
     make utilities
     make core
 
-### Running
+### Include Boost 1.70
+In order to include Boost 1.70 in the build it is necessary to:
+- have a Boost 1.70 installation under `/opt/boost/`
+- from a fresh terminal:
+
+      source setup-openhpc.sh
+      cd build
+      cmake3 ../ -DENABLE_BOOST=1
+      make
+
+### Include TBB 2019.0
+In order to include TBB 2019.0 in the build it is necessary to:
+- have a TBB 2019.0 installation under `/opt/tbb-2019_U5/` with `include/` and `lib/`
+- from a fresh terminal:
+
+      source setup-openhpc.sh
+      cd build
+      cmake3 ../ -DENABLE_TBB=1
+      make
+
+## Running
 
     cd scripts/Control
 
