@@ -17,8 +17,8 @@
 
 // enrico.gamberini@cern.ch
 
-#ifndef BOARDREADER_HPP_
-#define BOARDREADER_HPP_
+#ifndef BOARDREADER_BINARY_HPP
+#define BOARDREADER_BINARY_HPP
 
 /// \cond
 #include <string>
@@ -26,7 +26,7 @@
 
 #include "Core/DAQProcess.hpp"
 
-class BoardReader : public DAQProcess {
+class BoardReader : public daq::core::DAQProcess {
  public:
   BoardReader(std::string name, int num);
   ~BoardReader();
@@ -39,4 +39,4 @@ class BoardReader : public DAQProcess {
   unsigned m_board_id;
 };
 
-#endif /* BOARDREADER_HPP_ */
+#endif // BOARDREADER_BINARY_HPP

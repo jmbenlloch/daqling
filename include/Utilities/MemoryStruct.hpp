@@ -15,8 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQ_UTILTIIES_MemoryStruct_h
-#define DAQ_UTILITIES_MemoryStruct_h
+#ifndef DAQLING_UTILTIIES_MEMORYSTRUCT_HPP
+#define DAQLING_UTILTIIES_MEMORYSTRUCT_HPP
 
 /*
    Description: Utilities to fetch binary payloads as application/octet-stream with curl. 
@@ -33,7 +33,7 @@
 #include <iostream>
 #include <curl/curl.h>
 
-namespace daq {
+namespace daqling {
 
   namespace utilities {
 
@@ -60,7 +60,7 @@ namespace daq {
     }
 
     // The main entry point for the Session layer to read application/octet-stream with curl.
-    const void readOctetStream( const std::string& payloadUrl, daq::utilities::Binary& payload ) {
+    const void readOctetStream( const std::string& payloadUrl, daqling::utilities::Binary& payload ) {
       CURL *curl_handle;
       CURLcode res;
  
@@ -95,7 +95,7 @@ namespace daq {
       } 
 
       /* Create a cond::Binary from the memory buffer: 1 memcpy involved. */
-      daq::utilities::Binary cB( static_cast<const void*>(chunk.memory), chunk.size );
+      daqling::utilities::Binary cB( static_cast<const void*>(chunk.memory), chunk.size );
       payload = cB;
 
       /* cleanup curl stuff */ 
@@ -109,9 +109,9 @@ namespace daq {
  
     }
     
-  }
+  } // namespace utilities
 
-}
+} // namespace daqling
 
-#endif
+#endif // DAQLING_UTILTIIES_MEMORYSTRUCT_HPP
 

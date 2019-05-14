@@ -15,8 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQ_UTILITIES_SINGLETON_HPP_
-#define DAQ_UTILITIES_SINGLETON_HPP_
+#ifndef DAQLING_UTILITIES_SINGLETON_HPP
+#define DAQLING_UTILITIES_SINGLETON_HPP
 
 /*
  * Types
@@ -31,8 +31,8 @@
 #include <memory>
 /// \endcond
 
-namespace daq{
-namespace utilities{
+namespace daqling {
+namespace utilities {
 
 template<typename T>
 class Singleton {
@@ -57,8 +57,8 @@ T& Singleton<T>::instance()
     return *instance;
 }
 
-}
-}
+} // namespace utilities
+} // namespace daqling
 
-#endif
+#endif // DAQLING_UTILITIES_SINGLETON_HPP
 

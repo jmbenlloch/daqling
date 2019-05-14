@@ -15,20 +15,20 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMMAND_HPP_
-#define COMMAND_HPP_
+#ifndef DAQLING_CORE_COMMAND_HPP
+#define DAQLING_CORE_COMMAND_HPP
 
 #include "Utilities/Logging.hpp"
 #include "Utilities/ReusableThread.hpp"
 #include "Utilities/Singleton.hpp"
 
-namespace daq {
+namespace daqling {
 namespace core {
 
-class Command : public daq::utilities::Singleton<Command> {
+class Command : public daqling::utilities::Singleton<Command> {
  public:
   Command() : m_should_stop{false}, m_handled(false), m_message{""}, m_response{""} {
-    m_commandHandler = std::make_unique<daq::utilities::ReusableThread>(10);
+    m_commandHandler = std::make_unique<daqling::utilities::ReusableThread>(10);
   }
   ~Command() {}
 
@@ -59,7 +59,7 @@ class Command : public daq::utilities::Singleton<Command> {
   std::condition_variable m_cv;
 
   // Command handler
-  std::unique_ptr<daq::utilities::ReusableThread> m_commandHandler;
+  std::unique_ptr<daqling::utilities::ReusableThread> m_commandHandler;
   std::vector<std::function<void()>> m_commandFunctors;
 
   void stop_and_notify() {
@@ -69,7 +69,7 @@ class Command : public daq::utilities::Singleton<Command> {
   }
 };
 
-}  // namespace core
-}  // namespace daq
+} // namespace core
+} // namespace daqling
 
-#endif
+#endif // DAQLING_CORE_COMMAND_HPP

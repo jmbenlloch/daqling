@@ -31,16 +31,16 @@ int main(int argc, char **argv) {
   }
 
   if (argc == 3 && (std::string)argv[2] == "debug") {
-    daq::utilities::set_log_level("debug");
+    daqling::utilities::set_log_level("debug");
     INFO("Log level DEBUG");
   } else {
-    daq::utilities::set_log_level("info");
+    daqling::utilities::set_log_level("info");
     INFO("Log level INFO");
   }
 
   int port = atoi(argv[1]);
   DEBUG("Port " << port);
-  daq::core::Core c(port, "tcp", "*");
+  daqling::core::Core c(port, "tcp", "*");
 
   c.setupCommandPath();
   c.startCommandHandler();

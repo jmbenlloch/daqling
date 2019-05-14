@@ -17,5 +17,5 @@
 
 #include "Utilities/Logging.hpp"
 
-std::shared_ptr<spdlog::logger> daq::utilities::Logger::logger;
+std::shared_ptr<spdlog::logger> daqling::utilities::Logger::logger;
 

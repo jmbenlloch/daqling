@@ -28,14 +28,14 @@
 #include "Core/PluginManager.hpp"
 #include "Utilities/Common.hpp"
 
-#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
-using namespace daq::core;
+using namespace daqling::core;
 using namespace std::chrono_literals;
 
-bool daq::core::Command::startCommandHandler() {
-  // m_commandHandler = std::make_unique<daq::utilities::ReusableThread>(10);
+bool daqling::core::Command::startCommandHandler() {
+  // m_commandHandler = std::make_unique<daqling::utilities::ReusableThread>(10);
   unsigned tid = 1;
   bool rv = false;
   m_commandFunctors.push_back([&, tid] {
@@ -48,14 +48,14 @@ bool daq::core::Command::startCommandHandler() {
   return rv;
 }
 
-bool daq::core::Command::executeCommand(std::string& response) {
+bool daqling::core::Command::executeCommand(std::string& response) {
   Configuration& cfg = Configuration::instance();
   cfg.load(m_message);
   // INFO("Loaded configuration");
   auto command = cfg.get<std::string>("command");
   // INFO("Get command: " << command);
-  auto& m_plugin = daq::core::PluginManager::instance();
-  auto& cm = daq::core::ConnectionManager::instance();
+  auto& m_plugin = daqling::core::PluginManager::instance();
+  auto& cm = daqling::core::ConnectionManager::instance();
 
   if (command == "configure") {
     auto type = cfg.get<std::string>("type");
@@ -132,7 +132,7 @@ bool daq::core::Command::executeCommand(std::string& response) {
   return true;  // TODO put some meaning or return void
 }
 
-bool daq::core::Command::handleCommand() {
+bool daqling::core::Command::handleCommand() {
   m_commandHandler->set_work(m_commandFunctors[0]);
   while (busy()) {
     std::this_thread::sleep_for(100ms);
@@ -140,7 +140,7 @@ bool daq::core::Command::handleCommand() {
   return true;
 }
 
-bool daq::core::Command::busy() {
+bool daqling::core::Command::busy() {
   bool busy = (m_commandHandler->get_readiness() == false) ? true : false;
   return busy;
 }

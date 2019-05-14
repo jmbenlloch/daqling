@@ -20,8 +20,8 @@
  * @author https://gitlab.cern.ch/atlas-tdaq-felix/felixbase
  */
 
-#ifndef DAQ_UTILITIES_LOGGING_H
-#define DAQ_UTILITIES_LOGGING_H
+#ifndef DAQLING_UTILITIES_LOGGING_HPP
+#define DAQLING_UTILITIES_LOGGING_HPP
 
 /// \cond
 #include <memory>
@@ -32,10 +32,10 @@
 #include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/sinks/rotating_file_sink.h"
 
-//#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-//#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+//#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+//#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
-namespace daq {
+namespace daqling {
 namespace utilities
 {
 	class Logger
@@ -94,17 +94,17 @@ namespace utilities
 	}
 
 typedef spdlog::level::level_enum level;
-}
-}
+} // namespace utilities
+} // namespace daqling
 
 #undef INFO
 
-#define DEBUG(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->debug(writer.str()); } while (0)
-#define INFO(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->info(writer.str()); } while (0)
-#define NOTICE(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->notice(writer.str()); } while (0)
-#define WARNING(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->warn(writer.str()); } while (0)
-#define ERROR(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->error(writer.str()); } while (0)
-#define CRITICAL(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->critical(writer.str()); } while (0)
-#define ALERT(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->alert(writer.str()); } while (0)
+#define DEBUG(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->debug(writer.str()); } while (0)
+#define INFO(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->info(writer.str()); } while (0)
+#define NOTICE(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->notice(writer.str()); } while (0)
+#define WARNING(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->warn(writer.str()); } while (0)
+#define ERROR(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->error(writer.str()); } while (0)
+#define CRITICAL(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->critical(writer.str()); } while (0)
+#define ALERT(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->alert(writer.str()); } while (0)
 
-#endif
+#endif // DAQLING_UTILITIES_LOGGING_HPP

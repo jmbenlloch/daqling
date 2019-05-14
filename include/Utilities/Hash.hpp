@@ -15,8 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQ_UTILITIES_HASH_h
-#define DAQ_UTILITIES_HASH_h
+#ifndef DAQLING_UTILITIES_HASH_HPP
+#define DAQLING_UTILITIES_HASH_HPP
 
 #include "Utilities/Logging.hpp"
 #include "Utilities/Binary.hpp"
@@ -30,14 +30,14 @@
  *   Hash utils from CondDB
  * Date: March 2019
 */
-namespace daq {
+namespace daqling {
 
   namespace persistency {
 
     typedef std::string Hash;
     static constexpr unsigned int HASH_SIZE = 40;
 
-    inline Hash makeHash( const std::string& objectType, const daq::utilities::Binary& data ){
+    inline Hash makeHash( const std::string& objectType, const daqling::utilities::Binary& data ){
       SHA_CTX ctx;
       if( !SHA1_Init( &ctx ) ){
         ERROR("daq::persistency::makeHash: SHA1 initialization error.");
@@ -62,9 +62,9 @@ namespace daq {
       return tmp;
     }
 
-  }
+  } // namespace persistency
 
-}
+} // namespace daqling
 
-#endif
+#endif // DAQLING_UTILITIES_HASH_HPP
 

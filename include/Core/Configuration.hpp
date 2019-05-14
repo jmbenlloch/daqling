@@ -15,8 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQ_UTILITIES_CONFIGURATION_HPP
-#define DAQ_UTILITIES_CONFIGURATION_HPP
+#ifndef DAQLING_CORE_CONFIGURATION_HPP
+#define DAQLING_CORE_CONFIGURATION_HPP
 
 /// \cond
 #include <istream>
@@ -31,10 +31,10 @@
 #include "Utilities/Logging.hpp"
 #include "Utilities/Singleton.hpp"
 
-namespace daq {
+namespace daqling {
 namespace core {
 
-class Configuration : public daq::utilities::Singleton<Configuration> {
+class Configuration : public daqling::utilities::Singleton<Configuration> {
  public:
   Configuration() {}
   ~Configuration() {}
@@ -57,7 +57,7 @@ class Configuration : public daq::utilities::Singleton<Configuration> {
   nlohmann::json m_config;
 };
 
-}  // namespace core
-}  // namespace daq
+} // namespace core
+} // namespace daqling
 
-#endif
+#endif // DAQLING_CORE_CONFIGURATION_HPP

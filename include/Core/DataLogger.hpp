@@ -15,16 +15,16 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQ_CORE_DATALOGGER_HPP_
-#define DAQ_CORE_DATALOGGER_HPP_
+#ifndef DAQLING_CORE_DATALOGGER_HPP
+#define DAQLING_CORE_DATALOGGER_HPP
 
 #include "Core/Configuration.hpp"
 #include "Utilities/Common.hpp"
 #include "Utilities/DataStore.hpp"
 #include "Utilities/Logging.hpp"
 
-#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 /*
  * ConnectionManager
@@ -32,6 +32,9 @@
  * Description: DataLogger interface with generic datastore
  * Date: March 2019
  */
+
+namespace daqling {
+namespace core {
 
 class DataLogger {
  public:
@@ -41,11 +44,14 @@ class DataLogger {
   virtual void setup() = 0;
   virtual void write() = 0;
   virtual void read() = 0;
-  virtual bool write(uint64_t keyId, daq::utilities::Binary& payload) = 0;
+  virtual bool write(uint64_t keyId, daqling::utilities::Binary& payload) = 0;
   virtual void shutdown() = 0;
 
  protected:
-  daq::utilities::DataStoreBase m_dataStore;
+  daqling::utilities::DataStoreBase m_dataStore;
 };
 
-#endif /* DAQPROCESS_HPP_ */
+} // namespace core
+} // namespace daqling
+
+#endif // DAQLING_CORE_DATALOGGER_HPP
