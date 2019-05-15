@@ -18,17 +18,16 @@
 #include "Utilities/Logging.hpp"
 #include "Core/ConnectionManager.hpp"
 
-using namespace daq;
+using namespace daqling;
 
-int
-main(int argc, char** argv)
+int main(int argc, char** argv)
 {
 
   INFO("WOOF WOOF");
   WARNING("Ugh!" << 12345 << "bof bof" << '\n');
 
   INFO("Testing ConnectionManager.hpp");
-  daq::core::ConnectionManager<int, int>& cm = daq::core::ConnectionManager<int, int>::instance();
+  daqling::core::ConnectionManager& cm = daqling::core::ConnectionManager::instance();
   
 
   ERROR("About to die...");

@@ -25,10 +25,10 @@
 #include "Core/Command.hpp"
 #include "Core/PluginManager.hpp"
 
-#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
-using namespace daq::core;
+using namespace daqling::core;
 using namespace std::chrono_literals;
 
 PluginManager::PluginManager() : m_create{}, m_destroy{}, m_dp{}, m_loaded{false} {}

@@ -22,16 +22,19 @@
  * @date 2019-02-20
  */
  
-#ifndef DAQPROCESS_HPP_
-#define DAQPROCESS_HPP_
+#ifndef DAQLING_CORE_DAQPROCESS_HPP
+#define DAQLING_CORE_DAQPROCESS_HPP
 
 #include "Core/Configuration.hpp"
 #include "Core/ConnectionManager.hpp"
 #include "Utilities/Common.hpp"
 #include "Utilities/Logging.hpp"
 
-#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
+
+namespace daqling {
+namespace core {
 
 class DAQProcess {
  public:
@@ -58,13 +61,16 @@ class DAQProcess {
 
  protected:
   // ZMQ ConnectionManager
-  daq::core::ConnectionManager& m_connections = daq::core::ConnectionManager::instance();
+  daqling::core::ConnectionManager& m_connections = daqling::core::ConnectionManager::instance();
   // JSON Configuration map
-  daq::core::Configuration& m_config = daq::core::Configuration::instance();
+  daqling::core::Configuration& m_config = daqling::core::Configuration::instance();
 
   std::string m_state;
   std::atomic<bool> m_run;
   std::unique_ptr<std::thread> m_runner_thread;
 };
 
-#endif /* DAQPROCESS_HPP_ */
+} // namespace core
+} // namespace daqling
+
+#endif // DAQLING_CORE_DAQPROCESS_HPP

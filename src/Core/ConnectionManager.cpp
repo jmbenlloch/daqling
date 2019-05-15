@@ -30,10 +30,10 @@
 #include "Utilities/Common.hpp"
 #include "Utilities/Logging.hpp"
 
-#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
-using namespace daq::core;
+using namespace daqling::core;
 using namespace std::chrono_literals;
 
 bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr) {
@@ -187,7 +187,7 @@ bool ConnectionManager::addPublishHandler(uint64_t chn) {
   return true;
 }
 
-bool ConnectionManager::get(uint64_t chn, daq::utilities::Binary& bin) {
+bool ConnectionManager::get(uint64_t chn, daqling::utilities::Binary& bin) {
   if (m_pcqs[chn]->sizeGuess() != 0) {
     utilities::Binary msgBin(m_pcqs[chn]->frontPtr()->data(), m_pcqs[chn]->frontPtr()->size());
     m_pcqs[chn]->popFront();

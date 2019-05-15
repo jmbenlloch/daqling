@@ -15,8 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQ_UTILITIES_REUSABLE_THREAD_HH_
-#define DAQ_UTILITIES_REUSABLE_THREAD_HH_
+#ifndef DAQLING_UTILITIES_REUSABLETHREAD_HPP
+#define DAQLING_UTILITIES_REUSABLETHREAD_HPP
 
 /// \cond
 #include <thread>
@@ -34,9 +34,8 @@
  * Date: November 2017
  *********************************/
 
-namespace daq {
-namespace utilities
-{
+namespace daqling {
+namespace utilities {
 
 
 class ReusableThread
@@ -98,8 +97,8 @@ private:
 
 };
 
-}
-}
+} // namespace utilities
+} // namespace daqling
 
-#endif
+#endif // DAQLING_UTILITIES_REUSABLETHREAD_HPP
 

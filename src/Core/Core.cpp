@@ -22,10 +22,10 @@
 
 #include "Core/Core.hpp"
 
-#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
-using namespace daq::core;
+using namespace daqling::core;
 using namespace std::chrono_literals;
 
 bool Core::setupCommandPath() {

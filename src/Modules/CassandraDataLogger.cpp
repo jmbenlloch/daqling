@@ -25,11 +25,11 @@
 #include "Utilities/Hash.hpp"
 #include "Utilities/Logging.hpp"
 
-#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 using namespace std::chrono_literals;
-namespace daqutils = daq::utilities;
+namespace daqutils = daqling::utilities;
 
 extern "C" CassandraDataLogger* create_object() { return new CassandraDataLogger; }
 
@@ -261,7 +261,7 @@ void CassandraDataLogger::write() {}
 
 void CassandraDataLogger::read() {}
 
-bool CassandraDataLogger::write(uint64_t keyId, daq::utilities::Binary& payload) {
+bool CassandraDataLogger::write(uint64_t keyId, daqling::utilities::Binary& payload) {
   daqutils::Binary sinfoData(0);
   bool success = false;
   const CassPrepared* prepared = nullptr;
@@ -271,7 +271,7 @@ bool CassandraDataLogger::write(uint64_t keyId, daq::utilities::Binary& payload)
     cass_statement_bind_int64(statement, 0, keyId);
 #endif
 #ifdef HASH_MODE
-    daq::persistency::Hash payloadHash = daq::persistency::makeHash("eventType", payload);
+    daqling::persistency::Hash payloadHash = daqling::persistency::makeHash("eventType", payload);
     cass_statement_bind_string(statement, 0, payloadHash.c_str());
 #endif
     cass_statement_bind_string(statement, 1, "event");

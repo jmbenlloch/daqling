@@ -15,8 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQ_MODULES_FILEDATALOGGER_HPP_
-#define DAQ_MODULES_FILEDATALOGGER_HPP_
+#ifndef DAQLING_MODULES_FILEDATALOGGER_HPP
+#define DAQLING_MODULES_FILEDATALOGGER_HPP
 
 /// \cond
 #include <iostream>
@@ -39,7 +39,7 @@
  *   Relies on fixed size file IO with Binary splitting and concatenation.
  * Date: April 2019
  */
-class FileDataLogger : public DAQProcess, public DataLogger {
+class FileDataLogger : public daqling::core::DAQProcess, public daqling::core::DataLogger {
 public:
   FileDataLogger();
   ~FileDataLogger();
@@ -51,7 +51,7 @@ public:
   void setup();
   void write();
   void read();
-  bool write(uint64_t keyId, daq::utilities::Binary& payload);
+  bool write(uint64_t keyId, daqling::utilities::Binary& payload);
   void shutdown();
 
 private:
@@ -59,13 +59,13 @@ private:
   long m_writeBytes;
 
   // Internals 
-  folly::ProducerConsumerQueue<daq::utilities::Binary> m_payloads;
-  daq::utilities::Binary m_buffer;
-  std::map<uint64_t, std::unique_ptr<daq::utilities::ReusableThread>> m_fileWriters;
+  folly::ProducerConsumerQueue<daqling::utilities::Binary> m_payloads;
+  daqling::utilities::Binary m_buffer;
+  std::map<uint64_t, std::unique_ptr<daqling::utilities::ReusableThread>> m_fileWriters;
   std::map<uint64_t, std::function<void()>> m_writeFunctors;
   std::map<uint64_t, std::string> m_fileNames; 
   std::map<uint64_t, std::fstream> m_fileStreams;
-  std::map<uint64_t, daq::utilities::Binary> m_fileBuffers;
+  std::map<uint64_t, daqling::utilities::Binary> m_fileBuffers;
   std::map<uint64_t, uint32_t> m_fileRotationCounters; 
 
   // Thread control
@@ -73,4 +73,4 @@ private:
 
 };
 
-#endif /* DAQ_MODULES_FILEDATALOGGER_HPP_ */
+#endif // DAQLING_MODULES_FILEDATALOGGER_HPP

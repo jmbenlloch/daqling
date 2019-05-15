@@ -15,8 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQ_UTILITIES_TYPES_HPP_
-#define DAQ_UTILITIES_TYPES_HPP_
+#ifndef DAQLING_UTILITIES_TYPES_HPP
+#define DAQLING_UTILITIES_TYPES_HPP
 /*
  * Types
  * Author: Roland.Sipos@cern.ch
@@ -25,8 +25,8 @@
  * Date: May 2018
 */
 
-namespace daq{
-namespace utilities{
+namespace daqling {
+namespace utilities {
 
 typedef std::uint64_t timestamp_t;
 
@@ -37,9 +37,9 @@ static const timestamp_t s  = 1000 * ms;
 
 typedef enum { UNKNOWN=0, BINARY, INMEMORY, CASSANDRA, REST } EBackendType;
 
-}
-}
+} // namespace utilities
+} // namespace daqling
 
 
-#endif
+#endif // DAQLING_UTILITIES_TYPES_HPP
 

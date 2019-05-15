@@ -15,8 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQ_UTILITIES_HASH_h
-#define DAQ_UTILITIES_HASH_h
+#ifndef DAQLING_UTILITIES_HASH_HPP
+#define DAQLING_UTILITIES_HASH_HPP
 
 #include "Utilities/Logging.hpp"
 #include "Utilities/Binary.hpp"
@@ -30,27 +30,27 @@
  *   Hash utils from CondDB
  * Date: March 2019
 */
-namespace daq {
+namespace daqling {
 
   namespace persistency {
 
     typedef std::string Hash;
     static constexpr unsigned int HASH_SIZE = 40;
 
-    inline Hash makeHash( const std::string& objectType, const daq::utilities::Binary& data ){
+    inline Hash makeHash( const std::string& objectType, const daqling::utilities::Binary& data ){
       SHA_CTX ctx;
       if( !SHA1_Init( &ctx ) ){
-        ERROR("daq::persistency::makeHash: SHA1 initialization error.");
+        ERROR("daqling::persistency::makeHash: SHA1 initialization error.");
       }
       if( !SHA1_Update( &ctx, objectType.c_str(), objectType.size() ) ){
-        ERROR("daq::persistency::makeHash: SHA1 processing error (1).");
+        ERROR("daqling::persistency::makeHash: SHA1 processing error (1).");
       }
       if( !SHA1_Update( &ctx, data.data(), data.size() ) ){
-        ERROR("daq::persistency::makeHash: SHA1 processing error (2).");
+        ERROR("daqling::persistency::makeHash: SHA1 processing error (2).");
       }
       unsigned char hash[SHA_DIGEST_LENGTH];
       if( !SHA1_Final(hash, &ctx) ){
-        ERROR("daq::persistency::makeHash: SHA1 finalization error.");
+        ERROR("daqling::persistency::makeHash: SHA1 finalization error.");
       }
   
       char tmp[SHA_DIGEST_LENGTH*2+1];
@@ -62,9 +62,9 @@ namespace daq {
       return tmp;
     }
 
-  }
+  } // namespace persistency
 
-}
+} // namespace daqling
 
-#endif
+#endif // DAQLING_UTILITIES_HASH_HPP
 

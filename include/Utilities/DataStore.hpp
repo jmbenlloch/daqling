@@ -15,8 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQ_UTILITIES_DATASTORE_h
-#define DAQ_UTILITIES_DATASTORE_h
+#ifndef DAQLING_UTILITIES_DATASTORE_HPP
+#define DAQLING_UTILITIES_DATASTORE_HPP
 
 /*
  * DataStore
@@ -26,7 +26,7 @@
  * Date: March 2019
 */
 
-namespace daq {
+namespace daqling {
 
   namespace utilities {
 
@@ -56,9 +56,9 @@ namespace daq {
       return dynamic_cast<DataStore<T>&>(*this).setAs(rhs); 
     }
 
-  }
+  } // namespace utilities
 
-}
+} // namespace daqling
 
-#endif
+#endif // DAQLING_UTILITIES_DATASTORE_HPP
 

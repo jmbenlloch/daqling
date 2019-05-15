@@ -15,8 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQ_UTILITIES_BINARY_HPP
-#define DAQ_UTILITIES_BINARY_HPP
+#ifndef DAQLING_UTILITIES_BINARY_HPP
+#define DAQLING_UTILITIES_BINARY_HPP
 
 /*
  * Binary
@@ -30,10 +30,8 @@
 #include <iostream>
 #include <iomanip>
 
-namespace daq
-{
-namespace utilities
-{
+namespace daqling {
+namespace utilities {
 
   class Binary
   {
@@ -93,17 +91,17 @@ namespace utilities
 
   };
 
-}
-}
+} // namespace utilities
+} // namespace daqling
 
 // Inline methods
 inline bool
-daq::utilities::Binary::operator!=( const Binary& rhs ) const
+daqling::utilities::Binary::operator!=( const Binary& rhs ) const
 {
   return ( ! ( this->operator==( rhs ) ) );
 }
 
-inline std::ostream& operator<<(std::ostream& out, const daq::utilities::Binary& rhs)
+inline std::ostream& operator<<(std::ostream& out, const daqling::utilities::Binary& rhs)
 {
   for (int i = 0; i < rhs.size(); i++) {
     std::cout << std::hex << std::setw(2) << std::setfill('0')
@@ -124,5 +122,5 @@ inline std::ostream& operator<<(std::ostream& out, const daq::utilities::Binary&
   return out;
 }
 
-#endif
+#endif // DAQ_UTILITIES_BINARY_HPP
 

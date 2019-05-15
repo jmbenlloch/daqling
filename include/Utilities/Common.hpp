@@ -15,8 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQ_UTILITIES_COMMON_HPP_
-#define DAQ_UTILITIES_COMMON_HPP_
+#ifndef DAQLING_UTILITIES_COMMON_HPP
+#define DAQLING_UTILITIES_COMMON_HPP
 
 /// \cond
 #include <pthread.h>
@@ -25,7 +25,7 @@
 
 #include "Utilities/Types.hpp"
 
-namespace daq {
+namespace daqling {
 namespace utilities {
 
 /*
@@ -159,11 +159,11 @@ inline std::string className(const std::string& prettyFunction)
 }
 
 
-}
-}
+} // namespace utilities
+} // namespace daqling
 
 //#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
 //#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
 
-#endif
+#endif // DAQLING_UTILITIES_COMMON_HPP
 

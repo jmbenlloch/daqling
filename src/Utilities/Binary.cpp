@@ -21,10 +21,10 @@
 #include "Utilities/Logging.hpp"
 #include "Utilities/Common.hpp"
 
-#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
-using namespace daq::utilities;
+using namespace daqling::utilities;
 
 Binary::Binary()
   : m_size( 0 )

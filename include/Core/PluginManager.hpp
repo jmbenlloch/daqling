@@ -22,8 +22,8 @@
  * @date 2019-05-14
  */
 
-#ifndef DAQ_CORE_PLUGINMANAGER_HPP
-#define DAQ_CORE_PLUGINMANAGER_HPP
+#ifndef DAQLING_CORE_PLUGINMANAGER_HPP
+#define DAQLING_CORE_PLUGINMANAGER_HPP
 
 /// \cond
 #include <dlfcn.h>
@@ -34,14 +34,14 @@
 
 #include "Utilities/Logging.hpp"
 
-namespace daq {
+namespace daqling {
 namespace core {
 
-class PluginManager : public daq::utilities::Singleton<PluginManager> {
+class PluginManager : public daqling::utilities::Singleton<PluginManager> {
  private:
-  DAQProcess *(*m_create)(...);
-  void (*m_destroy)(DAQProcess *);
-  DAQProcess *m_dp;
+  daqling::core::DAQProcess *(*m_create)(...);
+  void (*m_destroy)(daqling::core::DAQProcess *);
+  daqling::core::DAQProcess *m_dp;
   void *m_handle;
   bool m_loaded;
 
@@ -56,7 +56,7 @@ class PluginManager : public daq::utilities::Singleton<PluginManager> {
   bool getLoaded() { return m_loaded; }
 };
 
-}  // namespace core
-}  // namespace daq
+} // namespace core
+} // namespace daqling
 
-#endif
+#endif // DAQLING_CORE_PLUGINMANAGER_HPP

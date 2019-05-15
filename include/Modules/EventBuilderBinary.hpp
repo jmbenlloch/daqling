@@ -17,12 +17,12 @@
 
 // enrico.gamberini@cern.ch
 
-#ifndef EVENTBUILDER_H_
-#define EVENTBUILDER_H_
+#ifndef DAQLING_MODULES_EVENTBUILDERBINARY_HPP
+#define DAQLING_MODULES_EVENTBUILDERBINARY_HPP
 
 #include "Core/DAQProcess.hpp"
 
-class EventBuilder : public DAQProcess {
+class EventBuilder : public daqling::core::DAQProcess {
  public:
   EventBuilder();
   ~EventBuilder();
@@ -33,4 +33,4 @@ class EventBuilder : public DAQProcess {
   void runner();
 };
 
-#endif /* EVENTBUILDER_H_ */
+#endif // DAQLING_MODULES_EVENTBUILDERBINARY_HPP
