@@ -41,10 +41,15 @@ bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr)
     INFO(__METHOD_NAME__ << " Command is already online... Won't do anything.");
     return false;
   }
-  m_cmd_context = std::make_unique<zmq::context_t>(ioT);
-  m_cmd_socket = std::make_unique<zmq::socket_t>(*(m_cmd_context.get()), ZMQ_REP);
-  m_cmd_socket->bind(connStr);
-  INFO(__METHOD_NAME__ << " Command is connected on: " << connStr);
+  try {
+    m_cmd_context = std::make_unique<zmq::context_t>(ioT);
+    m_cmd_socket = std::make_unique<zmq::socket_t>(*(m_cmd_context.get()), ZMQ_REP);
+    m_cmd_socket->bind(connStr);
+    INFO(__METHOD_NAME__ << " Command is connected on: " << connStr);
+  } catch (std::exception& e) {
+    ERROR(__METHOD_NAME__ << " Failed to add Command channel! ZMQ returned: " << e.what());
+    return false;
+  }
   m_cmd_handler = std::thread([&]() {
     Command& cmd = Command::instance();
     zmq::message_t cmdMsg;
@@ -66,6 +71,23 @@ bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr)
   return true;
 }
 
+bool ConnectionManager::setupStatsConnection(uint8_t ioT, std::string connStr) {
+  if (m_is_stats_setup) {
+    INFO(__METHOD_NAME__ << " Statistics socket is already online... Won't do anything.");
+    return false;
+  }
+  try {
+    m_stats_context = std::make_unique<zmq::context_t>(ioT);
+    m_stats_socket = std::make_unique<zmq::socket_t>(*(m_stats_context.get()), ZMQ_PUB);
+    m_stats_socket->bind(connStr);
+    INFO(__METHOD_NAME__ << " Statistics are published on: " << connStr);
+  } catch (std::exception& e) {
+    ERROR(__METHOD_NAME__ << " Failed to add Stats publisher channel! ZMQ returned: " << e.what());
+    return false;
+  }
+  return true;
+}
+
 bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, uint16_t tag, std::string host,
                                    uint16_t port, size_t queueSize, bool zerocopy) {
   std::ostringstream connStr;
@@ -80,9 +102,10 @@ bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, const std::stri
     return false;
   }
   uint8_t ioT = 1;
-  m_contexts[chn] = std::make_unique<zmq::context_t>(ioT);
-  m_pcqs[chn] = std::make_unique<MessageQueue>(queueSize);
-  m_directions[chn] = dir;
+  m_contexts[chn] = std::make_unique<zmq::context_t>(ioT); // Create context
+  m_pcqs[chn] = std::make_unique<MessageQueue>(queueSize); // Create SPSC queue.
+  m_pcqSizes[chn] = {0};                                   // Create stats. counter for queue
+  m_directions[chn] = dir;                                 // Setup direction.
   try {
     if ( dir == EDirection::SERVER ) {
       m_sockets[chn] = std::make_unique<zmq::socket_t>(*(m_contexts[chn].get()), ZMQ_PAIR);
@@ -121,9 +144,10 @@ bool ConnectionManager::addReceiveHandler(uint64_t chn) {
       } else {
         std::this_thread::sleep_for(10ms);
       }
-      if (m_pcqs[chn]->sizeGuess() != 0) {
-        DEBUG("SERVER -> queue population: " << m_pcqs[chn]->sizeGuess());
-      }
+      m_pcqSizes[chn].store(m_pcqs[chn]->sizeGuess());
+      //if (m_pcqs[chn]->sizeGuess() != 0) {
+      //  DEBUG("SERVER -> queue population: " << m_pcqs[chn]->sizeGuess());
+      //}
     }
     INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
   });
@@ -135,13 +159,13 @@ bool ConnectionManager::addSendHandler(uint64_t chn) {
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
       zmq::message_t msg;
-      if (m_pcqs[chn]->sizeGuess() != 0) {
-        DEBUG("CLIENT -> queue population: " << m_pcqs[chn]->sizeGuess());
-      }
       if (m_pcqs[chn]->read(msg)) {
-        // s_send( *(m_sockets[chn].get()), msg );
         m_sockets[chn]->send(msg);
       }
+      m_pcqSizes[chn].store(m_pcqs[chn]->sizeGuess());
+      //if (m_pcqs[chn]->sizeGuess() != 0) {
+      //  DEBUG("CLIENT -> queue population: " << m_pcqs[chn]->sizeGuess());
+      //}
     }
     INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
   });
@@ -159,10 +183,10 @@ bool ConnectionManager::addSubscribeHandler(uint64_t chn) {
       } else {
         std::this_thread::sleep_for(10ms);
       }
-      // INFO(m_className << " No messages for some time... sleeping a second...");
-      if (m_pcqs[chn]->sizeGuess() != 0) {
-        DEBUG("SUB -> queue population: " << m_pcqs[chn]->sizeGuess());
-      }
+      m_pcqSizes[chn].store(m_pcqs[chn]->sizeGuess()); 
+      //if (m_pcqs[chn]->sizeGuess() != 0) {
+      //  DEBUG("SUB -> queue population: " << m_pcqs[chn]->sizeGuess());
+      //}
     }
     INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
   });
@@ -174,13 +198,13 @@ bool ConnectionManager::addPublishHandler(uint64_t chn) {
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
       zmq::message_t msg;
-      if (m_pcqs[chn]->sizeGuess() != 0) {
-        DEBUG("PUB -> queue population: " << m_pcqs[chn]->sizeGuess());
-      }
       if (m_pcqs[chn]->read(msg)) {
-        // s_send( *(m_sockets[chn].get()), msg );
         m_sockets[chn]->send(msg);
       }
+      m_pcqSizes[chn].store(m_pcqs[chn]->sizeGuess());      
+      //if (m_pcqs[chn]->sizeGuess() != 0) {
+      //  DEBUG("PUB -> queue population: " << m_pcqs[chn]->sizeGuess());
+      //}
     }
     INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
   });

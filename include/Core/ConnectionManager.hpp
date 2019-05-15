@@ -48,7 +48,7 @@ namespace core {
 
 // template <class CT, class ST>
 class ConnectionManager : public daqling::utilities::Singleton<ConnectionManager> {
- public:
+public:
   //
   ConnectionManager() : m_is_cmd_setup{false}, m_stop_cmd_handler{false}, m_stop_handlers{false} {}
   ~ConnectionManager() {
@@ -69,6 +69,7 @@ class ConnectionManager : public daqling::utilities::Singleton<ConnectionManager
 
   // Functionalities
   bool setupCommandConnection(uint8_t ioT, std::string connStr);
+  bool setupStatsConnection(uint8_t ioT, std::string connStr);
 
   // Add a channel (sockets and queues)
   bool addChannel(uint64_t chn, EDirection dir, uint16_t tag, std::string host, uint16_t port,
@@ -92,6 +93,7 @@ class ConnectionManager : public daqling::utilities::Singleton<ConnectionManager
 
   // Utilities
   size_t getNumOfChannels() { return m_activeChannels; }  // Get the number of active channels.
+  std::atomic<size_t>& getChannelStat(uint64_t chn) { return m_pcqSizes[chn]; }
 
   /*
     bool connect(uint64_t chn, uint16_t tag) { return false; } // Connect/subscriber to given
@@ -101,7 +103,7 @@ class ConnectionManager : public daqling::utilities::Singleton<ConnectionManager
     bool busy() { return false; } // are processor threads busy
   */
 
- private:
+private:
   const std::string m_className = "ConnectionManager";
   size_t m_activeChannels;
 
@@ -115,12 +117,20 @@ class ConnectionManager : public daqling::utilities::Singleton<ConnectionManager
   // std::map<uint64_t, UniqueFrameQueue> m_pcqs;
 #endif
 
+  // Stats
+  std::map<uint64_t, std::atomic<size_t>> m_pcqSizes;
+
   // Network library handling
+  // Command
   std::thread m_cmd_handler;
   std::unique_ptr<zmq::context_t> m_cmd_context;
   std::unique_ptr<zmq::socket_t> m_cmd_socket;
   std::atomic<bool> m_is_cmd_setup;
-
+  // Statistics
+  std::unique_ptr<zmq::context_t> m_stats_context;
+  std::unique_ptr<zmq::socket_t> m_stats_socket;
+  std::atomic<bool> m_is_stats_setup;
+  // Dataflow
   std::map<uint64_t, std::unique_ptr<zmq::context_t>> m_contexts;  // context descriptors
   std::map<uint64_t, std::unique_ptr<zmq::socket_t>> m_sockets;    // sockets.
   std::map<uint64_t, EDirection> m_directions;
