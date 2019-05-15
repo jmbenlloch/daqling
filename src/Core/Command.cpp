@@ -39,7 +39,7 @@ bool daqling::core::Command::startCommandHandler() {
   unsigned tid = 1;
   bool rv = false;
   m_commandFunctors.push_back([&, tid] {
-    DEBUG("CommandThread  ->>> Should handle message: " << m_message);
+    DEBUG("CommandThread  ->>> Should handle command: " << m_command);
     std::string response;
     rv = executeCommand(response);
     setResponse(response);
@@ -49,15 +49,18 @@ bool daqling::core::Command::startCommandHandler() {
 }
 
 bool daqling::core::Command::executeCommand(std::string& response) {
-  Configuration& cfg = Configuration::instance();
-  cfg.load(m_message);
   // INFO("Loaded configuration");
-  auto command = cfg.get<std::string>("command");
-  // INFO("Get command: " << command);
+  // auto command = cfg.get<std::string>("command");
+  auto command = nlohmann::json::parse(m_command)["command"];
+  DEBUG("Get command: " << command);
   auto& m_plugin = daqling::core::PluginManager::instance();
   auto& cm = daqling::core::ConnectionManager::instance();
 
   if (command == "configure") {
+    auto& cfg = Configuration::instance();
+    cfg.load(m_config);
+    DEBUG("Get config: " << m_config);
+
     auto type = cfg.get<std::string>("type");
     INFO("Loading type: " << type);
 

@@ -59,12 +59,16 @@ def addProcesses(components, debug):
           p['name'], exe+" "+str(p['port']), dir, env))
 
 
-def handleRequest(host, port, request):
+def handleRequest(host, port, request, config=None):
   socket = context.socket(zmq.REQ)
   socket.setsockopt(zmq.LINGER, 0)
   socket.RCVTIMEO = 2000
   socket.connect("tcp://"+host+":"+str(port))
-  socket.send_string(request)
+  if config == None:
+    socket.send_string(request)
+  else:
+    socket.send_string(request, zmq.SNDMORE)
+    socket.send_string(config)
   try:
     reply = socket.recv()
     # print(reply)
@@ -80,9 +84,9 @@ class configureProcess (threading.Thread):
     self.p = p
 
   def run(self):
-    self.p['command'] = 'configure'
-    req = json.dumps(self.p)
-    rv = handleRequest(self.p['host'], self.p['port'], req)
+    req = json.dumps({'command': 'configure'})
+    config = json.dumps(self.p)
+    rv = handleRequest(self.p['host'], self.p['port'], req, config)
     if rv != b'Success':
       print("Error", self.p['name'], rv)
 
