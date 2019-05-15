@@ -27,6 +27,7 @@
 
 #include "Core/Configuration.hpp"
 #include "Core/ConnectionManager.hpp"
+#include "Core/Statistics.hpp"
 #include "Utilities/Common.hpp"
 #include "Utilities/Logging.hpp"
 
@@ -46,6 +47,9 @@ class DAQProcess {
   virtual void start() {
     m_run = true;
     m_runner_thread = std::make_unique<std::thread>(&DAQProcess::runner, this);
+    if (m_stats_on) {
+      m_statistics->start();
+    }
     m_state = "running";
   };
 
@@ -59,11 +63,37 @@ class DAQProcess {
 
   std::string getState() { return m_state; }
 
+  bool setupStatistics() { // TODO
+
+    auto statsURI = m_config.getConfig()["settings"]["stats_uri"];
+    INFO(__METHOD_NAME__ << " Setting up statistics on: " << statsURI);
+    if (statsURI == "" || statsURI == nullptr){
+      INFO(__METHOD_NAME__ << " No Statistics settings were provided... Running without stats. ");
+      m_stats_on = false;
+      return false;
+    } else {
+      if ( !m_connections.setupStatsConnection(1, statsURI) ) {
+        ERROR(__METHOD_NAME__ << " Connection setup failed for Statistics publishing! ");
+        return false;
+      }
+      m_statistics = std::make_unique<Statistics>(m_connections.getStatSocket());
+      m_statistics->registerCoreMetric("CHN0-QueueSizeGuess", &m_connections.getQueueStat(1) );
+      m_statistics->registerCoreMetric("CHN0-NumMessages", &m_connections.getMsgStat(1) );
+      m_statistics->configure(1);
+      m_stats_on = true;
+    }
+    return true;
+  } 
+
  protected:
   // ZMQ ConnectionManager
   daqling::core::ConnectionManager& m_connections = daqling::core::ConnectionManager::instance();
   // JSON Configuration map
   daqling::core::Configuration& m_config = daqling::core::Configuration::instance();
+
+  // Stats
+  bool m_stats_on;
+  std::unique_ptr<Statistics> m_statistics;
 
   std::string m_state;
   std::atomic<bool> m_run;
