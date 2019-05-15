@@ -117,6 +117,7 @@ bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, const std::stri
   m_contexts[chn] = std::make_unique<zmq::context_t>(ioT); // Create context
   m_pcqs[chn] = std::make_unique<MessageQueue>(queueSize); // Create SPSC queue.
   m_pcqSizes[chn] = {0};                                   // Create stats. counter for queue
+  m_numMsgsHandled[chn] = {0};                             //               counter for msgs 
   m_directions[chn] = dir;                                 // Setup direction.
   try {
     if ( dir == EDirection::SERVER ) {
@@ -152,6 +153,7 @@ bool ConnectionManager::addReceiveHandler(uint64_t chn) {
       zmq::message_t msg;
       if ((m_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) == true) {
         m_pcqs[chn]->write(std::move(msg));
+        m_numMsgsHandled[chn]++;
         DEBUG("    -> wrote to queue");
       } else {
         std::this_thread::sleep_for(10ms);
@@ -173,6 +175,7 @@ bool ConnectionManager::addSendHandler(uint64_t chn) {
       zmq::message_t msg;
       if (m_pcqs[chn]->read(msg)) {
         m_sockets[chn]->send(msg);
+        m_numMsgsHandled[chn]++;
       }
       m_pcqSizes[chn].store(m_pcqs[chn]->sizeGuess());
       //if (m_pcqs[chn]->sizeGuess() != 0) {
@@ -191,6 +194,7 @@ bool ConnectionManager::addSubscribeHandler(uint64_t chn) {
       zmq::message_t msg;
       if ((m_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) == true) {
         m_pcqs[chn]->write(std::move(msg));
+        m_numMsgsHandled[chn]++;
         DEBUG("    -> wrote to queue");
       } else {
         std::this_thread::sleep_for(10ms);
@@ -212,6 +216,7 @@ bool ConnectionManager::addPublishHandler(uint64_t chn) {
       zmq::message_t msg;
       if (m_pcqs[chn]->read(msg)) {
         m_sockets[chn]->send(msg);
+        m_numMsgsHandled[chn]++;
       }
       m_pcqSizes[chn].store(m_pcqs[chn]->sizeGuess());      
       //if (m_pcqs[chn]->sizeGuess() != 0) {

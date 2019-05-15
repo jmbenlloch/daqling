@@ -63,6 +63,7 @@ public:
   typedef std::unique_ptr<MessageQueue> UniqueMessageQueue;
   typedef folly::ProducerConsumerQueue<std::string> StringQueue;
   typedef std::unique_ptr<StringQueue> UniqueStringQueue;
+  typedef std::map<uint64_t, std::atomic<size_t>> SizeStatMap;
 
   // Enums
   enum EDirection { SERVER, CLIENT, PUBLISHER, SUBSCRIBER };
@@ -93,7 +94,11 @@ public:
 
   // Utilities
   size_t getNumOfChannels() { return m_activeChannels; }  // Get the number of active channels.
-  std::atomic<size_t>& getChannelStat(uint64_t chn) { return m_pcqSizes[chn]; }
+  std::atomic<size_t>& getQueueStat(uint64_t chn) { return m_pcqSizes[chn]; }
+  std::atomic<size_t>& getMsgStat(uint64_t chn) { return m_numMsgsHandled[chn]; }
+  const SizeStatMap& getStatsMap() { return std::ref(m_pcqSizes); }
+  const SizeStatMap& getMsgStatsMap() { return std::ref(m_numMsgsHandled); }
+  std::unique_ptr<zmq::socket_t>& getStatSocket() { return std::ref(m_stats_socket); }
 
   /*
     bool connect(uint64_t chn, uint16_t tag) { return false; } // Connect/subscriber to given
@@ -118,7 +123,8 @@ private:
 #endif
 
   // Stats
-  std::map<uint64_t, std::atomic<size_t>> m_pcqSizes;
+  SizeStatMap m_pcqSizes;
+  SizeStatMap m_numMsgsHandled;
 
   // Network library handling
   // Command
