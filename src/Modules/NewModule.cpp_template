@@ -26,12 +26,12 @@ NewModule::NewModule() { INFO("NewModule::NewModule"); }
 NewModule::~NewModule() { INFO("NewModule::~NewModule"); }
 
 void NewModule::start() {
-  DAQProcess::start();
+  daqling::core::DAQProcess::start();
   INFO("NewModule::start");
 }
 
 void NewModule::stop() {
-  DAQProcess::stop();
+  daqling::core::DAQProcess::stop();
   INFO("NewModule::stop");
 }
 

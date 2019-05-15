@@ -57,8 +57,20 @@ bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr)
       // INFO(m_className << " CMD_THREAD: Going for RECV poll...");
       if ((m_cmd_socket->recv(&cmdMsg, ZMQ_DONTWAIT)) == true) {
         std::string cmdmsgStr(static_cast<char*>(cmdMsg.data()), cmdMsg.size());
-        // INFO(m_className << " CMD_THREAD: Got CMD: " << cmdmsgStr);
-        cmd.setMessage(cmdmsgStr);
+        DEBUG(m_className << " CMD_THREAD: Got CMD: " << cmdmsgStr);
+        cmd.setCommand(cmdmsgStr);
+        int more;
+        size_t more_size = sizeof(size_t);
+        m_cmd_socket->getsockopt(ZMQ_RCVMORE, &more, &more_size);
+        DEBUG("getsockopt RCVMORE " << more);
+        if(more) {
+          zmq::message_t configMsg;
+          m_cmd_socket->recv(&configMsg, ZMQ_DONTWAIT);
+          std::string configStr(static_cast<char*>(configMsg.data()), configMsg.size());
+          DEBUG("======== RECEIVE MORE " << configStr);
+          cmd.setConfig(configStr);
+        }
+
         cmd.handleCommand();
         s_send(*(m_cmd_socket.get()), cmd.getResponse());
       }

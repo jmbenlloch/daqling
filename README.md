@@ -99,7 +99,7 @@ The `dev` option of `daqinterface.py`
 
     cd vendor/spdlog
     git checkout 1.3.1
-    git add
+    git add .
     git commit
 
 ### Json
@@ -109,7 +109,7 @@ The `dev` option of `daqinterface.py`
     cd vendor/json
     git checkout v3.5.0
     cd ../
-    git add
+    git add .
     git commit
 
 
@@ -119,7 +119,7 @@ The `dev` option of `daqinterface.py`
 
     cd vendor/cereal
     git checkout v1.2.2
-    git add
+    git add .
     git commit
 
 ### (Optional) Docopt
@@ -129,5 +129,5 @@ The `dev` option of `daqinterface.py`
     cd vendor/docopt
     git checkout v0.6.2
     cd ../
-    git add
+    git add .
     git commit

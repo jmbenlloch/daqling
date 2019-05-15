@@ -27,7 +27,7 @@ namespace core {
 
 class Command : public daqling::utilities::Singleton<Command> {
  public:
-  Command() : m_should_stop{false}, m_handled(false), m_message{""}, m_response{""} {
+  Command() : m_should_stop{false}, m_handled(false), m_command{""}, m_config{""}, m_response{""} {
     m_commandHandler = std::make_unique<daqling::utilities::ReusableThread>(10);
   }
   ~Command() {}
@@ -41,8 +41,10 @@ class Command : public daqling::utilities::Singleton<Command> {
 
   bool getHandled() { return m_handled; }
   void setHandled(bool handled) { m_handled = handled; }
-  std::string getMessage() { return m_message; }
-  void setMessage(std::string message) { m_message = message; }
+  std::string getCommand() { return m_command; }
+  void setCommand(std::string command) { m_command = command; }
+  std::string getConfig() { return m_config; }
+  void setConfig(std::string config) { m_config = config; }
   std::string getResponse() { return m_response; }
   void setResponse(std::string response) { m_response = response; }
   bool getShouldStop() { return m_should_stop; }
@@ -53,7 +55,8 @@ class Command : public daqling::utilities::Singleton<Command> {
   bool busy();
   bool m_should_stop;
   bool m_handled;
-  std::string m_message;
+  std::string m_command;
+  std::string m_config;
   std::string m_response;
   std::mutex m_mtx;
   std::condition_variable m_cv;
