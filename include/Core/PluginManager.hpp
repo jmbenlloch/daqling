@@ -49,6 +49,7 @@ class PluginManager : public daqling::utilities::Singleton<PluginManager> {
   PluginManager();
   ~PluginManager();
 
+  bool configure();
   bool load(std::string name);
   void start() { m_dp->start(); };
   void stop() { m_dp->stop(); };

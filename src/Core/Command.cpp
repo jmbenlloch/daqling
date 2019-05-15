@@ -109,6 +109,8 @@ bool daqling::core::Command::executeCommand(std::string& response) {
       ERROR("Shutting down...");
       stop_and_notify();
     }
+    m_plugin.configure();
+
   } else if (command == "start") {
     cm.start();
 

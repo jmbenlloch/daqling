@@ -55,3 +55,9 @@ bool PluginManager::load(std::string name) {
   m_loaded = true;
   return true;
 }
+
+bool PluginManager::configure() {
+  m_dp->setupStatistics();
+  return true;
+}
+
