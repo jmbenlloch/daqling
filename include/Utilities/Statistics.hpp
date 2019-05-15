@@ -1,3 +1,21 @@
+/**
+ * Copyright (C) 2019 CERN
+ * 
+ * DAQling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * DAQling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
 #include <thread>
 #include <iostream>
 #include <vector>
@@ -42,16 +60,9 @@ private:
 			this_thread::sleep_for( std::chrono::seconds(1) );
 			map<string,std::atomic<int>*>::iterator itr;
 			for(itr = variables_map.begin(); itr != variables_map.end(); ++itr) {
-				//cout<<itr->first<<'\t'<<*itr->second<<'\n';
-/*
-				string s = "A";
-				zmq::message_t message1(s.size());
-    			memcpy (message1.data(), s.data(), s.size());
-				bool rc = publisher.send (message1, ZMQ_SNDMORE);
-*/
 				string msg = itr->first + ": " + to_string(*itr->second);
 				zmq::message_t message(msg.size());
-    				memcpy (message.data(), msg.data(), msg.size());
+    			memcpy (message.data(), msg.data(), msg.size());
 				cout<<msg.data()<<endl;
 
 				bool rc = publisher.send(message);
