@@ -16,7 +16,7 @@
  */
 
 
-#include "Utilities/Statistics.hpp"
+#include "Core/Statistics.hpp"
 #include <unistd.h>
 #include <atomic> 
 #include "zmq.hpp"
@@ -29,11 +29,16 @@ int main(int argc, char** argv)
 	buffer_occupation = 0;
 	packets = 0;
 
-	Statistics stat;
-	stat.Start();
-	cout<<"Called start"<<'\n'; 
-	stat.RegisterVariable("BufferOccupation", &buffer_occupation);
-	stat.RegisterVariable("NumberOfPackets", &packets);
+        zmq::context_t context(1);
+        std::unique_ptr<zmq::socket_t> publisher;
+        publisher = std::make_unique<zmq::socket_t>(context, ZMQ_PUB);
+        publisher->bind("tcp://*:5556");
+
+	daqling::core::Statistics stat(std::ref(publisher));
+	stat.start();
+	std::cout<<"Called start"<<'\n'; 
+	stat.registerVariable("BufferOccupation", &buffer_occupation);
+	stat.registerVariable("NumberOfPackets", &packets);
 	while(1){
 		usleep(500000);
 		//std::cout<<"bla"<<std::endl;
