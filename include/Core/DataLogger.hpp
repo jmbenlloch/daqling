@@ -27,7 +27,7 @@
 #define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 /*
- * ConnectionManager
+ * DataLogger
  * Author: Roland.Sipos@cern.ch
  * Description: DataLogger interface with generic datastore
  * Date: March 2019
