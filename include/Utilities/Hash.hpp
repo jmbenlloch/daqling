@@ -40,17 +40,17 @@ namespace daqling {
     inline Hash makeHash( const std::string& objectType, const daqling::utilities::Binary& data ){
       SHA_CTX ctx;
       if( !SHA1_Init( &ctx ) ){
-        ERROR("daq::persistency::makeHash: SHA1 initialization error.");
+        ERROR("daqling::persistency::makeHash: SHA1 initialization error.");
       }
       if( !SHA1_Update( &ctx, objectType.c_str(), objectType.size() ) ){
-        ERROR("daq::persistency::makeHash: SHA1 processing error (1).");
+        ERROR("daqling::persistency::makeHash: SHA1 processing error (1).");
       }
       if( !SHA1_Update( &ctx, data.data(), data.size() ) ){
-        ERROR("daq::persistency::makeHash: SHA1 processing error (2).");
+        ERROR("daqling::persistency::makeHash: SHA1 processing error (2).");
       }
       unsigned char hash[SHA_DIGEST_LENGTH];
       if( !SHA1_Final(hash, &ctx) ){
-        ERROR("daq::persistency::makeHash: SHA1 finalization error.");
+        ERROR("daqling::persistency::makeHash: SHA1 finalization error.");
       }
   
       char tmp[SHA_DIGEST_LENGTH*2+1];

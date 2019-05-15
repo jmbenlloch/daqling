@@ -15,8 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQ_MODULES_FILEDATALOGGER_HPP_
-#define DAQ_MODULES_FILEDATALOGGER_HPP_
+#ifndef DAQLING_MODULES_FILEDATALOGGER_HPP
+#define DAQLING_MODULES_FILEDATALOGGER_HPP
 
 /// \cond
 #include <iostream>
@@ -73,4 +73,4 @@ private:
 
 };
 
-#endif /* DAQ_MODULES_FILEDATALOGGER_HPP_ */
+#endif // DAQLING_MODULES_FILEDATALOGGER_HPP

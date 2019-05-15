@@ -15,8 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQ_MODULES_CASSANDRADATALOGGER_HPP_
-#define DAQ_MODULES_CASSANDRADATALOGGER_HPP_
+#ifndef DAQLING_MODULES_CASSANDRADATALOGGER_HPP
+#define DAQLING_MODULES_CASSANDRADATALOGGER_HPP
 
 /// \cond
 #include <iostream>
@@ -39,8 +39,8 @@
  *   Heavily relies on the CondDB payload chunked storage.
  * Date: November 2017
  */
-class CassandraDataLogger : public DAQProcess, public DataLogger {
-  class CassandraChunkedStorageProvider : public daq::persistency::ChunkedStorageProvider {
+class CassandraDataLogger : public daqling::core::DAQProcess, public daqling::core::DataLogger {
+  class CassandraChunkedStorageProvider : public daqling::persistency::ChunkedStorageProvider {
    public:
     explicit CassandraChunkedStorageProvider(...) {
       // Any init?
@@ -59,9 +59,9 @@ class CassandraDataLogger : public DAQProcess, public DataLogger {
     const int getDefaultChunkSize() { return 0; }
     void deleteObject(const std::string& objectName, int chunkCount) const {}
     void writeMetadata(const std::string& objectName,
-                       const daq::persistency::ObjectMetadata& attr) const {}
-    const daq::persistency::ObjectMetadata readMetadata(const std::string& objectName) const {
-      daq::persistency::ObjectMetadata attributes;
+                       const daqling::persistency::ObjectMetadata& attr) const {}
+    const daqling::persistency::ObjectMetadata readMetadata(const std::string& objectName) const {
+      daqling::persistency::ObjectMetadata attributes;
       return attributes;
     }
 
@@ -81,7 +81,7 @@ class CassandraDataLogger : public DAQProcess, public DataLogger {
     void setup();
     void write();
     void read();
-    bool write(uint64_t keyId, daq::utilities::Binary& payload);
+    bool write(uint64_t keyId, daqling::utilities::Binary& payload);
     void shutdown();
 
   private:
@@ -104,7 +104,7 @@ class CassandraDataLogger : public DAQProcess, public DataLogger {
     const std::string Q_INSERT = "INSERT INTO daq.payload (pkey, type, s_info, version, time, size, data) VALUES (?,?,?,?,?,?,?);";
 
     const std::string getErrorStr( CassFuture*& future );
-    void readIntoBinary( daq::utilities::Binary& binary, const CassValue* const & value );
+    void readIntoBinary( daqling::utilities::Binary& binary, const CassValue* const & value );
     bool prepareQuery( const std::string& qStr, const CassPrepared** prepared );
     bool executeStatement( CassStatement*& statement );
     bool executeStatement( CassStatement*& statement, const CassResult** result );
@@ -122,4 +122,4 @@ class CassandraDataLogger : public DAQProcess, public DataLogger {
 
 };
 
-#endif /* DAQ_MODULES_CASSANDRADATALOGGER_HPP_ */
+#endif // DAQLING_MODULES_CASSANDRADATALOGGER_HPP

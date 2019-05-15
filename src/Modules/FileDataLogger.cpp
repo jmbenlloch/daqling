@@ -23,11 +23,11 @@
 #include "Modules/FileDataLogger.hpp"
 #include "Utilities/Logging.hpp"
 
-#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 using namespace std::chrono_literals;
-namespace daqutils = daq::utilities;
+namespace daqutils = daqling::utilities;
 
 extern "C" FileDataLogger *create_object() { return new FileDataLogger; }
 
@@ -42,7 +42,7 @@ FileDataLogger::FileDataLogger() : m_payloads{10000}, m_stopWriters{false} {
   std::ios_base::sync_with_stdio(false);
   m_fileNames[1] = "/tmp/test.bin";
   m_fileStreams[1] = std::fstream(m_fileNames[1], std::ios::out | std::ios::binary);
-  m_fileBuffers[1] = daq::utilities::Binary(0);
+  m_fileBuffers[1] = daqling::utilities::Binary(0);
   setup();
 }
 
@@ -65,7 +65,7 @@ void FileDataLogger::stop() {
 
 void FileDataLogger::runner() {
   INFO(__METHOD_NAME__ << " Running...");
-  //auto& cm = daq::core::ConnectionManager::instance();
+  //auto& cm = daqling::core::ConnectionManager::instance();
   while (m_run) {
     daqutils::Binary pl(0);
     while (!m_connections.get(1, std::ref(pl))) {
@@ -82,7 +82,7 @@ void FileDataLogger::runner() {
 void FileDataLogger::setup() {
   // Loop through sources from config and add a file writer for each sink.
   int tid = 1;
-  m_fileWriters[tid] = std::make_unique<daq::utilities::ReusableThread>(11111);
+  m_fileWriters[tid] = std::make_unique<daqling::utilities::ReusableThread>(11111);
   m_writeFunctors[tid] = [&, tid]{
      int ftid = tid;
      INFO(__METHOD_NAME__ << " Spawning fileWriter for link: " << ftid);
@@ -98,9 +98,9 @@ void FileDataLogger::setup() {
            long splitSize = sizeSum - m_writeBytes; // Calc split size
            long splitOffset = long(m_payloads.frontPtr()->size()) - long(splitSize); // Calc split offset
            DEBUG(" -> Sizes: | postPart: " << splitSize << " | For fillPart: " << splitOffset); 
-           daq::utilities::Binary fillPart(m_payloads.frontPtr()->startingAddress(), splitOffset);
+           daqling::utilities::Binary fillPart(m_payloads.frontPtr()->startingAddress(), splitOffset);
            DEBUG(" -> filPart DONE.");
-           daq::utilities::Binary postPart(static_cast<char*>(m_payloads.frontPtr()->startingAddress()) + splitOffset, splitSize);
+           daqling::utilities::Binary postPart(static_cast<char*>(m_payloads.frontPtr()->startingAddress()) + splitOffset, splitSize);
            DEBUG(" -> postPart DONE.");
            m_fileBuffers[ftid] += fillPart;
            DEBUG(" -> " << m_fileBuffers[ftid].size() << " [Bytes] will be written.");
@@ -110,10 +110,10 @@ void FileDataLogger::setup() {
          } else { // We can safely extend the buffer.
            
            // This is fishy:
-           m_fileBuffers[ftid] += *(reinterpret_cast<daq::utilities::Binary*>( m_payloads.frontPtr() ));
+           m_fileBuffers[ftid] += *(reinterpret_cast<daqling::utilities::Binary*>( m_payloads.frontPtr() ));
            m_payloads.popFront();
 
-           //daq::utilities::Binary frontPayload(0);
+           //daqling::utilities::Binary frontPayload(0);
            //m_payloads.read( std::ref(frontPayload) );
            //m_fileBuffers[ftid] += frontPayload;
  
@@ -129,7 +129,7 @@ void FileDataLogger::write() {
   INFO(__METHOD_NAME__ << " Should write...");
 }
 
-bool FileDataLogger::write(uint64_t keyId, daq::utilities::Binary& payload) {
+bool FileDataLogger::write(uint64_t keyId, daqling::utilities::Binary& payload) {
   INFO(__METHOD_NAME__ << " Should write...");
   return false;
 }

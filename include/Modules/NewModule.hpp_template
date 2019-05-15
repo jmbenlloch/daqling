@@ -15,12 +15,12 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NEWMODULE_H_
-#define NEWMODULE_H_
+#ifndef DAQLING_MODULES_NEWMODULE_HPP
+#define DAQLING_MODULES_NEWMODULE_HPP
 
 #include "Core/DAQProcess.hpp"
 
-class NewModule : public DAQProcess {
+class NewModule : public daqling::core::DAQProcess {
  public:
   NewModule();
   ~NewModule();
@@ -31,4 +31,4 @@ class NewModule : public DAQProcess {
   void runner();
 };
 
-#endif /* NEWMODULE_H_ */
+#endif // DAQLING_MODULES_NEWMODULE_HPP

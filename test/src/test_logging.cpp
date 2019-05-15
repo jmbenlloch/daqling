@@ -18,7 +18,7 @@
 #include "Utilities/Logging.hpp"
 #include "Core/ConnectionManager.hpp"
 
-using namespace daq;
+using namespace daqling;
 
 int
 main(int argc, char** argv)
@@ -28,7 +28,7 @@ main(int argc, char** argv)
   WARNING("Ugh!" << 12345 << "bof bof" << '\n');
 
   INFO("Testing ConnectionManager.hpp");
-  daq::core::ConnectionManager& cm = daq::core::ConnectionManager::instance();
+  daqling::core::ConnectionManager& cm = daqling::core::ConnectionManager::instance();
   
 
   ERROR("About to die...");

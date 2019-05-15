@@ -48,16 +48,16 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    DAQProcess *(*create)(...);
-    void (*destroy)(DAQProcess *);
+    daqling::core::DAQProcess *(*create)(...);
+    void (*destroy)(daqling::core::DAQProcess *);
 
-    create = (DAQProcess * (*)(...)) dlsym(handle, "create_object");
-    destroy = (void (*)(DAQProcess *))dlsym(handle, "destroy_object");
+    create = (daqling::core::DAQProcess * (*)(...)) dlsym(handle, "create_object");
+    destroy = (void (*)(daqling::core::DAQProcess *))dlsym(handle, "destroy_object");
 
     std::string name = "hello";
     int num = 42;
     
-    DAQProcess *dp = (DAQProcess *)create(name, num);
+    auto *dp = (daqling::core::DAQProcess *)create(name, num);
 
     dp->start();
     std::this_thread::sleep_for(2s);

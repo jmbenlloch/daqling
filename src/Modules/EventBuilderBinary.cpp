@@ -23,8 +23,8 @@
 
 #include "Modules/EventBuilderBinary.hpp"
 
-#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 using namespace std::chrono_literals;
 
@@ -51,7 +51,7 @@ void EventBuilder::stop() {
 void EventBuilder::runner() {
   INFO(__METHOD_NAME__ << " Running...");
   while (m_run) {
-    daq::utilities::Binary b1, b2;
+    daqling::utilities::Binary b1, b2;
     while(!m_connections.get(1, b1) && m_run) {
       std::this_thread::sleep_for(10ms);
     }
@@ -59,7 +59,7 @@ void EventBuilder::runner() {
       std::this_thread::sleep_for(10ms);
     }
 
-    daq::utilities::Binary b3(b1);
+    daqling::utilities::Binary b3(b1);
     b3 += b2;
     INFO(__METHOD_NAME__ << " Size of build event: " << b3.size());
     m_connections.put(3, b3);

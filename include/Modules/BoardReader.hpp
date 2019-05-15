@@ -17,8 +17,8 @@
 
 // enrico.gamberini@cern.ch
 
-#ifndef BOARDREADER_HPP
-#define BOARDREADER_HPP
+#ifndef DAQLING_MODULES_BOARDREADER_HPP
+#define DAQLING_MODULES_BOARDREADER_HPP
 
 /// \cond
 #include <string>
@@ -36,4 +36,4 @@ class BoardReader : public daqling::core::DAQProcess {
   void runner();
 };
 
-#endif  // BOARDREADER_HPP
+#endif  // DAQLING_MODULES_BOARDREADER_HPP
