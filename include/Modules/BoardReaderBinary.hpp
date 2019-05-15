@@ -15,23 +15,28 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Utilities/Logging.hpp"
-#include "Core/ConnectionManager.hpp"
+// enrico.gamberini@cern.ch
 
-using namespace daqling;
+#ifndef DAQLING_MODULES_BOARDREADERBINARY_HPP
+#define DAQLING_MODULES_BOARDREADERBINARY_HPP
 
-int
-main(int argc, char** argv)
-{
+/// \cond
+#include <string>
+/// \endcond
 
-  INFO("WOOF WOOF");
-  WARNING("Ugh!" << 12345 << "bof bof" << '\n');
+#include "Core/DAQProcess.hpp"
 
-  INFO("Testing ConnectionManager.hpp");
-  daqling::core::ConnectionManager& cm = daqling::core::ConnectionManager::instance();
-  
+class BoardReader : public daqling::core::DAQProcess {
+ public:
+  BoardReader(std::string name, int num);
+  ~BoardReader();
+  void start();
+  void stop();
 
-  ERROR("About to die...");
-  return 0;
-}
+  void runner();
 
+ private:
+  unsigned m_board_id;
+};
+
+#endif // DAQLING_MODULES_BOARDREADERBINARY_HPP

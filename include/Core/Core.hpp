@@ -1,5 +1,22 @@
-#ifndef DAQ_CORE_CORE_HPP_
-#define DAQ_CORE_CORE_HPP_
+/**
+ * Copyright (C) 2019 CERN
+ * 
+ * DAQling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * DAQling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef DAQLING_CORE_CORE_HPP
+#define DAQLING_CORE_CORE_HPP
 
 /// \cond
 #include <atomic>
@@ -7,7 +24,7 @@
 
 #include "Core/PluginManager.hpp"
 
-namespace daq {
+namespace daqling {
 namespace core {
 
 class Core {
@@ -30,16 +47,16 @@ class Core {
   std::thread m_cmdHandler;
 
   // ZMQ ConnectionManager
-  daq::core::ConnectionManager &m_connections = daq::core::ConnectionManager::instance();
+  daqling::core::ConnectionManager &m_connections = daqling::core::ConnectionManager::instance();
   // Command exchange
-  daq::core::Command &m_command = daq::core::Command::instance();
+  daqling::core::Command &m_command = daqling::core::Command::instance();
   // JSON Configuration map
-  daq::core::Configuration &m_config = daq::core::Configuration::instance();
+  daqling::core::Configuration &m_config = daqling::core::Configuration::instance();
   // Plugin manager
-  daq::core::PluginManager &m_plugin = daq::core::PluginManager::instance();
+  daqling::core::PluginManager &m_plugin = daqling::core::PluginManager::instance();
 };
 
-}  // namespace core
-}  // namespace daq
+} // namespace core
+} // namespace daqling
 
-#endif
+#endif // DAQLING_CORE_CORE_HPP

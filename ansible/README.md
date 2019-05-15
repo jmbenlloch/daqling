@@ -1,4 +1,4 @@
-# Install the rd51 framework
+# Install the daqling framework
 
 ## Set up your host and install supervisord
 

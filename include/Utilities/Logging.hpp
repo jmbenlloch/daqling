@@ -1,5 +1,27 @@
-#ifndef DAQ_UTILITIES_LOGGING_H
-#define DAQ_UTILITIES_LOGGING_H
+/**
+ * Copyright (C) 2019 CERN
+ * 
+ * DAQling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * DAQling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file Logging.hpp
+ * @author https://gitlab.cern.ch/atlas-tdaq-felix/felixbase
+ */
+
+#ifndef DAQLING_UTILITIES_LOGGING_HPP
+#define DAQLING_UTILITIES_LOGGING_HPP
 
 /// \cond
 #include <memory>
@@ -10,10 +32,10 @@
 #include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/sinks/rotating_file_sink.h"
 
-//#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-//#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+//#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+//#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
-namespace daq {
+namespace daqling {
 namespace utilities
 {
 	class Logger
@@ -72,17 +94,17 @@ namespace utilities
 	}
 
 typedef spdlog::level::level_enum level;
-}
-}
+} // namespace utilities
+} // namespace daqling
 
 #undef INFO
 
-#define DEBUG(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->debug(writer.str()); } while (0)
-#define INFO(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->info(writer.str()); } while (0)
-#define NOTICE(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->notice(writer.str()); } while (0)
-#define WARNING(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->warn(writer.str()); } while (0)
-#define ERROR(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->error(writer.str()); } while (0)
-#define CRITICAL(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->critical(writer.str()); } while (0)
-#define ALERT(MSG) do { std::ostringstream writer; writer << MSG; daq::utilities::Logger::instance()->alert(writer.str()); } while (0)
+#define DEBUG(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->debug(writer.str()); } while (0)
+#define INFO(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->info(writer.str()); } while (0)
+#define NOTICE(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->notice(writer.str()); } while (0)
+#define WARNING(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->warn(writer.str()); } while (0)
+#define ERROR(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->error(writer.str()); } while (0)
+#define CRITICAL(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->critical(writer.str()); } while (0)
+#define ALERT(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->alert(writer.str()); } while (0)
 
-#endif
+#endif // DAQLING_UTILITIES_LOGGING_HPP

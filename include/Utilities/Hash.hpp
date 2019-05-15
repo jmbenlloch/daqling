@@ -1,5 +1,22 @@
-#ifndef DAQ_UTILITIES_HASH_h
-#define DAQ_UTILITIES_HASH_h
+/**
+ * Copyright (C) 2019 CERN
+ * 
+ * DAQling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * DAQling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef DAQLING_UTILITIES_HASH_HPP
+#define DAQLING_UTILITIES_HASH_HPP
 
 #include "Utilities/Logging.hpp"
 #include "Utilities/Binary.hpp"
@@ -13,27 +30,27 @@
  *   Hash utils from CondDB
  * Date: March 2019
 */
-namespace daq {
+namespace daqling {
 
   namespace persistency {
 
     typedef std::string Hash;
     static constexpr unsigned int HASH_SIZE = 40;
 
-    inline Hash makeHash( const std::string& objectType, const daq::utilities::Binary& data ){
+    inline Hash makeHash( const std::string& objectType, const daqling::utilities::Binary& data ){
       SHA_CTX ctx;
       if( !SHA1_Init( &ctx ) ){
-        ERROR("daq::persistency::makeHash: SHA1 initialization error.");
+        ERROR("daqling::persistency::makeHash: SHA1 initialization error.");
       }
       if( !SHA1_Update( &ctx, objectType.c_str(), objectType.size() ) ){
-        ERROR("daq::persistency::makeHash: SHA1 processing error (1).");
+        ERROR("daqling::persistency::makeHash: SHA1 processing error (1).");
       }
       if( !SHA1_Update( &ctx, data.data(), data.size() ) ){
-        ERROR("daq::persistency::makeHash: SHA1 processing error (2).");
+        ERROR("daqling::persistency::makeHash: SHA1 processing error (2).");
       }
       unsigned char hash[SHA_DIGEST_LENGTH];
       if( !SHA1_Final(hash, &ctx) ){
-        ERROR("daq::persistency::makeHash: SHA1 finalization error.");
+        ERROR("daqling::persistency::makeHash: SHA1 finalization error.");
       }
   
       char tmp[SHA_DIGEST_LENGTH*2+1];
@@ -45,9 +62,9 @@ namespace daq {
       return tmp;
     }
 
-  }
+  } // namespace persistency
 
-}
+} // namespace daqling
 
-#endif
+#endif // DAQLING_UTILITIES_HASH_HPP
 

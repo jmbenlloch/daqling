@@ -1,3 +1,20 @@
+/**
+ * Copyright (C) 2019 CERN
+ * 
+ * DAQling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * DAQling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /// \cond
 #include <chrono>
 #include <sstream>
@@ -6,34 +23,34 @@
 #include "Modules/FileDataLogger.hpp"
 #include "Utilities/Logging.hpp"
 
-#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 using namespace std::chrono_literals;
-namespace daqutils = daq::utilities;
+namespace daqutils = daqling::utilities;
 
 extern "C" FileDataLogger *create_object() { return new FileDataLogger; }
 
 extern "C" void destroy_object(FileDataLogger *object) { delete object; }
 
-FileDataLogger::FileDataLogger() : m_payloads{10000}, m_randDevice{}, m_mt{m_randDevice()}, m_uniformDist{64, 512},
-                                   m_stopWriters{false} { 
-  INFO("FileDataLogger::FileDataLogger"); 
- 
+FileDataLogger::FileDataLogger() : m_payloads{10000}, m_stopWriters{false} {
+  INFO("FileDataLogger::FileDataLogger");
+
 #warning RS -> Needs to be properly configured.
   // Set up static resources...
-  m_dummyStr = "dummy";
-  m_writeBytes = 1024; // 4K buffer writes
+  m_writeBytes = 4 * daqutils::Constant::Kilo; // 4K buffer writes
   std::ios_base::sync_with_stdio(false);
   m_fileNames[1] = "/tmp/test.bin";
   m_fileStreams[1] = std::fstream(m_fileNames[1], std::ios::out | std::ios::binary);
-  m_fileBuffers[1] = daq::utilities::Binary(0);
+  m_fileBuffers[1] = daqling::utilities::Binary(0);
   setup();
 }
 
 FileDataLogger::~FileDataLogger() { 
   INFO("FileDataLogger::~FileDataLogger"); 
   // Tear down resources...
+  m_stopWriters.store(true);
+  m_fileStreams[1].close();
 }
 
 void FileDataLogger::start() { 
@@ -44,23 +61,20 @@ void FileDataLogger::start() {
 void FileDataLogger::stop() { 
   DAQProcess::stop();
   INFO(__METHOD_NAME__ << " getState: " << this->getState());
-  m_stopWriters.store(true);
 }
 
 void FileDataLogger::runner() {
-  //auto& cm = daq::core::ConnectionManager::instance();
-  uint64_t incr = 0;
+  INFO(__METHOD_NAME__ << " Running...");
+  //auto& cm = daqling::core::ConnectionManager::instance();
   while (m_run) {
-    std::this_thread::sleep_for(100ms);
-    incr++;
-    int randSize = m_uniformDist(m_mt);
-//    randSize = 32;
-//    DEBUG(__METHOD_NAME__ << " Rolled random size for payload: " << randSize);
-    daqutils::Binary pl(randSize);
-    memcpy(pl.startingAddress(), m_dummyStr.data(), m_dummyStr.length());
+    daqutils::Binary pl(0);
+    while (!m_connections.get(1, std::ref(pl))) {
+      std::this_thread::sleep_for(10ms);
+    }
     m_payloads.write(pl);
+    DEBUG(__METHOD_NAME__ << "Wrote data from channel 1...");
   }
-  DEBUG(__METHOD_NAME__ << " Runner stopped");
+  INFO(__METHOD_NAME__ << " Runner stopped");
 }
 
 #warning RS -> File rotation implementation is missing
@@ -68,7 +82,7 @@ void FileDataLogger::runner() {
 void FileDataLogger::setup() {
   // Loop through sources from config and add a file writer for each sink.
   int tid = 1;
-  m_fileWriters[tid] = std::make_unique<daq::utilities::ReusableThread>(11111);
+  m_fileWriters[tid] = std::make_unique<daqling::utilities::ReusableThread>(11111);
   m_writeFunctors[tid] = [&, tid]{
      int ftid = tid;
      INFO(__METHOD_NAME__ << " Spawning fileWriter for link: " << ftid);
@@ -84,9 +98,9 @@ void FileDataLogger::setup() {
            long splitSize = sizeSum - m_writeBytes; // Calc split size
            long splitOffset = long(m_payloads.frontPtr()->size()) - long(splitSize); // Calc split offset
            DEBUG(" -> Sizes: | postPart: " << splitSize << " | For fillPart: " << splitOffset); 
-           daq::utilities::Binary fillPart(m_payloads.frontPtr()->startingAddress(), splitOffset);
+           daqling::utilities::Binary fillPart(m_payloads.frontPtr()->startingAddress(), splitOffset);
            DEBUG(" -> filPart DONE.");
-           daq::utilities::Binary postPart(static_cast<char*>(m_payloads.frontPtr()->startingAddress()) + splitOffset, splitSize);
+           daqling::utilities::Binary postPart(static_cast<char*>(m_payloads.frontPtr()->startingAddress()) + splitOffset, splitSize);
            DEBUG(" -> postPart DONE.");
            m_fileBuffers[ftid] += fillPart;
            DEBUG(" -> " << m_fileBuffers[ftid].size() << " [Bytes] will be written.");
@@ -96,16 +110,16 @@ void FileDataLogger::setup() {
          } else { // We can safely extend the buffer.
            
            // This is fishy:
-           m_fileBuffers[ftid] += *(reinterpret_cast<daq::utilities::Binary*>( m_payloads.frontPtr() ));
+           m_fileBuffers[ftid] += *(reinterpret_cast<daqling::utilities::Binary*>( m_payloads.frontPtr() ));
            m_payloads.popFront();
 
-           //daq::utilities::Binary frontPayload(0);
+           //daqling::utilities::Binary frontPayload(0);
            //m_payloads.read( std::ref(frontPayload) );
            //m_fileBuffers[ftid] += frontPayload;
  
          }
        }
-       std::this_thread::sleep_for(50ms);
+       std::this_thread::sleep_for(10ms);
      }
   };
   m_fileWriters[1]->set_work(m_writeFunctors[1]);
@@ -115,7 +129,7 @@ void FileDataLogger::write() {
   INFO(__METHOD_NAME__ << " Should write...");
 }
 
-bool FileDataLogger::write(uint64_t keyId, daq::utilities::Binary& payload) {
+bool FileDataLogger::write(uint64_t keyId, daqling::utilities::Binary& payload) {
   INFO(__METHOD_NAME__ << " Should write...");
   return false;
 }

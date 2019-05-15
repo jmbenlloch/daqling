@@ -1,5 +1,22 @@
-#ifndef DAQ_UTILITIES_ChunkedStorage_hpp
-#define DAQ_UTILITIES_ChunkedStorage_hpp
+/**
+ * Copyright (C) 2019 CERN
+ * 
+ * DAQling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * DAQling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef DAQLING_UTILITIES_CHUNKEDSTORAGE_HPP
+#define DAQLING_UTILITIES_CHUNKEDSTORAGE_HPP
 
 /*
     Description: ChunkedObjectStorage recipe to split and merge payloads.
@@ -29,7 +46,7 @@
   #include "tbb/task_scheduler_init.h"
 #endif
 
-namespace daq {
+namespace daqling {
 
   namespace persistency {
 
@@ -122,7 +139,7 @@ namespace daq {
                  int chunkId,
                  size_t chunkSize,
                  void*& blobPtr ) :
-                 //tbb::concurrent_vector<std::shared_ptr<std::pair<const void*, size_t>>>& chunks) ://daq::utilities::Binary>>& chunks ) : 
+                 //tbb::concurrent_vector<std::shared_ptr<std::pair<const void*, size_t>>>& chunks) ://daqling::utilities::Binary>>& chunks ) : 
         m_csp(csp),
         m_objectName(objectName),
         m_chunkId(chunkId),
@@ -151,12 +168,12 @@ namespace daq {
 
       const std::shared_ptr<ChunkedStorageProvider>& m_csp;
       const std::string& m_objectName;
-      daq::utilities::Binary& m_outputObject;
+      daqling::utilities::Binary& m_outputObject;
 
     public:
       ObjectReader(const std::shared_ptr<ChunkedStorageProvider>& provider, 
                    const std::string& objectName, 
-                   daq::utilities::Binary& outputObject)
+                   daqling::utilities::Binary& outputObject)
           : m_csp(provider), m_objectName(objectName), m_outputObject(outputObject)
       {
 #ifndef USE_TBB_FETCH
@@ -181,7 +198,7 @@ namespace daq {
         } while( true );
         
         void* placeholder = malloc(attributes.getObjectSize());
-        m_outputObject = daq::utilities::Binary(placeholder, attributes.getObjectSize());
+        m_outputObject = daqling::utilities::Binary(placeholder, attributes.getObjectSize());
         void* blobPtr = const_cast<void*>(m_outputObject.data());
         free(placeholder);
  
@@ -237,9 +254,9 @@ namespace daq {
       e_Defaults m_ttl = ObjectWriter::TTL;
       const std::shared_ptr<ChunkedStorageProvider>& m_csp;
       const std::string& m_objectName;
-      const daq::utilities::Binary& m_inputObject;
+      const daqling::utilities::Binary& m_inputObject;
     public:
-      ObjectWriter(const std::shared_ptr<ChunkedStorageProvider>& provider, const std::string& objectName, const daq::utilities::Binary& inputObject)
+      ObjectWriter(const std::shared_ptr<ChunkedStorageProvider>& provider, const std::string& objectName, const daqling::utilities::Binary& inputObject)
         : m_csp(provider), m_objectName(objectName), m_inputObject(inputObject) {}
       ~ObjectWriter(){}
       const ObjectMetadata call() const {
@@ -290,7 +307,7 @@ namespace daq {
       ~ObjectDeleter(){};
       const ObjectMetadata call() const { 
         ERROR("Attempt to delete chunk! It's forbidden..."); 
-        daq::persistency::ObjectMetadata attributes;
+        daqling::persistency::ObjectMetadata attributes;
         return attributes;
       }
     };
@@ -304,7 +321,7 @@ namespace daq {
       ~ObjectDirectoryLister(){};
       const ObjectMetadata call() const { 
         ERROR("The Directory lister feature is not supported yet..."); 
-        daq::persistency::ObjectMetadata attributes;
+        daqling::persistency::ObjectMetadata attributes;
         return attributes;
       }
     };
@@ -312,11 +329,11 @@ namespace daq {
 
     class ChunkedStorage {
     public:
-        static const ObjectWriter newWriter(const std::shared_ptr<ChunkedStorageProvider>& provider, const std::string& objectName, const daq::utilities::Binary& inputObject) {
+        static const ObjectWriter newWriter(const std::shared_ptr<ChunkedStorageProvider>& provider, const std::string& objectName, const daqling::utilities::Binary& inputObject) {
             return ObjectWriter(provider, objectName, inputObject);
         }
 
-        static const ObjectReader newReader(const std::shared_ptr<ChunkedStorageProvider>& provider, const std::string& objectName, daq::utilities::Binary& outputObject) {
+        static const ObjectReader newReader(const std::shared_ptr<ChunkedStorageProvider>& provider, const std::string& objectName, daqling::utilities::Binary& outputObject) {
             return ObjectReader(provider, objectName, outputObject);
         }
 
@@ -335,8 +352,8 @@ namespace daq {
 
 
 
-  }
-}
+  } // namespace persistency
+} // namespace daqling
 
 #endif //ChunkedStorage_h
 

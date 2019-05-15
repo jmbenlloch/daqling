@@ -1,5 +1,22 @@
-#ifndef DAQ_MODULES_CASSANDRADATALOGGER_HPP_
-#define DAQ_MODULES_CASSANDRADATALOGGER_HPP_
+/**
+ * Copyright (C) 2019 CERN
+ * 
+ * DAQling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * DAQling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef DAQLING_MODULES_CASSANDRADATALOGGER_HPP
+#define DAQLING_MODULES_CASSANDRADATALOGGER_HPP
 
 /// \cond
 #include <iostream>
@@ -22,8 +39,8 @@
  *   Heavily relies on the CondDB payload chunked storage.
  * Date: November 2017
  */
-class CassandraDataLogger : public DAQProcess, public DataLogger {
-  class CassandraChunkedStorageProvider : public daq::persistency::ChunkedStorageProvider {
+class CassandraDataLogger : public daqling::core::DAQProcess, public daqling::core::DataLogger {
+  class CassandraChunkedStorageProvider : public daqling::persistency::ChunkedStorageProvider {
    public:
     explicit CassandraChunkedStorageProvider(...) {
       // Any init?
@@ -42,9 +59,9 @@ class CassandraDataLogger : public DAQProcess, public DataLogger {
     const int getDefaultChunkSize() { return 0; }
     void deleteObject(const std::string& objectName, int chunkCount) const {}
     void writeMetadata(const std::string& objectName,
-                       const daq::persistency::ObjectMetadata& attr) const {}
-    const daq::persistency::ObjectMetadata readMetadata(const std::string& objectName) const {
-      daq::persistency::ObjectMetadata attributes;
+                       const daqling::persistency::ObjectMetadata& attr) const {}
+    const daqling::persistency::ObjectMetadata readMetadata(const std::string& objectName) const {
+      daqling::persistency::ObjectMetadata attributes;
       return attributes;
     }
 
@@ -64,13 +81,13 @@ class CassandraDataLogger : public DAQProcess, public DataLogger {
     void setup();
     void write();
     void read();
-    bool write(uint64_t keyId, daq::utilities::Binary& payload);
+    bool write(uint64_t keyId, daqling::utilities::Binary& payload);
     void shutdown();
 
   private:
 
 // RS -> ALL THIS SHOULD BE NICELY HIDDEN BEHIND A SESSION LAYER.
-    const std::string M_KEYSPACE_NAME = "rd51daq";
+    const std::string M_KEYSPACE_NAME = "daq";
     const std::string M_CF_NAME = "payload";
 
     const std::string M_COLUMNFAMILY  = "pkey, type, s_info, version, time, size, data";
@@ -84,10 +101,10 @@ class CassandraDataLogger : public DAQProcess, public DataLogger {
 
     const std::string Q_SAY_HI = "SELECT key,bootstrapped,broadcast_address,cluster_name,cql_version,data_center FROM system.local";   
     const std::string Q_CF_EXISTS = "SELECT table_name from system_schema.tables WHERE keyspace_name=? AND table_name=?";
-    const std::string Q_INSERT = "INSERT INTO rd51daq.payload (pkey, type, s_info, version, time, size, data) VALUES (?,?,?,?,?,?,?);";
+    const std::string Q_INSERT = "INSERT INTO daq.payload (pkey, type, s_info, version, time, size, data) VALUES (?,?,?,?,?,?,?);";
 
     const std::string getErrorStr( CassFuture*& future );
-    void readIntoBinary( daq::utilities::Binary& binary, const CassValue* const & value );
+    void readIntoBinary( daqling::utilities::Binary& binary, const CassValue* const & value );
     bool prepareQuery( const std::string& qStr, const CassPrepared** prepared );
     bool executeStatement( CassStatement*& statement );
     bool executeStatement( CassStatement*& statement, const CassResult** result );
@@ -105,4 +122,4 @@ class CassandraDataLogger : public DAQProcess, public DataLogger {
 
 };
 
-#endif /* DAQ_MODULES_CASSANDRADATALOGGER_HPP_ */
+#endif // DAQLING_MODULES_CASSANDRADATALOGGER_HPP

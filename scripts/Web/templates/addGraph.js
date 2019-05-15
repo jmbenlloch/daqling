@@ -7,7 +7,7 @@ function addGraph(names, tabName){
 				data: (function () {
 					var data3 = [];
 					$.ajax({
-						url: 'http://0.0.0.0:5000/data/'+names[i],
+						url: 'http://128.141.148.13:5000/data/'+names[i],
 						async: false,
 						dataType: 'json',
 						success: function (json) {   
@@ -37,7 +37,7 @@ function addGraph(names, tabName){
 							setInterval(function () {
 								for (i in names) {
 
-									var url = 'http://0.0.0.0:5000/lastMeas/'+names[i];
+									var url = 'http://128.141.148.13:5000/lastMeas/'+names[i];
 									var data2 = [];
 
 									$.ajax({

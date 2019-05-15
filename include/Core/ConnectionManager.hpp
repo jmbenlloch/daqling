@@ -1,5 +1,22 @@
-#ifndef DAQ_CORE_CONNECTION_MANAGER_HH_
-#define DAQ_CORE_CONNECTION_MANAGER_HH_
+/**
+ * Copyright (C) 2019 CERN
+ * 
+ * DAQling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * DAQling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef DAQLING_CORE_CONNECTIONMANAGER_HPP
+#define DAQLING_CORE_CONNECTIONMANAGER_HPP
 
 /// \cond
 #include <algorithm>
@@ -18,7 +35,7 @@
 
 #define MSGQ
 
-namespace daq {
+namespace daqling {
 namespace core {
 
 /*
@@ -30,7 +47,7 @@ namespace core {
  */
 
 // template <class CT, class ST>
-class ConnectionManager : public daq::utilities::Singleton<ConnectionManager> {
+class ConnectionManager : public daqling::utilities::Singleton<ConnectionManager> {
  public:
   //
   ConnectionManager() : m_is_cmd_setup{false}, m_stop_cmd_handler{false}, m_stop_handlers{false} {}
@@ -64,8 +81,8 @@ class ConnectionManager : public daq::utilities::Singleton<ConnectionManager> {
   * 
   * @return true when binary file is successfully passed
   */
-  bool get(uint64_t chn, daq::utilities::Binary& bin);
-  void put(uint64_t chn, utilities::Binary& msgBin);
+  bool get(uint64_t chn, daqling::utilities::Binary& bin);
+  void put(uint64_t chn, daqling::utilities::Binary& msgBin);
   void putStr(uint64_t chn, const std::string& string);
   std::string getStr(uint64_t chn);
 
@@ -110,7 +127,7 @@ class ConnectionManager : public daq::utilities::Singleton<ConnectionManager> {
 
   // Threads
   std::map<uint64_t, std::thread> m_handlers;
-  std::map<uint64_t, std::unique_ptr<daq::utilities::ReusableThread>> m_processors;
+  std::map<uint64_t, std::unique_ptr<daqling::utilities::ReusableThread>> m_processors;
   std::map<uint64_t, std::function<void()>> m_functors;
 
   // Thread control
@@ -130,7 +147,7 @@ class ConnectionManager : public daq::utilities::Singleton<ConnectionManager> {
 
 };
 
-}  // namespace core
-}  // namespace daq
+} // namespace core
+} // namespace daqling
 
-#endif
+#endif // DAQLING_CORE_CONNECTIONMANAGER_HPP

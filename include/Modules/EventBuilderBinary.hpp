@@ -15,23 +15,22 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Utilities/Logging.hpp"
-#include "Core/ConnectionManager.hpp"
+// enrico.gamberini@cern.ch
 
-using namespace daqling;
+#ifndef DAQLING_MODULES_EVENTBUILDERBINARY_HPP
+#define DAQLING_MODULES_EVENTBUILDERBINARY_HPP
 
-int
-main(int argc, char** argv)
-{
+#include "Core/DAQProcess.hpp"
 
-  INFO("WOOF WOOF");
-  WARNING("Ugh!" << 12345 << "bof bof" << '\n');
+class EventBuilder : public daqling::core::DAQProcess {
+ public:
+  EventBuilder();
+  ~EventBuilder();
 
-  INFO("Testing ConnectionManager.hpp");
-  daqling::core::ConnectionManager& cm = daqling::core::ConnectionManager::instance();
-  
+  void start();
+  void stop();
 
-  ERROR("About to die...");
-  return 0;
-}
+  void runner();
+};
 
+#endif // DAQLING_MODULES_EVENTBUILDERBINARY_HPP

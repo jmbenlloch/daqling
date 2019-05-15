@@ -1,3 +1,20 @@
+/**
+ * Copyright (C) 2019 CERN
+ * 
+ * DAQling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * DAQling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 // enrico.gamberini@cern.ch
 
 /// \cond
@@ -12,6 +29,8 @@
 #include "Modules/EventBuilder.hpp"
 #include "Utilities/Logging.hpp"
 #include "Core/ConnectionManager.hpp"
+
+using namespace std::chrono_literals;
 
 int main(int argc, char **argv)
 {
@@ -29,19 +48,19 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    DAQProcess *(*create)(...);
-    void (*destroy)(DAQProcess *);
+    daqling::core::DAQProcess *(*create)(...);
+    void (*destroy)(daqling::core::DAQProcess *);
 
-    create = (DAQProcess * (*)(...)) dlsym(handle, "create_object");
-    destroy = (void (*)(DAQProcess *))dlsym(handle, "destroy_object");
+    create = (daqling::core::DAQProcess * (*)(...)) dlsym(handle, "create_object");
+    destroy = (void (*)(daqling::core::DAQProcess *))dlsym(handle, "destroy_object");
 
     std::string name = "hello";
     int num = 42;
     
-    DAQProcess *dp = (DAQProcess *)create(name, num);
+    auto *dp = (daqling::core::DAQProcess *)create(name, num);
 
     dp->start();
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::this_thread::sleep_for(2s);
     dp->stop();
     destroy(dp);
 }

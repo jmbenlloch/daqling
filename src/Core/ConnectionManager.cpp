@@ -1,3 +1,20 @@
+/**
+ * Copyright (C) 2019 CERN
+ * 
+ * DAQling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * DAQling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /// \cond
 #include <chrono>
 #include <ctime>
@@ -13,10 +30,10 @@
 #include "Utilities/Common.hpp"
 #include "Utilities/Logging.hpp"
 
-#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
-using namespace daq::core;
+using namespace daqling::core;
 using namespace std::chrono_literals;
 
 bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr) {
@@ -100,11 +117,13 @@ bool ConnectionManager::addReceiveHandler(uint64_t chn) {
       zmq::message_t msg;
       if ((m_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) == true) {
         m_pcqs[chn]->write(std::move(msg));
-        INFO("    -> wrote to queue");
+        DEBUG("    -> wrote to queue");
+      } else {
+        std::this_thread::sleep_for(10ms);
       }
-      // INFO(m_className << " No messages for some time... sleeping a second...");
-      INFO("SERVER -> queue population: " << m_pcqs[chn]->sizeGuess());
-      std::this_thread::sleep_for(100ms);
+      if (m_pcqs[chn]->sizeGuess() != 0) {
+        DEBUG("SERVER -> queue population: " << m_pcqs[chn]->sizeGuess());
+      }
     }
     INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
   });
@@ -117,7 +136,7 @@ bool ConnectionManager::addSendHandler(uint64_t chn) {
     while (!m_stop_handlers) {
       zmq::message_t msg;
       if (m_pcqs[chn]->sizeGuess() != 0) {
-        INFO("CLIENT -> queue population: " << m_pcqs[chn]->sizeGuess());
+        DEBUG("CLIENT -> queue population: " << m_pcqs[chn]->sizeGuess());
       }
       if (m_pcqs[chn]->read(msg)) {
         // s_send( *(m_sockets[chn].get()), msg );
@@ -136,11 +155,14 @@ bool ConnectionManager::addSubscribeHandler(uint64_t chn) {
       zmq::message_t msg;
       if ((m_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) == true) {
         m_pcqs[chn]->write(std::move(msg));
-        INFO("    -> wrote to queue");
+        DEBUG("    -> wrote to queue");
+      } else {
+        std::this_thread::sleep_for(10ms);
       }
       // INFO(m_className << " No messages for some time... sleeping a second...");
-      INFO("SUB -> queue population: " << m_pcqs[chn]->sizeGuess());
-      std::this_thread::sleep_for(100ms);
+      if (m_pcqs[chn]->sizeGuess() != 0) {
+        DEBUG("SUB -> queue population: " << m_pcqs[chn]->sizeGuess());
+      }
     }
     INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
   });
@@ -153,7 +175,7 @@ bool ConnectionManager::addPublishHandler(uint64_t chn) {
     while (!m_stop_handlers) {
       zmq::message_t msg;
       if (m_pcqs[chn]->sizeGuess() != 0) {
-        INFO("PUB -> queue population: " << m_pcqs[chn]->sizeGuess());
+        DEBUG("PUB -> queue population: " << m_pcqs[chn]->sizeGuess());
       }
       if (m_pcqs[chn]->read(msg)) {
         // s_send( *(m_sockets[chn].get()), msg );
@@ -165,7 +187,7 @@ bool ConnectionManager::addPublishHandler(uint64_t chn) {
   return true;
 }
 
-bool ConnectionManager::get(uint64_t chn, daq::utilities::Binary& bin) {
+bool ConnectionManager::get(uint64_t chn, daqling::utilities::Binary& bin) {
   if (m_pcqs[chn]->sizeGuess() != 0) {
     utilities::Binary msgBin(m_pcqs[chn]->frontPtr()->data(), m_pcqs[chn]->frontPtr()->size());
     m_pcqs[chn]->popFront();
@@ -221,7 +243,7 @@ bool ConnectionManager::start() {
 
 bool ConnectionManager::stop() {
   m_stop_handlers.store(true);
-  std::this_thread::sleep_for(1s);
+  std::this_thread::sleep_for(100ms);
   for (auto& tIt : m_handlers) {
     tIt.second.join();
   }

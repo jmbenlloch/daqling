@@ -1,15 +1,40 @@
-// enrico.gamberini@cern.ch
+/**
+ * Copyright (C) 2019 CERN
+ * 
+ * DAQling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * DAQling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+ */
 
-#ifndef DAQPROCESS_HPP_
-#define DAQPROCESS_HPP_
+/**
+ * @file DAQProcess.hpp
+ * @author Enrico.Gamberini@cern.ch
+ * @brief Base class for Modules loaded via the PluginManager
+ * @date 2019-02-20
+ */
+ 
+#ifndef DAQLING_CORE_DAQPROCESS_HPP
+#define DAQLING_CORE_DAQPROCESS_HPP
 
 #include "Core/Configuration.hpp"
 #include "Core/ConnectionManager.hpp"
 #include "Utilities/Common.hpp"
 #include "Utilities/Logging.hpp"
 
-#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
+
+namespace daqling {
+namespace core {
 
 class DAQProcess {
  public:
@@ -36,13 +61,16 @@ class DAQProcess {
 
  protected:
   // ZMQ ConnectionManager
-  daq::core::ConnectionManager& m_connections = daq::core::ConnectionManager::instance();
+  daqling::core::ConnectionManager& m_connections = daqling::core::ConnectionManager::instance();
   // JSON Configuration map
-  daq::core::Configuration& m_config = daq::core::Configuration::instance();
+  daqling::core::Configuration& m_config = daqling::core::Configuration::instance();
 
   std::string m_state;
   std::atomic<bool> m_run;
   std::unique_ptr<std::thread> m_runner_thread;
 };
 
-#endif /* DAQPROCESS_HPP_ */
+} // namespace core
+} // namespace daqling
+
+#endif // DAQLING_CORE_DAQPROCESS_HPP

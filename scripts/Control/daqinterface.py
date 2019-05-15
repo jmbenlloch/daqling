@@ -1,3 +1,20 @@
+"""
+ Copyright (C) 2019 CERN
+ 
+ DAQling is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ DAQling is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public License
+ along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+"""
+
 # enrico.gamberini@cern.ch
 
 import sys
@@ -23,7 +40,7 @@ def removeProcesses(components):
         try:
           print('Stop', sd.stopProcess(i['name']))
         except:
-          print("Exception: cannot stop process", i['name'])
+          print("Exception: cannot stop process", i['name'], "(probably already stopped)")
         print('State', sd.getProcessState(i['name'])['statename'])
       try:
         print('Remove', sd.removeProcessFromGroup(i['name']))
@@ -31,11 +48,15 @@ def removeProcesses(components):
         print("Exception: cannot remove process", i['name'])
 
 
-def addProcesses(components):
+def addProcesses(components, debug):
   for p in components:
     sd = supervisord.supervisord(p['host'], group)
-    print("Add", sd.addProgramToGroup(
-        p['name'], exe+" "+str(p['port']), dir, env))
+    if debug is True:
+      print("Add", sd.addProgramToGroup(
+          p['name'], exe+" "+str(p['port'])+" debug", dir, env))
+    else:
+      print("Add", sd.addProgramToGroup(
+          p['name'], exe+" "+str(p['port']), dir, env))
 
 
 def handleRequest(host, port, request):
@@ -116,6 +137,8 @@ class statusCheck (threading.Thread):
       if new_status != status and new_status != "":
         print(self.p['name'], "in status", new_status)
         status = new_status
+      elif new_status == "":
+        print("Error", self.p['name'])
 
 
 def spawnJoin(list, func):
@@ -144,6 +167,7 @@ exe = settings['exe']
 env = settings['env']
 
 validation = True
+debug = False
 
 arg = "complete"
 if len(sys.argv) <= 2:
@@ -159,6 +183,7 @@ for o in sys.argv:
   elif o == 'dev':
     print("Developer mode")
     validation = False
+    debug = True
 
 with open(sys.argv[1]) as f:
   data = json.load(f)
@@ -177,7 +202,7 @@ if arg == "remove":
   quit()
 
 if arg == 'add' or arg == 'complete':
-  addProcesses(data['components'])
+  addProcesses(data['components'], debug)
   if arg == 'add':
     quit()
 
@@ -208,12 +233,11 @@ while(not exit):
   elif text == "stop":
     spawnJoin(data['components'], stopProcess)
   elif text == "down":
+    exit = True
+    for t in threads:
+      t.join()
     spawnJoin(data['components'], shutdownProcess)
     if arg != 'configure':
       removeProcesses(data['components'])
-    exit = True
-
-for t in threads:
-  t.join()
 
 quit()

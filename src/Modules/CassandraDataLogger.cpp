@@ -1,3 +1,20 @@
+/**
+ * Copyright (C) 2019 CERN
+ * 
+ * DAQling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * DAQling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /// \cond
 #include <chrono>
 #include <sstream>
@@ -8,11 +25,11 @@
 #include "Utilities/Hash.hpp"
 #include "Utilities/Logging.hpp"
 
-#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 using namespace std::chrono_literals;
-namespace daqutils = daq::utilities;
+namespace daqutils = daqling::utilities;
 
 extern "C" CassandraDataLogger* create_object() { return new CassandraDataLogger; }
 
@@ -197,17 +214,16 @@ void CassandraDataLogger::stop() {
 }
 
 void CassandraDataLogger::runner() {
+  INFO(__METHOD_NAME__ << " Running...");
   uint64_t incr = 0;
   while (m_run) {
-    INFO(__METHOD_NAME__ << " Running...");
-    std::this_thread::sleep_for(500ms);
     incr++;
     daqutils::Binary pl(0);
     while (!m_connections.get(1, std::ref(pl))) {
-      std::this_thread::sleep_for(50ms);
+      std::this_thread::sleep_for(10ms);
     }
     write(incr, pl);
-    INFO(__METHOD_NAME__ << "Wrote data from channel 1...");
+    DEBUG(__METHOD_NAME__ << "Wrote data from channel 1...");
   }
   INFO(__METHOD_NAME__ << " Runner stopped");
 }
@@ -245,7 +261,7 @@ void CassandraDataLogger::write() {}
 
 void CassandraDataLogger::read() {}
 
-bool CassandraDataLogger::write(uint64_t keyId, daq::utilities::Binary& payload) {
+bool CassandraDataLogger::write(uint64_t keyId, daqling::utilities::Binary& payload) {
   daqutils::Binary sinfoData(0);
   bool success = false;
   const CassPrepared* prepared = nullptr;
@@ -255,7 +271,7 @@ bool CassandraDataLogger::write(uint64_t keyId, daq::utilities::Binary& payload)
     cass_statement_bind_int64(statement, 0, keyId);
 #endif
 #ifdef HASH_MODE
-    daq::persistency::Hash payloadHash = daq::persistency::makeHash("eventType", payload);
+    daqling::persistency::Hash payloadHash = daqling::persistency::makeHash("eventType", payload);
     cass_statement_bind_string(statement, 0, payloadHash.c_str());
 #endif
     cass_statement_bind_string(statement, 1, "event");

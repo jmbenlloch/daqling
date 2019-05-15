@@ -49,7 +49,27 @@ You can also do incremental compilation like:
     make utilities
     make core
 
-### Running
+### Include Boost 1.70
+In order to include Boost 1.70 in the build it is necessary to:
+- have a Boost 1.70 installation under `/opt/boost/`
+- from a fresh terminal:
+
+      source setup-openhpc.sh
+      cd build
+      cmake3 ../ -DENABLE_BOOST=1
+      make
+
+### Include TBB 2019.0
+In order to include TBB 2019.0 in the build it is necessary to:
+- have a TBB 2019.0 installation under `/opt/tbb-2019_U5/` with `include/` and `lib/`
+- from a fresh terminal:
+
+      source setup-openhpc.sh
+      cd build
+      cmake3 ../ -DENABLE_TBB=1
+      make
+
+## Running
 
     cd scripts/Control
 
@@ -61,6 +81,16 @@ The `settings.json` and `*config*.json` files must be edited to match the desire
     start
     stop
     down
+
+### Development
+In order to develop your own module, check the existing demonstration modules under `src/Modules` and `include/Modules` and adapt the `NewModule*_template` to your use case.
+
+The `dev` option of `daqinterface.py`
+
+    python3 daqinterface.py invalid-config.json complete dev
+
+  - skips the `json-config.schema` validation, therefore allowing to experiment with new fields in the configuration json files.
+  - sets the process logging level to `DEBUG`.
 
 ## How to add a new submodule
 ### Spdlog

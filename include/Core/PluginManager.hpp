@@ -1,7 +1,29 @@
-// enrico.gamberini@cern.ch
+/**
+ * Copyright (C) 2019 CERN
+ * 
+ * DAQling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * DAQling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+ */
 
-#ifndef DAQ_CORE_PLUGINMANAGER_HPP
-#define DAQ_CORE_PLUGINMANAGER_HPP
+/**
+ * @file PluginManager.hpp
+ * @author Enrico.Gamberini@cern.ch
+ * @brief Load shared objects of type DAQProcess
+ * @date 2019-05-14
+ */
+
+#ifndef DAQLING_CORE_PLUGINMANAGER_HPP
+#define DAQLING_CORE_PLUGINMANAGER_HPP
 
 /// \cond
 #include <dlfcn.h>
@@ -12,14 +34,14 @@
 
 #include "Utilities/Logging.hpp"
 
-namespace daq {
+namespace daqling {
 namespace core {
 
-class PluginManager : public daq::utilities::Singleton<PluginManager> {
+class PluginManager : public daqling::utilities::Singleton<PluginManager> {
  private:
-  DAQProcess *(*m_create)(...);
-  void (*m_destroy)(DAQProcess *);
-  DAQProcess *m_dp;
+  daqling::core::DAQProcess *(*m_create)(...);
+  void (*m_destroy)(daqling::core::DAQProcess *);
+  daqling::core::DAQProcess *m_dp;
   void *m_handle;
   bool m_loaded;
 
@@ -34,7 +56,7 @@ class PluginManager : public daq::utilities::Singleton<PluginManager> {
   bool getLoaded() { return m_loaded; }
 };
 
-}  // namespace core
-}  // namespace daq
+} // namespace core
+} // namespace daqling
 
-#endif
+#endif // DAQLING_CORE_PLUGINMANAGER_HPP
