@@ -1,6 +1,6 @@
 #daq/ansible/hosts
 # 
-# Hosts of RD51-DAQ
+# Hosts of DAQ system
 #
 ##   - Comments begin with the '#' character
 ##   - Blank lines are ignored
