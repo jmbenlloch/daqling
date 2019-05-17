@@ -10,21 +10,11 @@
   shell: ./bootstrap.sh --prefix=/opt/boost >> bootstrap.txt
   args:
     chdir: /opt/boost_1_70_0/
-  environment:
-    LD_LIBRARY_PATH: "/opt/ohpc/pub/compiler/gcc/8.3.0/lib64/:{{ ansible_env.LD_LIBRARY_PATH }}"
-    PATH: "/opt/ohpc/pub/compiler/gcc/8.3.0/bin:{{ ansible_env.PATH }}"
-    CC: "/opt/ohpc/pub/compiler/gcc/8.3.0/bin/gcc"
-    CXX: "/opt/ohpc/pub/compiler/gcc/8.3.0/bin/g++"
 
 - name: Install Boost in /opt/boost_1_70_0/
   shell: ./b2 install >> b2install.txt
   args:
     chdir: /opt/boost_1_70_0/
-  environment:
-    LD_LIBRARY_PATH: "/opt/ohpc/pub/compiler/gcc/8.3.0/lib64/:{{ ansible_env.LD_LIBRARY_PATH }}"
-    PATH: "/opt/ohpc/pub/compiler/gcc/8.3.0/bin:{{ ansible_env.PATH }}"
-    CC: "/opt/ohpc/pub/compiler/gcc/8.3.0/bin/gcc"
-    CXX: "/opt/ohpc/pub/compiler/gcc/8.3.0/bin/g++"
 
 - name: Remove Boost source folder
   file:
