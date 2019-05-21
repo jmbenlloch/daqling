@@ -67,14 +67,14 @@ endif (ENABLE_BOOST)
 
 # others
 #add_external(spdlog ${spdlog_version}) # A spd log version is installed along with CentOS but is too old
-include_directories(vendor/spdlog/include)
+include_directories(/opt/spdlog/include)
 
 #add_external(docopt ${docopt_version})
 
 #set(JSON_BuildTests OFF CACHE BOOL "Build the unit tests when BUILD_TESTING is enabled.")
 #option(JSON_BuildTests "Build the unit tests when BUILD_TESTING is enabled.")
 #add_external(json ${json_version})
-include_directories(vendor/json/single_include)
+include_directories(/opt/json/single_include)
 
 #add_external(cereal ${cereal_version})
 #add_external(evpp   ${evpp_version})
