@@ -11,3 +11,4 @@
     - openhpc
     - cvmfs
     - control-deps
+    - externals
