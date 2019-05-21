@@ -18,7 +18,7 @@
 #include "Utilities/Logging.hpp"
 #include "tbb/flow_graph.h"
 
-using namespace daq;
+using namespace daqling;
 using namespace tbb::flow;
 
 struct body {

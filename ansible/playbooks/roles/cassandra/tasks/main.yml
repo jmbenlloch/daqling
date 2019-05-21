@@ -9,20 +9,22 @@
     repo_gpgcheck: 1
     gpgkey: https://www.apache.org/dist/cassandra/KEYS
 
-- name: install the latest version of Apache Cassandra
+- name: Install the latest version of Apache Cassandra
   yum:
     name: cassandra
     state: latest 
 
-- name: clone cassandra driver
+- name: Clone cassandra driver
   git:
-    repo: 'https://github.com/datastax/cpp-driver.git'
+    repo: https://github.com/datastax/cpp-driver.git
     dest: /opt/cassandra-driver
     version: 2.11.0
+    
 - file:
     path: /opt/cassandra-driver/build
     state: directory
-- name: run cmake3
+
+- name: Run cmake3
   cmake: 
     source_dir: /opt/cassandra-driver
     binary_dir: /opt/cassandra-driver/build

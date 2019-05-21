@@ -42,7 +42,7 @@ class supervisord:
     log_file = "/log/"+name+"-"+user+"-"+now+".log"
     print("tail -f "+log_file)
     settings = {
-        'command': exe,
+        'command': dir+exe,
         'directory': dir,
         'autorestart': 'false',
         'environment': env,
