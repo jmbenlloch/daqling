@@ -167,7 +167,7 @@ f.close()
 
 group = settings['group']
 dir = settings['build_dir']
-exe = settings['exe']
+exe = "/bin/main_core"
 env = settings['env']
 
 validation = True
