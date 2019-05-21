@@ -42,7 +42,7 @@ For `GCC 6.2`:
 
     source cmake/setup-cvmfs.sh
 
-For `GCC 8.3`:
+For `GCC 8.3` (required by Boost 1.70 and TBB 2019):
 
     source cmake/setup-openhpc.sh
 
