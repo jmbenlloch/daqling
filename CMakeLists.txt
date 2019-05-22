@@ -84,6 +84,10 @@ include_directories(/opt/json/single_include)
 
 #add_external(cassandra-driver ${cassandra-driver_version})
 
+# pass include directories to parent
+get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+set(daqling_include_dirs ${dirs} PARENT_SCOPE)
+
 add_subdirectory(src/Utilities)
 add_subdirectory(src/Core)
 add_subdirectory(src/Modules)
