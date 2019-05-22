@@ -24,9 +24,9 @@
 int main(int argc, char** argv)
 {
 
-	std::atomic<int> buffer_occupation;
+	std::atomic<float> buffer_occupation;
 	std::atomic<int> packets;
-	buffer_occupation = 0;
+	buffer_occupation = 0.1;
 	packets = 0;
 
         zmq::context_t context(1);
@@ -36,14 +36,17 @@ int main(int argc, char** argv)
 
 	daqling::core::Statistics stat(std::ref(publisher));
 	stat.start();
-	std::cout<<"Called start"<<'\n'; 
-	stat.registerVariable("BufferOccupation", &buffer_occupation);
-	stat.registerVariable("NumberOfPackets", &packets);
+	std::cout<<"Called start"<<'\n';
+
+    
+	stat.registerVariable<std::atomic<float>, float >(&buffer_occupation, "BufferOccupation", daqling::core::AVERAGE, daqling::core::FLOAT);
+	//stat.registerVariable("NumberOfPackets", &packets);
 	while(1){
 		usleep(500000);
 		//std::cout<<"bla"<<std::endl;
 		packets+=2;
-		buffer_occupation+=3;
+		buffer_occupation = buffer_occupation + 3.1;
+        std::cout<<"Buffer occupation: "<<buffer_occupation<<std::endl;
 	}
 
 	return 0;
