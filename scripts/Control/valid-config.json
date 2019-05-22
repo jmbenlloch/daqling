@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "foo": "bar",
+  "version": 4,
+  "group": "daq",
   "components": [
     {
       "name": "boardreader01",

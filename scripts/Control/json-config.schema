@@ -3,7 +3,7 @@
   "type": "object",
   "required": [
     "version",
-    "foo",
+    "group",
     "components"
   ],
   "properties": {
@@ -15,9 +15,9 @@
       "maximum": 999
     },
 
-    "foo": {
+    "group": {
       "type": "string",
-      "default": "bar"
+      "default": "daq"
     },
 
     "components": {
