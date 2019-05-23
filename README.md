@@ -58,6 +58,16 @@ You can also do incremental compilation like:
     make utilities
     make core
 
+### Build the CassandraDataLogger
+In order to build the CassandraDataLogger it is necessary to:
+- have a Cassandra C++ driver installation under `/opt/cassandra-driver/` (optional Ansible playbook)
+- from a fresh terminal:
+
+      source cmake/setup-openhpc.sh
+      cd build
+      cmake3 ../ -DENABLE_CASSANDRA=1
+      make
+
 ### Build with Boost 1.70
 In order to include Boost 1.70 in the build it is necessary to:
 - have a Boost 1.70 installation under `/opt/boost/` (optional Ansible playbook)
