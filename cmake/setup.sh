@@ -1,4 +1,4 @@
-export DAQ_CONFIG_DIR=$PWD/scripts/Control/
+export DAQ_CONFIG_DIR=$PWD/configs/
 export DAQ_BUILD_DIR=$PWD/build/
 alias daqinterface='python3 $PWD/scripts/Control/daqinterface.py'
 
