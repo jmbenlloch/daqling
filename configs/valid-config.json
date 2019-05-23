@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "group": "daq",
   "components": [
     {
@@ -8,12 +8,9 @@
       "port": 5555,
       "type": "boardreaderbinary",
       "settings": {
-        "some_int": 42,
-        "some_string": "test",
         "board_id": 0
       },
       "connections": {
-        "receivers": [],
         "senders": [
           {
             "type": "pubsub",
@@ -30,12 +27,9 @@
       "port": 5556,
       "type": "boardreaderbinary",
       "settings": {
-        "some_int": 42,
-        "some_string": "test",
         "board_id": 1
       },
       "connections": {
-        "receivers": [],
         "senders": [
           {
             "type": "pair",
@@ -52,8 +46,6 @@
       "port": 5557,
       "type": "eventbuilderbinary",
       "settings": {
-        "some_int": 42,
-        "some_string": "test"
       },
       "connections": {
         "receivers": [
@@ -86,8 +78,6 @@
       "port": 5558,
       "type": "filedatalogger",
       "settings": {
-        "some_int": 42,
-        "some_string": "test",
         "ring": "127.0.0.1"
       },
       "connections": {
@@ -98,8 +88,7 @@
             "host": "localhost",
             "port": 8103
           }
-        ],
-        "senders": []
+        ]
       }
     }
   ]
