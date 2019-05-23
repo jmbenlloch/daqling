@@ -1,6 +1,7 @@
 export DAQ_CONFIG_DIR=$PWD/configs/
 export DAQ_BUILD_DIR=$PWD/build/
-alias daqinterface='python3 $PWD/scripts/Control/daqinterface.py'
+di_path=$(find -name daqinterface.py | cut -c3-)
+alias daqinterface='python3 $PWD/$di_path'
 
 echo "Custom compiler, installed by Ansible from OHPC."
 
