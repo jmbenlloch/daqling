@@ -13,8 +13,8 @@
         "board_id": 0
       },
       "connections": {
-        "sources": [],
-        "destinations": [
+        "receivers": [],
+        "senders": [
           {
             "type": "pubsub",
             "chid": 1,
@@ -35,8 +35,8 @@
         "board_id": 1
       },
       "connections": {
-        "sources": [],
-        "destinations": [
+        "receivers": [],
+        "senders": [
           {
             "type": "pair",
             "chid": 1,
@@ -56,7 +56,7 @@
         "some_string": "test"
       },
       "connections": {
-        "sources": [
+        "receivers": [
           {
             "type": "pubsub",
             "chid": 1,
@@ -70,7 +70,7 @@
             "port": 8102
           }
         ],
-        "destinations": [
+        "senders": [
           {
             "type": "pair",
             "chid": 3,
@@ -81,17 +81,17 @@
       }
     },
     {
-      "name": "datalogger01",
+      "name": "filedatalogger01",
       "host": "localhost",
       "port": 5558,
-      "type": "cassandradatalogger",
+      "type": "filedatalogger",
       "settings": {
         "some_int": 42,
         "some_string": "test",
         "ring": "127.0.0.1"
       },
       "connections": {
-        "sources": [
+        "receivers": [
           {
             "type": "pair",
             "chid": 1,
@@ -99,7 +99,7 @@
             "port": 8103
           }
         ],
-        "destinations": []
+        "senders": []
       }
     }
   ]

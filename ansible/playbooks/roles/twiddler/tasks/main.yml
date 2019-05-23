@@ -16,5 +16,5 @@
     src: etc/twiddler.ini
     dest: /etc/supervisord.d/
   notify:
-    - restart supervisor
+    - restart supervisord
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'

@@ -68,10 +68,10 @@
             "type": "object",
             "title": "Connections",
             "properties": {
-              "sources": { 
+              "receivers": { 
                 "type": "array", 
                 "format": "table",
-                "title": "Sources",
+                "title": "Receivers",
                 "uniqueItems": true,
                 "items": {
                   "type": "object",
@@ -87,10 +87,10 @@
                   "required": ["type", "chid", "host", "port"]
                 }
               },
-              "destinations": { 
+              "senders": { 
                 "type": "array", 
                 "format": "table",
-                "title": "Destinations",
+                "title": "Senders",
                 "uniqueItems": true,
                 "items": {
                   "type": "object",
@@ -107,7 +107,7 @@
                 }
               }
             },
-            "required": ["sources", "destinations"]
+            "required": ["receivers", "senders"]
           }
         }
       }

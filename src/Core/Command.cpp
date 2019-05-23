@@ -65,9 +65,9 @@ bool daqling::core::Command::executeCommand(std::string& response) {
     INFO("Loading type: " << type);
 
     auto j = cfg.getConfig();
-    auto srcs = j["connections"]["sources"];
-    INFO("sources empty " << srcs.empty());
-    for (auto& it : srcs) {
+    auto rcvs = j["connections"]["receivers"];
+    INFO("receivers empty " << rcvs.empty());
+    for (auto& it : rcvs) {
       INFO("key" << it);
       if (it["type"] == "pair") {
         cm.addChannel(it["chid"], ConnectionManager::EDirection::CLIENT, 0, it["host"], it["port"],
@@ -83,9 +83,9 @@ bool daqling::core::Command::executeCommand(std::string& response) {
       }
     }
 
-    auto dests = j["connections"]["destinations"];
-    INFO("destinations empty " << dests.empty());
-    for (auto& it : dests) {
+    auto sndrs = j["connections"]["senders"];
+    INFO("senders empty " << sndrs.empty());
+    for (auto& it : sndrs) {
       INFO("key" << it);
       if (it["type"] == "pair") {
         cm.addChannel(it["chid"], ConnectionManager::EDirection::SERVER, 0, it["host"], it["port"],
