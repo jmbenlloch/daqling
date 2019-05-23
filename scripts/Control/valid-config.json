@@ -81,10 +81,10 @@
       }
     },
     {
-      "name": "datalogger01",
+      "name": "filedatalogger01",
       "host": "localhost",
       "port": 5558,
-      "type": "cassandradatalogger",
+      "type": "filedatalogger",
       "settings": {
         "some_int": 42,
         "some_string": "test",
