@@ -9,7 +9,7 @@
             "some_string": "test"
         },
         "connections": {
-            "destinations": {
+            "senders": {
                     "1": {
                         "chid": 1,
                         "host": "localhost",
@@ -30,7 +30,7 @@
             "some_string": "test"
         },
         "connections": {
-            "sources": {
+            "receivers": {
                     "1": {
                         "chid": 1,
                         "host": "*",

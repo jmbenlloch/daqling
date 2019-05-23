@@ -18,27 +18,36 @@ The playbook will set up your host with the system libraries and will install su
     cd ansible/
     source daq-ansible.sh
     cd playbooks/
-    ansible-playbook set-up-host.yml --ask-become-pass
+    ansible-playbook set-up-host.yml --ask-become
 
 #### (Optional)
 Cassandra
 
-    ansible-playbook install-cassandra.yml --ask-become-pass
+    ansible-playbook install-cassandra.yml --ask-become
 
 Web dependencies
 
-    ansible-playbook install-webdeps.yml --ask-become-pass
+    ansible-playbook install-webdeps.yml --ask-become
 
 Redis
 
-    ansible-playbook install-redis.yml --ask-become-pass
+    ansible-playbook install-redis.yml --ask-become
 
+Boost 1.70
+
+    ansible-playbook install-boost-1_70.yml --ask-become
 
 ## Software compilation
+For `GCC 6.2`:
 
     source cmake/setup-cvmfs.sh
-    git submodule init
-    git submodule update
+
+For `GCC 8.3` (required by Boost 1.70 and TBB 2019):
+
+    source cmake/setup-openhpc.sh
+
+then:
+
     mkdir build
     cd build
     cmake3 ../
@@ -49,22 +58,22 @@ You can also do incremental compilation like:
     make utilities
     make core
 
-### Include Boost 1.70
+### Build with Boost 1.70
 In order to include Boost 1.70 in the build it is necessary to:
-- have a Boost 1.70 installation under `/opt/boost/`
+- have a Boost 1.70 installation under `/opt/boost/` (optional Ansible playbook)
 - from a fresh terminal:
 
-      source setup-openhpc.sh
+      source cmake/setup-openhpc.sh
       cd build
       cmake3 ../ -DENABLE_BOOST=1
       make
 
-### Include TBB 2019.0
+### Build with TBB 2019.0
 In order to include TBB 2019.0 in the build it is necessary to:
-- have a TBB 2019.0 installation under `/opt/tbb-2019_U5/` with `include/` and `lib/`
+- have a TBB 2019.0 installation under `/opt/tbb-2019_U5/` with `include/` and `lib/` folders
 - from a fresh terminal:
 
-      source setup-openhpc.sh
+      source cmake/setup-openhpc.sh
       cd build
       cmake3 ../ -DENABLE_TBB=1
       make
@@ -91,43 +100,3 @@ The `dev` option of `daqinterface.py`
 
   - skips the `json-config.schema` validation, therefore allowing to experiment with new fields in the configuration json files.
   - sets the process logging level to `DEBUG`.
-
-## How to add a new submodule
-### Spdlog
-
-    git submodule add https://github.com/gabime/spdlog.git vendor/spdlog --single branch
-
-    cd vendor/spdlog
-    git checkout 1.3.1
-    git add .
-    git commit
-
-### Json
-
-    git submodule add https://github.com/nlohmann/json.git vendor/json --single branch
-
-    cd vendor/json
-    git checkout v3.5.0
-    cd ../
-    git add .
-    git commit
-
-
-### (Optional) Cereal
-
-    git submodule add https://github.com/USCiLab/cereal.git vendor/cereal --single branch
-
-    cd vendor/cereal
-    git checkout v1.2.2
-    git add .
-    git commit
-
-### (Optional) Docopt
-
-    git submodule add https://github.com/docopt/docopt.cpp.git vendor/docopt --single branch
-
-    cd vendor/docopt
-    git checkout v0.6.2
-    cd ../
-    git add .
-    git commit
