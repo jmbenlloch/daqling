@@ -26,6 +26,7 @@
   systemd:
     name: supervisord
     enabled: yes
+    daemon_reload: yes
   notify:
     - restart supervisord
 

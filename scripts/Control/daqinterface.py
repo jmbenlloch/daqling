@@ -18,6 +18,7 @@
 # enrico.gamberini@cern.ch
 
 import sys
+from os import environ as env
 import zmq
 import supervisord
 import json
@@ -53,10 +54,10 @@ def addProcesses(components, debug):
     sd = supervisord.supervisord(p['host'], group)
     if debug is True:
       print("Add", sd.addProgramToGroup(
-          p['name'], exe+" "+str(p['port'])+" debug", dir, env))
+          p['name'], exe+" "+str(p['port'])+" debug", dir, lib_path))
     else:
       print("Add", sd.addProgramToGroup(
-          p['name'], exe+" "+str(p['port']), dir, env))
+          p['name'], exe+" "+str(p['port']), dir, lib_path))
 
 
 def handleRequest(host, port, request, config=None):
@@ -160,15 +161,7 @@ def print_help():
         "Available second arguments: 'remove' 'add' 'configure' 'complete'.\n"
         "Add 'dev' in order to suppress production feature.")
 
-
-with open('settings.json') as f:
-  settings = json.load(f)
-f.close()
-
-group = settings['group']
-dir = settings['build_dir']
-exe = "/bin/main_core"
-env = settings['env']
+########## main ########
 
 validation = True
 debug = False
@@ -193,13 +186,18 @@ with open(sys.argv[1]) as f:
   data = json.load(f)
 f.close()
 
-with open("json-config.schema") as f:
+with open(env['DAQ_CONFIG_DIR']+'json-config.schema') as f:
   schema = json.load(f)
 f.close()
 
 if validation:
   print("Configuration Version:", data['version'])
   validate(instance=data, schema=schema)
+
+group = data['group']
+dir = env['DAQ_BUILD_DIR']
+exe = "bin/main_core"
+lib_path = 'LD_LIBRARY_PATH='+env['LD_LIBRARY_PATH']
 
 if arg == "remove":
   removeProcesses(data['components'])

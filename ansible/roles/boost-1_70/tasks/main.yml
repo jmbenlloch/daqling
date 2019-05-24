@@ -3,20 +3,20 @@
 - name: Download and unpack boost_1_70_0
   unarchive:
     src: https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz
-    dest: /opt/tmp/
+    dest: /tmp/
     remote_src: yes
 
 - name: Bootstrap
   shell: ./bootstrap.sh --prefix=/opt/boost
   args:
-    chdir: /opt/tmp/boost_1_70_0/
+    chdir: /tmp/boost_1_70_0/
 
 - name: Install Boost
-  shell: ./b2 install
+  shell: ./b2 install > install.log
   args:
-    chdir: /opt/tmp/boost_1_70_0/
+    chdir: /tmp/boost_1_70_0/
 
 - name: Remove Boost source folder
   file:
-    path: /opt/tmp/boost_1_70_0
+    path: /tmp/boost_1_70_0
     state: absent
