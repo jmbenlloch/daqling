@@ -17,8 +17,6 @@ The playbook will set up your host with the system libraries and tools
     sudo yum install -y ansible
     source cmake/setup.sh
     cd ansible/
-    source daq-ansible.sh
-    cd playbooks/
     ansible-playbook set-up-host.yml --ask-become
 
 ### (Optional)
