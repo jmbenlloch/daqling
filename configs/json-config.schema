@@ -39,11 +39,7 @@
           },
           "settings": {
             "type": "object",
-            "title": "Settings",
-            "properties": {
-              "some_int":    { "type": "integer" },
-              "some_string": { "type": "string" }
-            }
+            "title": "Settings"
           },
           "connections": {
             "type": "object",
