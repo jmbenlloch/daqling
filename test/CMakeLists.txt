@@ -28,3 +28,11 @@ if (ENABLE_TBB)
   target_link_libraries(test_flowgraph PUBLIC pthread rt utilities tbb)
   install(TARGETS test_flowgraph EXPORT DESTINATION bin)
 endif (ENABLE_TBB)
+
+add_executable(test_pub_topic src/test_pub_topic.cpp)
+target_link_libraries(test_pub_topic PUBLIC pthread rt utilities zmq)
+install(TARGETS test_pub_topic EXPORT DESTINATION bin)
+
+add_executable(test_sub_topic src/test_sub_topic.cpp)
+target_link_libraries(test_sub_topic PUBLIC pthread rt utilities zmq)
+install(TARGETS test_sub_topic EXPORT DESTINATION bin)
