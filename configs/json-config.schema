@@ -3,23 +3,19 @@
   "type": "object",
   "required": [
     "version",
-    "foo",
+    "group",
     "components"
   ],
   "properties": {
     "version": {
       "type": "integer",
       "description": "Configuration version",
-      "default": 1,
       "minimum": 1,
       "maximum": 999
     },
-
-    "foo": {
-      "type": "string",
-      "default": "bar"
+    "group": {
+      "type": "string"
     },
-
     "components": {
       "type": "array",
       "format": "table",
@@ -30,40 +26,21 @@
         "title": "Component",
         "properties": {
           "name": {
-            "type": "string",
-            "default": "woof"
+            "type": "string"
           },
           "host": {
-            "type": "string",
-            "default": "epdtdi-daqtest.cern.ch"        
+            "type": "string"
           },          
           "port": {
-            "type": "integer",
-            "default": 5555        
+            "type": "integer"
           },
           "type": {
-            "type": "string",
-            "enum": [
-              "boardreader",
-              "boardreaderbinary",
-              "eventbuilder",
-              "eventbuilderbinary",
-              "datalogger",
-              "cassandradatalogger",
-              "filedatalogger"
-            ],
-            "default": "boardreader"
+            "type": "string"
           },
           "settings": {
             "type": "object",
-            "title": "Settings",
-            "properties": {
-              "some_int":    { "type": "integer" },
-              "some_string": { "type": "string" }
-            },
-            "required": ["some_int", "some_string"]
+            "title": "Settings"
           },
-
           "connections": {
             "type": "object",
             "title": "Connections",
@@ -106,10 +83,10 @@
                   "required": ["type", "chid", "host", "port"]
                 }
               }
-            },
-            "required": ["receivers", "senders"]
+            }
           }
-        }
+        },
+        "required": ["name", "host", "port", "type"]
       }
     }
   }

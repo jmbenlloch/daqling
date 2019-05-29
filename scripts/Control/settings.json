@@ -1,5 +1,0 @@
-{
-    "group": "daq",
-    "build_dir": "/home/daqling/wobrylin/daqling/build/bin",
-    "env": "LD_LIBRARY_PATH=/usr/local/lib64/:/opt/ohpc/pub/compiler/gcc/8.3.0/lib64/"
-}

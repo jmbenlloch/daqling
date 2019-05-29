@@ -27,7 +27,8 @@ file(GLOB_RECURSE FILEDATALOGGER_SOURCES "FileDataLogger.cpp")
 add_library(filedatalogger SHARED ${FILEDATALOGGER_SOURCES})
 target_link_libraries(filedatalogger PUBLIC core utilities zmq)
 
-file(GLOB_RECURSE CASSANDRADATALOGGER_SOURCES "CassandraDataLogger.cpp")
-add_library(cassandradatalogger SHARED ${CASSANDRADATALOGGER_SOURCES})
-target_link_libraries(cassandradatalogger PUBLIC core utilities zmq cassandra)
-
+if (ENABLE_CASSANDRA)
+  file(GLOB_RECURSE CASSANDRADATALOGGER_SOURCES "CassandraDataLogger.cpp")
+  add_library(cassandradatalogger SHARED ${CASSANDRADATALOGGER_SOURCES})
+  target_link_libraries(cassandradatalogger PUBLIC core utilities zmq cassandra)
+endif (ENABLE_CASSANDRA)

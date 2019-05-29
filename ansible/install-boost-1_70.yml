@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  remote_user: "{{ lookup('env','LOGNAME') }}"
+  become: yes
+  become_method: sudo
+  roles:
+    - boost-1_70
+  environment:
+    LD_LIBRARY_PATH: "{{ lookup('env','LD_LIBRARY_PATH') }}" 
+    PATH: "{{ lookup('env','PATH') }}"
+    CC: "{{ lookup('env','CC') }}"
+    CXX: "{{ lookup('env','CXX') }}"
