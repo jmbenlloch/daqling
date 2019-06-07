@@ -140,7 +140,7 @@ bool daqling::core::Command::executeCommand(std::string& response) {
 bool daqling::core::Command::handleCommand() {
   m_commandHandler->set_work(m_commandFunctors[0]);
   while (busy()) {
-    std::this_thread::sleep_for(100ms);
+    std::this_thread::sleep_for(1ms);
   }
   return true;
 }

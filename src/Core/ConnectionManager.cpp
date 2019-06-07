@@ -73,9 +73,10 @@ bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr)
 
         cmd.handleCommand();
         s_send(*(m_cmd_socket.get()), cmd.getResponse());
+      } else {
+        // INFO(m_className << " Sleeping a second...");
+        std::this_thread::sleep_for(1ms);
       }
-      // INFO(m_className << " Sleeping a second...");
-      std::this_thread::sleep_for(100ms);
     }
   });
   utilities::setThreadName(m_cmd_handler, "cmd", 0);
@@ -147,21 +148,21 @@ bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, const std::stri
 }
 
 bool ConnectionManager::addReceiveHandler(uint64_t chn) {
-  INFO(__METHOD_NAME__ << " [SERVER] ReceiveHandler for channel [" << chn << "] starting...");
+  INFO(__METHOD_NAME__ << " [CLIENT] ReceiveHandler for channel [" << chn << "] starting...");
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
       zmq::message_t msg;
       if ((m_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) == true) {
         m_pcqs[chn]->write(std::move(msg));
         m_numMsgsHandled[chn]++;
-        DEBUG("    -> wrote to queue");
+        // DEBUG("    -> wrote to queue");
       } else {
-        std::this_thread::sleep_for(10ms);
+        std::this_thread::sleep_for(1ms);
       }
       m_pcqSizes[chn].store(m_pcqs[chn]->sizeGuess());
-      //if (m_pcqs[chn]->sizeGuess() != 0) {
-      //  DEBUG("SERVER -> queue population: " << m_pcqs[chn]->sizeGuess());
-      //}
+      if (m_pcqs[chn]->sizeGuess() > m_pcqs[chn]->capacity()*0.9) {
+        WARNING("CLIENT -> queue population: " << m_pcqs[chn]->sizeGuess());
+      }
     }
     INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
   });
@@ -169,7 +170,7 @@ bool ConnectionManager::addReceiveHandler(uint64_t chn) {
 }
 
 bool ConnectionManager::addSendHandler(uint64_t chn) {
-  INFO(__METHOD_NAME__ << " [CLIENT] SendHandler for channel [" << chn << "] starting...");
+  INFO(__METHOD_NAME__ << " [SERVER] SendHandler for channel [" << chn << "] starting...");
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
       zmq::message_t msg;
@@ -178,9 +179,9 @@ bool ConnectionManager::addSendHandler(uint64_t chn) {
         m_numMsgsHandled[chn]++;
       }
       m_pcqSizes[chn].store(m_pcqs[chn]->sizeGuess());
-      //if (m_pcqs[chn]->sizeGuess() != 0) {
-      //  DEBUG("CLIENT -> queue population: " << m_pcqs[chn]->sizeGuess());
-      //}
+      if (m_pcqs[chn]->sizeGuess() > m_pcqs[chn]->capacity()*0.9) {
+        WARNING("SERVER -> queue population: " << m_pcqs[chn]->sizeGuess());
+      }
     }
     INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
   });
@@ -195,14 +196,14 @@ bool ConnectionManager::addSubscribeHandler(uint64_t chn) {
       if ((m_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) == true) {
         m_pcqs[chn]->write(std::move(msg));
         m_numMsgsHandled[chn]++;
-        DEBUG("    -> wrote to queue");
+        // DEBUG("    -> wrote to queue");
       } else {
-        std::this_thread::sleep_for(10ms);
+        std::this_thread::sleep_for(1ms);
       }
       m_pcqSizes[chn].store(m_pcqs[chn]->sizeGuess()); 
-      //if (m_pcqs[chn]->sizeGuess() != 0) {
-      //  DEBUG("SUB -> queue population: " << m_pcqs[chn]->sizeGuess());
-      //}
+      if (m_pcqs[chn]->sizeGuess() > m_pcqs[chn]->capacity()*0.9) {
+        WARNING("SUB -> queue population: " << m_pcqs[chn]->sizeGuess());
+      }
     }
     INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
   });
@@ -219,9 +220,9 @@ bool ConnectionManager::addPublishHandler(uint64_t chn) {
         m_numMsgsHandled[chn]++;
       }
       m_pcqSizes[chn].store(m_pcqs[chn]->sizeGuess());      
-      //if (m_pcqs[chn]->sizeGuess() != 0) {
-      //  DEBUG("PUB -> queue population: " << m_pcqs[chn]->sizeGuess());
-      //}
+      if (m_pcqs[chn]->sizeGuess() > m_pcqs[chn]->capacity()*0.9) {
+        WARNING("PUB -> queue population: " << m_pcqs[chn]->sizeGuess());
+      }
     }
     INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
   });
@@ -284,7 +285,7 @@ bool ConnectionManager::start() {
 
 bool ConnectionManager::stop() {
   m_stop_handlers.store(true);
-  std::this_thread::sleep_for(100ms);
+  std::this_thread::sleep_for(100ms); // allow time to stop
   for (auto& tIt : m_handlers) {
     tIt.second.join();
   }

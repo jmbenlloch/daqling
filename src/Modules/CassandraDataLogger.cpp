@@ -220,7 +220,7 @@ void CassandraDataLogger::runner() {
     incr++;
     daqutils::Binary pl(0);
     while (!m_connections.get(1, std::ref(pl))) {
-      std::this_thread::sleep_for(10ms);
+      std::this_thread::sleep_for(1ms);
     }
     write(incr, pl);
     DEBUG(__METHOD_NAME__ << "Wrote data from channel 1...");
