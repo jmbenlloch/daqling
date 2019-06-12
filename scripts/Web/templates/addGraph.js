@@ -4,10 +4,14 @@ function addGraph(names, tabName){
 		for (i in names) {
 			series.push({
 				name: names[i],
+                marker: {
+                    enabled: true,
+                    radius: 5
+                },
 				data: (function () {
 					var data3 = [];
 					$.ajax({
-						url: 'http://0.0.0.0:5000/data/'+names[i],
+						url: 'http://epdtdi-daqtest:5000/data/'+names[i],
 						async: false,
 						dataType: 'json',
 						success: function (json) {   
@@ -18,7 +22,6 @@ function addGraph(names, tabName){
 					function assignVariable(data) {
 						data3 = data;
 					}
-					console.log(data3);
 					return data3;
 				}())
 			})
@@ -36,36 +39,19 @@ function addGraph(names, tabName){
 							var series = this.series;
 							setInterval(function () {
 								for (i in names) {
-
-									var url = 'http://0.0.0.0:5000/lastMeas/'+names[i];
-									var data2 = [];
-
-									$.ajax({
-										url: url,
-										async: false,
-										dataType: 'json',
-										success: function (json) {   
-											assignVariable(json);
-										}
-									});
-
-									function assignVariable(data) {
-										data2 = data;
-									}
-										
+									var data2 = last_values[names[i]];
 									var x = data2[0], 
 									y = data2[1];
 
-									console.log(series[i].data.length);
 									var last_index = series[i].data.length;
 									if (typeof x !== 'undefined') {
 										if(series[i].data[last_index-1].x !== x){
-											if(series[i].data.length < 1000){
+											//if(series[i].data.length < 1000){
 												series[i].addPoint([x, y]);
-											}
-											else{
-												series[i].addPoint([x, y], true, true);
-											}
+											//}
+											//else{
+											//	series[i].addPoint([x, y], true, true);
+											//}
 										}
 									}
 								}
@@ -77,6 +63,10 @@ function addGraph(names, tabName){
 				time: {
 					useUTC: false
 				},
+
+                exporting: {
+                    enabled: true
+                },
 
 				plotOptions: {
 					line: {
@@ -101,21 +91,24 @@ function addGraph(names, tabName){
 					buttons: [{
 						count: 1,
 						type: 'minute',
-						text: '1M'
+						text: '1min'
 					}, {
 						count: 5,
 						type: 'minute',
-						text: '5M'
+						text: '5min'
+					}, {
+						count: 10,
+						type: 'minute',
+						text: '10min'
 					}, {
 						type: 'all',
 						text: 'All'
 					}],
-					inputEnabled: false,
 					selected: 0
 				},
 
 				title: {
-					text: 'data'
+					text: tabName
 				},
 
 				exporting: {

@@ -34,7 +34,7 @@ port = "5555"
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
 
-socket.connect ("tcp://localhost:5556")
+socket.connect ("tcp://localhost:6007")
 
 with open("metrics.conf", "r") as metric_conf:
 	for line in metric_conf:
@@ -49,10 +49,7 @@ while 1:
 	data = {}
 	endpoint = string.split(b':')[0].decode() 
 	API_ENDPOINT = "http://127.0.0.1:5000/add/"+endpoint
-	for s in string.split():
-		print(s)
-		if s.isdigit():
-			data = {"value":s}
+	data = {"value":string.split()[1]}
 	print(data)
 	r = requests.post(url = API_ENDPOINT, data = data)
-	time.sleep(0.5)
+#	time.sleep(0.5)

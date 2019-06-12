@@ -20,7 +20,7 @@ target_link_libraries(test_json PUBLIC pthread rt utilities core)
 install(TARGETS test_json EXPORT DESTINATION bin)
 
 add_executable(test_metrics src/test_metrics.cpp)
-target_link_libraries(test_metrics PUBLIC pthread rt utilities zmq)
+target_link_libraries(test_metrics PUBLIC pthread rt utilities zmq core)
 install(TARGETS test_metrics EXPORT DESTINATION bin)
 
 if (ENABLE_TBB)

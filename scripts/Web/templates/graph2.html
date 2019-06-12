@@ -56,6 +56,40 @@
 					}	
 				});
 			}
+            function createNewSeparateTabs(){
+				$(document).ready(function() {
+					var names = [];
+					
+					{% for metric in metrics %}
+						if(($('input[name="{{metric}}"').attr("checked")) == true){
+							names.push('{{metric}}');
+						}
+					{% endfor %}
+
+					if(names.length == 0){
+						return;
+					}
+
+					for (i in names){
+     
+                        if ($('#tt').tabs('exists', names[i])){
+                            $('#tt').tabs('select', names[i]);
+                        } else {
+                            $('#tt').tabs('add',{
+                                title:names[i],
+                                content:'<div id='+names[i]+' style="height: 400px; min-width: 300px">',
+                                closable:true
+                            });
+                            $(document).ready(function() {
+                                addGraph([names[i]], names[i]);
+                            });
+                        }	                       
+					}
+
+
+				});
+			}
+
 		</script>
 
 
@@ -77,11 +111,12 @@
 						<form id="ff">
 							{% for metric in metrics %}
 								<div style="margin-bottom:20px">
-									<input class="easyui-checkbox" name={{metric}} value={{metric}} label={{metric}}>
+									<input class="easyui-checkbox" name={{metric}} value={{metric}} label={{metric}} labelWidth=250>
 								</div>
 							{% endfor %}
 						</form>
 					<a href="#" class="easyui-linkbutton" onclick="createNewTab()">New Tab</a>
+					<a href="#" class="easyui-linkbutton" onclick="createNewSeparateTabs()">New Separate Tabs</a>
 				</div>
 			</div>
 			{% for metric in metrics %}
@@ -93,9 +128,29 @@
 
 		<script>
 		$(document).ready(function() {
-			var names = []
+            last_values = {};
+
+
+            setInterval(function(){ 
+			    {% for metric in metrics %}
+                    var url = 'http://epdtdi-daqtest:5000/lastMeas/{{metric}}';
+
+                    $.ajax({
+                        url: url,
+						async: true,
+                        dataType: 'json',
+                        success: function (json) {   
+                            assignVariable(json, '{{metric}}');
+                        }
+                    });
+
+			    {% endfor %}
+                function assignVariable(data, name) {
+                    last_values[name] = data;
+                }
+            }, 1000);
+
 			{% for metric in metrics %}
-				names.push('{{ metric }}');
 				addGraph(['{{metric}}'], '{{metric}}');
 			{% endfor %}
 

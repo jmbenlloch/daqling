@@ -77,9 +77,10 @@ class DAQProcess {
         return false;
       }
       m_statistics = std::make_unique<Statistics>(m_connections.getStatSocket());
-      m_statistics->registerCoreMetric("CHN0-QueueSizeGuess", &m_connections.getQueueStat(1) );
-      m_statistics->registerCoreMetric("CHN0-NumMessages", &m_connections.getMsgStat(1) );
-      m_statistics->configure(1);
+      //m_statistics->registerCoreMetric("CHN0-QueueSizeGuess", &m_connections.getQueueStat(1) );
+      m_statistics->registerVariable<std::atomic<size_t>, size_t >(&m_connections.getQueueStat(1), "CHN0-QueueSizeGuess", daqling::core::LAST_VALUE, daqling::core::SIZE);
+      //m_statistics->registerCoreMetric("CHN0-NumMessages", &m_connections.getMsgStat(1) );
+      m_statistics->registerVariable<std::atomic<size_t>, size_t >(&m_connections.getMsgStat(1), "CHN0-NumMessages", daqling::core::LAST_VALUE, daqling::core::SIZE);
       m_stats_on = true;
     }
     return true;

@@ -29,17 +29,17 @@ int main(int argc, char** argv)
 	buffer_occupation = 0.1;
 	packets = 0;
 
-        zmq::context_t context(1);
-        std::unique_ptr<zmq::socket_t> publisher;
-        publisher = std::make_unique<zmq::socket_t>(context, ZMQ_PUB);
-        publisher->bind("tcp://*:5556");
+    zmq::context_t context(1);
+    std::unique_ptr<zmq::socket_t> publisher;
+    publisher = std::make_unique<zmq::socket_t>(context, ZMQ_PUB);
+    publisher->bind("tcp://*:5556");
 
 	daqling::core::Statistics stat(std::ref(publisher));
 	stat.start();
-	std::cout<<"Called start"<<'\n';
 
-    
-	stat.registerVariable<std::atomic<float>, float >(&buffer_occupation, "BufferOccupation", daqling::core::AVERAGE, daqling::core::FLOAT);
+	stat.registerVariable<std::atomic<float>, float >(&buffer_occupation, "AverageBufferOccupation", daqling::core::AVERAGE, daqling::core::FLOAT, 2);
+	stat.registerVariable<std::atomic<float>, float >(&buffer_occupation, "BufferOccupation", daqling::core::LAST_VALUE, daqling::core::FLOAT);
+	stat.registerVariable<std::atomic<int>, int >(&packets, "PacketsRate", daqling::core::RATE, daqling::core::INT);
 	//stat.registerVariable("NumberOfPackets", &packets);
 	while(1){
 		usleep(500000);
