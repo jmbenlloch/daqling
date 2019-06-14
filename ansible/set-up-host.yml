@@ -5,10 +5,10 @@
   become_method: sudo
   roles:
     - { role: lib-centos, when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux' }
+    - devel
     - firewall
     - twiddler
-    - devel
     - openhpc
-    - cvmfs
+    # - cvmfs
     - control-deps
     - externals

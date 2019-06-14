@@ -6,14 +6,14 @@
     name: "{{ libraries }}"
   vars:
     libraries:
-    - cereal-devel
+    # - cereal-devel
     - boost-devel
     - spdlog-devel
     - cppzmq-devel
     - glibc-devel
     - doxygen
     #maybe not useful
-    - glog-devel
+    # - glog-devel
     - libpcap-devel
     - bzip2
     - libicu-devel #For unicode in boost compilation
