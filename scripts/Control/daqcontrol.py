@@ -15,21 +15,19 @@
  along with DAQling. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import threading
 import supervisord
 import zmq
 import json
 from time import sleep
 
-exit = False
-
 class daqcontrol:
   def __init__(self, group, lib_path, dir, exe):
-    self.context = zmq.Context()
     self.group = group
     self.lib_path = lib_path
     self.dir = dir
     self.exe = exe
+    self.context = zmq.Context()
+    self.stop_check = False
 
   def removeProcesses(self, components):
     for p in components:
@@ -80,74 +78,44 @@ class daqcontrol:
       return ""
 
 
-class configureProcess (threading.Thread):
-  def __init__(self, dq_instance, p):
-    threading.Thread.__init__(self)
-    self.p = p
-    self.dq_instance = dq_instance
-
-  def run(self):
+  def configureProcess(self, p):
     req = json.dumps({'command': 'configure'})
-    config = json.dumps(self.p)
-    rv = self.dq_instance.handleRequest(self.p['host'], self.p['port'], req, config)
+    config = json.dumps(p)
+    rv = self.handleRequest(p['host'], p['port'], req, config)
     if rv != b'Success':
-      print("Error", self.p['name'], rv)
+      print("Error", p['name'], rv)
 
 
-class startProcess (threading.Thread):
-  def __init__(self, dq_instance, p):
-    threading.Thread.__init__(self)
-    self.p = p
-    self.dq_instance = dq_instance
-
-  def run(self):
+  def startProcess(self, p):
     req = json.dumps({'command': 'start'})
-    rv = self.dq_instance.handleRequest(self.p['host'], self.p['port'], req)
+    rv = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("Error", self.p['name'], rv)
+      print("Error", p['name'], rv)
 
 
-class stopProcess (threading.Thread):
-  def __init__(self, dq_instance, p):
-    threading.Thread.__init__(self)
-    self.p = p
-    self.dq_instance = dq_instance
-
-  def run(self):
+  def stopProcess(self, p):
     req = json.dumps({'command': 'stop'})
-    rv = self.dq_instance.handleRequest(self.p['host'], self.p['port'], req)
+    rv = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("Error", self.p['name'], rv)
+      print("Error", p['name'], rv)
 
 
-class shutdownProcess (threading.Thread):
-  def __init__(self, dq_instance, p):
-    threading.Thread.__init__(self)
-    self.p = p
-    self.dq_instance = dq_instance
-
-  def run(self):
+  def shutdownProcess(self, p):
     req = json.dumps({'command': 'shutdown'})
-    rv = self.dq_instance.handleRequest(self.p['host'], self.p['port'], req)
+    rv = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("Error", self.p['name'], rv)
+      print("Error", p['name'], rv)
 
 
-class statusCheck (threading.Thread):
-  def __init__(self, dq_instance, p):
-    threading.Thread.__init__(self)
-    self.p = p
-    self.dq_instance = dq_instance
-
-  def run(self):
+  def statusCheck(self, p):
     status = ""
-    while(not exit):
+    while(not self.stop_check):
       sleep(0.5)
       req = json.dumps({'command': 'status'})
-      new_status = self.dq_instance.handleRequest(self.p['host'], self.p['port'], req)
+      new_status = self.handleRequest(p['host'], p['port'], req)
       if new_status != status and new_status != "":
-        print(self.p['name'], "in status", new_status)
+        print(p['name'], "in status", new_status)
         status = new_status
       elif new_status == "":
-        print("Error", self.p['name'])
+        print("Error", p['name'])
   

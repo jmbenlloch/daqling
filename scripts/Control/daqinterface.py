@@ -22,11 +22,13 @@ from os import environ as env
 import json
 from jsonschema import validate
 import daqcontrol
+import threading
+
 
 def spawnJoin(list, func):
   threads = []
   for p in list:
-    t = func(dq, p)
+    t = threading.Thread(target=func, args=(p,))
     t.start()
     threads.append(t)
   for t in threads:
@@ -76,21 +78,21 @@ dir = env['DAQ_BUILD_DIR']
 exe = "bin/main_core"
 lib_path = 'LD_LIBRARY_PATH='+env['LD_LIBRARY_PATH']
 
-dq = daqcontrol.daqcontrol(group, lib_path, dir, exe)
+dc = daqcontrol.daqcontrol(group, lib_path, dir, exe)
 
 if arg == "remove":
-  dq.removeProcesses(data['components'])
+  dc.removeProcesses(data['components'])
   quit()
 
 if arg == 'add' or arg == 'complete':
-  dq.addProcesses(data['components'], debug)
+  dc.addProcesses(data['components'], debug)
   if arg == 'add':
     quit()
 
 if arg == 'configure' or arg == 'complete':
   threads = []
   for p in data['components']:
-    t = daqcontrol.configureProcess(dq, p)
+    t = threading.Thread(target=dc.configureProcess, args=(p,))
     t.start()
     threads.append(t)
   for t in threads:
@@ -99,26 +101,26 @@ if arg == 'configure' or arg == 'complete':
 # spawn status check threads
 threads = []
 for p in data['components']:
-  t = daqcontrol.statusCheck(dq, p)
+  t = threading.Thread(target=dc.statusCheck, args=(p,))
   t.start()
   threads.append(t)
 
-while(not daqcontrol.exit):
+while(not dc.stop_check):
   text = input("(config) | start | stop | down\n")
   print("Executing", text)
   command_threads = []
   if text == "config":
-    spawnJoin(data['components'], daqcontrol.configureProcess)
+    spawnJoin(data['components'], dc.configureProcess)
   elif text == "start":
-    spawnJoin(data['components'], daqcontrol.startProcess)
+    spawnJoin(data['components'], dc.startProcess)
   elif text == "stop":
-    spawnJoin(data['components'], daqcontrol.stopProcess)
+    spawnJoin(data['components'], dc.stopProcess)
   elif text == "down":
-    daqcontrol.exit = True
+    dc.stop_check = True
     for t in threads:
       t.join()
-    spawnJoin(data['components'], daqcontrol.shutdownProcess)
+    spawnJoin(data['components'], dc.shutdownProcess)
     if arg != 'configure':
-      dq.removeProcesses(data['components'])
+      dc.removeProcesses(data['components'])
 
 quit()
