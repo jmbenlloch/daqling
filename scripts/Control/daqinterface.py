@@ -18,6 +18,7 @@
 # enrico.gamberini@cern.ch
 
 import sys
+import signal
 from os import environ as env
 import json
 from jsonschema import validate
@@ -39,6 +40,19 @@ def print_help():
   print("First argument must be a .json configuration file.\n"
         "Available second arguments: 'remove' 'add' 'configure' 'complete'.\n"
         "Add 'dev' in order to suppress production feature.")
+
+def signal_handler(sig, frame):
+  print("Ctrl+C: shutting down")
+  stop_check_threads()
+  spawnJoin(data['components'], dc.shutdownProcess)
+  if arg != 'configure':
+    dc.removeProcesses(data['components'])
+  quit()
+  
+def stop_check_threads():
+  dc.stop_check = True
+  for t in threads:
+    t.join()
 
 ########## main ########
 
@@ -105,6 +119,8 @@ for p in data['components']:
   t.start()
   threads.append(t)
 
+signal.signal(signal.SIGINT, signal_handler)
+
 while(not dc.stop_check):
   text = input("(config) | start | stop | down\n")
   print("Executing", text)
@@ -116,9 +132,7 @@ while(not dc.stop_check):
   elif text == "stop":
     spawnJoin(data['components'], dc.stopProcess)
   elif text == "down":
-    dc.stop_check = True
-    for t in threads:
-      t.join()
+    stop_check_threads()
     spawnJoin(data['components'], dc.shutdownProcess)
     if arg != 'configure':
       dc.removeProcesses(data['components'])
