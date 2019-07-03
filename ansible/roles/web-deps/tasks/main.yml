@@ -40,3 +40,12 @@
 - name: Install flask-login
   command: pip3 install flask-login
 
+- name: Open port 5000 on firewalld for Flask
+  firewalld:
+    zone: public
+    port: 5000/tcp
+    permanent: true
+    state: enabled
+  notify:
+    - restart firewalld
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
