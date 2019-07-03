@@ -20,6 +20,7 @@ import zmq
 import json
 from time import sleep
 
+
 class daqcontrol:
   def __init__(self, group, lib_path, dir, exe):
     self.group = group
@@ -45,19 +46,20 @@ class daqcontrol:
         try:
           print('Remove', sd.removeProcessFromGroup(i['name']))
         except:
-          print("Exception: cannot remove process", i['name'])
-
+          print("Exception:\n  cannot remove process", i['name'])
 
   def addProcesses(self, components, debug):
     for p in components:
       sd = supervisord.supervisord(p['host'], self.group)
-      if debug is True:
-        print("Add", sd.addProgramToGroup(
-            p['name'], self.exe+" "+str(p['port'])+" debug", self.dir, self.lib_path))
-      else:
-        print("Add", sd.addProgramToGroup(
-            p['name'], self.exe+" "+str(p['port']), self.dir, self.lib_path))
-
+      try:
+        if debug is True:
+          print("Add", sd.addProgramToGroup(
+              p['name'], self.exe+" "+str(p['port'])+" debug", self.dir, self.lib_path))
+        else:
+          print("Add", sd.addProgramToGroup(
+              p['name'], self.exe+" "+str(p['port']), self.dir, self.lib_path))
+      except:
+        print("Exception:\n  cannot add program", p['name'], "(probably already added)")
 
   def handleRequest(self, host, port, request, config=None):
     socket = self.context.socket(zmq.REQ)
@@ -77,7 +79,6 @@ class daqcontrol:
       print("Timeout occurred")
       return ""
 
-
   def configureProcess(self, p):
     req = json.dumps({'command': 'configure'})
     config = json.dumps(p)
@@ -85,13 +86,11 @@ class daqcontrol:
     if rv != b'Success':
       print("Error", p['name'], rv)
 
-
   def startProcess(self, p):
     req = json.dumps({'command': 'start'})
     rv = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
       print("Error", p['name'], rv)
-
 
   def stopProcess(self, p):
     req = json.dumps({'command': 'stop'})
@@ -99,13 +98,11 @@ class daqcontrol:
     if rv != b'Success':
       print("Error", p['name'], rv)
 
-
   def shutdownProcess(self, p):
     req = json.dumps({'command': 'shutdown'})
     rv = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
       print("Error", p['name'], rv)
-
 
   def statusCheck(self, p):
     status = ""
@@ -118,4 +115,3 @@ class daqcontrol:
         status = new_status
       elif new_status == "":
         print("Error", p['name'])
-  
