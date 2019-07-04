@@ -34,7 +34,7 @@ extern "C" FileDataLogger *create_object() { return new FileDataLogger; }
 extern "C" void destroy_object(FileDataLogger *object) { delete object; }
 
 FileDataLogger::FileDataLogger() : m_payloads{10000}, m_stopWriters{false}, m_bytes_sent{0} {
-  INFO("FileDataLogger::FileDataLogger");
+  INFO(__METHOD_NAME__);
 
 #warning RS -> Needs to be properly configured.
   // Set up static resources...
@@ -47,7 +47,7 @@ FileDataLogger::FileDataLogger() : m_payloads{10000}, m_stopWriters{false}, m_by
 }
 
 FileDataLogger::~FileDataLogger() {
-  INFO("FileDataLogger::~FileDataLogger");
+  INFO(__METHOD_NAME__);
   // Tear down resources...
   m_stopWriters.store(true);
   m_fileStreams[1].close();
@@ -71,7 +71,7 @@ void FileDataLogger::runner() {
   // auto& cm = daqling::core::ConnectionManager::instance();
   while (m_run) {
     daqutils::Binary pl(0);
-    while (!m_connections.get(1, std::ref(pl))) {
+    while (!m_connections.get(1, std::ref(pl)) && m_run) {
       std::this_thread::sleep_for(1ms);
     }
     m_payloads.write(pl);
