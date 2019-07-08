@@ -19,7 +19,7 @@ from xmlrpc.client import ServerProxy
 import datetime
 import getpass
 
-class supervisord:
+class supervisor_wrapper:
   def __init__(self, host, group):
     self.group = group
     self.server = ServerProxy('http://'+host+':9001/RPC2')

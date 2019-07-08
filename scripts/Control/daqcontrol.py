@@ -15,7 +15,7 @@
  along with DAQling. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import supervisord
+import supervisor_wrapper
 import zmq
 import json
 from time import sleep
@@ -32,7 +32,7 @@ class daqcontrol:
 
   def removeProcesses(self, components):
     for p in components:
-      sd = supervisord.supervisord(p['host'], self.group)
+      sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
       info = sd.getAllProcessInfo()
       for i in info:
         print(i)
@@ -50,7 +50,7 @@ class daqcontrol:
 
   def addProcesses(self, components, debug):
     for p in components:
-      sd = supervisord.supervisord(p['host'], self.group)
+      sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
       try:
         if debug is True:
           print("Add", sd.addProgramToGroup(
