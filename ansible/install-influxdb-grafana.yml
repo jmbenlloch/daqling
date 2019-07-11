@@ -11,3 +11,5 @@
     PATH: "{{ lookup('env','PATH') }}"
     CC: "{{ lookup('env','CC') }}"
     CXX: "{{ lookup('env','CXX') }}"
+    http_proxy: "{{ lookup('env','http_proxy') }}" 
+    https_proxy: "{{ lookup('env','https_proxy') }}" 

@@ -5,4 +5,6 @@
   become_method: sudo
   roles:
     - redis
-
+  environment:
+    http_proxy: "{{ lookup('env','http_proxy') }}" 
+    https_proxy: "{{ lookup('env','https_proxy') }}" 
