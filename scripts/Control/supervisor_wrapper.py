@@ -22,6 +22,7 @@ import getpass
 class supervisor_wrapper:
   def __init__(self, host, group):
     self.group = group
+    self.host = host
     self.server = ServerProxy('http://'+host+':9001/RPC2')
 
   def getAllProcessInfo(self):
@@ -53,7 +54,7 @@ class supervisor_wrapper:
         'stderr_logfile': log_file
         # 'redirect_stderr': 'true' # TODO apparently supervisor 3.1.4 ignores this.
     }
-    return self.server.twiddler.addProgramToGroup(self.group, name, settings)
+    return (self.server.twiddler.addProgramToGroup(self.group, name, settings), (self.host, log_file))
 
   def removeProcessFromGroup(self, name):
     return self.server.twiddler.removeProcessFromGroup(self.group, name)

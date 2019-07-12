@@ -49,17 +49,23 @@ class daqcontrol:
           print("Exception:\n  cannot remove process", i['name'])
 
   def addProcesses(self, components, debug):
+    log_files = []
     for p in components:
       sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
       try:
         if debug is True:
-          print("Add", sd.addProgramToGroup(
-              p['name'], self.exe+" "+str(p['port'])+" debug", self.dir, self.lib_path))
+          rv, log_file = sd.addProgramToGroup(
+              p['name'], self.exe+" "+str(p['port'])+" debug", self.dir, self.lib_path)
+          print("Add", rv)
+          log_files.append(log_file)
         else:
-          print("Add", sd.addProgramToGroup(
-              p['name'], self.exe+" "+str(p['port']), self.dir, self.lib_path))
+          rv, log_file = sd.addProgramToGroup(
+              p['name'], self.exe+" "+str(p['port']), self.dir, self.lib_path)
+          print("Add", rv)
+          log_files.append(log_file)
       except:
         print("Exception:\n  cannot add program", p['name'], "(probably already added)")
+    return log_files
 
   def handleRequest(self, host, port, request, config=None):
     socket = self.context.socket(zmq.REQ)
@@ -113,5 +119,8 @@ class daqcontrol:
       if new_status != status and new_status != "":
         print(p['name'], "in status", new_status)
         status = new_status
+        if status == b'booted':
+          print("Automatically configure booted process")
+          self.configureProcess(p)
       elif new_status == "":
         print("Error", p['name'])

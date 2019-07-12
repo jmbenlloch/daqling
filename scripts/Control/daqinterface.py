@@ -99,7 +99,8 @@ if arg == "remove":
   quit()
 
 if arg == 'add' or arg == 'complete':
-  dc.addProcesses(data['components'], debug)
+  log_files = dc.addProcesses(data['components'], debug)
+  # print(log_files)
   if arg == 'add':
     quit()
 
