@@ -110,9 +110,21 @@ bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, uint16_t tag, s
 
 bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, const std::string& connStr,
                                    size_t queueSize) {
+  // subscriber socket is an exception, as it can be connected to multiple endpoints
   if (m_sockets.find(chn) != m_sockets.end()) {
-    INFO(__METHOD_NAME__ << " Socket for channel already exists... Won't add this channel again.");
-    return false;
+    if (dir == EDirection::SUBSCRIBER) {
+      try {
+        m_sockets[chn]->connect(connStr.c_str());
+        INFO(__METHOD_NAME__ << " Adding SUBSCRIBER channel for: [" << chn << "] connect: " << connStr);
+      } catch (std::exception& e) {
+        ERROR(__METHOD_NAME__ << " Failed to add channel! ZMQ returned: " << e.what());
+        return false;
+      }
+      return true;
+    } else {
+      INFO(__METHOD_NAME__ << " Socket for channel already exists... Won't add this channel again.");
+      return false;
+    }
   }
   uint8_t ioT = 1;
   m_contexts[chn] = std::make_unique<zmq::context_t>(ioT); // Create context
@@ -137,7 +149,7 @@ bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, const std::stri
       m_sockets[chn] = std::make_unique<zmq::socket_t>(*(m_contexts[chn].get()), ZMQ_SUB);
       m_sockets[chn]->connect(connStr.c_str());
       m_sockets[chn]->setsockopt(ZMQ_SUBSCRIBE, "", 0); // TODO add a tag?
-      INFO(__METHOD_NAME__ << " Adding SUBSCRIBE channel for: [" << chn << "] connect: " << connStr);
+      INFO(__METHOD_NAME__ << " Adding SUBSCRIBER channel for: [" << chn << "] connect: " << connStr);
     }
   }
   catch (std::exception& e) {
