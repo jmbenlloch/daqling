@@ -52,6 +52,7 @@ int main(int argc, char *argv[]) {
     std::this_thread::sleep_for(std::chrono::seconds(1));
     std::cout << "-----------\nMsg size " << msg.size() << std::endl;
     std::cout << "-> sent " << publisher.send(msg) << std::endl;
+    ++d.whatever;
   }
   return 0;
 }
