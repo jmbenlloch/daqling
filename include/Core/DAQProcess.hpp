@@ -28,11 +28,7 @@
 #include "Core/Configuration.hpp"
 #include "Core/ConnectionManager.hpp"
 #include "Core/Statistics.hpp"
-#include "Utilities/Common.hpp"
 #include "Utilities/Logging.hpp"
-
-#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 namespace daqling {
 namespace core {

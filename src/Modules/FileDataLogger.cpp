@@ -23,8 +23,6 @@
 #include "Modules/FileDataLogger.hpp"
 #include "Utilities/Logging.hpp"
 
-#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 using namespace std::chrono_literals;
 namespace daqutils = daqling::utilities;
@@ -55,19 +53,19 @@ FileDataLogger::~FileDataLogger() {
 
 void FileDataLogger::start() {
   DAQProcess::start();
-  INFO(__METHOD_NAME__ << " getState: " << getState());
+  INFO(" getState: " << getState());
   m_monitor_thread = std::make_unique<std::thread>(&FileDataLogger::monitor_runner, this);
 }
 
 void FileDataLogger::stop() {
   DAQProcess::stop();
-  INFO(__METHOD_NAME__ << " getState: " << this->getState());
+  INFO(" getState: " << this->getState());
   m_monitor_thread->join();
   INFO("Joined successfully monitor thread");
 }
 
 void FileDataLogger::runner() {
-  INFO(__METHOD_NAME__ << " Running...");
+  INFO(" Running...");
   // auto& cm = daqling::core::ConnectionManager::instance();
   while (m_run) {
     daqutils::Binary pl(0);
@@ -75,9 +73,9 @@ void FileDataLogger::runner() {
       std::this_thread::sleep_for(1ms);
     }
     m_payloads.write(pl);
-    // DEBUG(__METHOD_NAME__ << "Wrote data from channel 1...");
+    // DEBUG("Wrote data from channel 1...");
   }
-  INFO(__METHOD_NAME__ << " Runner stopped");
+  INFO(" Runner stopped");
 }
 
 #warning RS -> File rotation implementation is missing
@@ -88,15 +86,15 @@ void FileDataLogger::setup() {
   m_fileWriters[tid] = std::make_unique<daqling::utilities::ReusableThread>(11111);
   m_writeFunctors[tid] = [&, tid] {
     int ftid = tid;
-    INFO(__METHOD_NAME__ << " Spawning fileWriter for link: " << ftid);
+    INFO(" Spawning fileWriter for link: " << ftid);
     while (!m_stopWriters) {
       if (m_payloads.sizeGuess() > 0) {
-        DEBUG(__METHOD_NAME__ << " SIZES: Queue pop.: " << m_payloads.sizeGuess()
+        DEBUG(" SIZES: Queue pop.: " << m_payloads.sizeGuess()
                               << " loc.buff. size: " << m_fileBuffers[ftid].size()
                               << " payload size: " << m_payloads.frontPtr()->size());
         long sizeSum = long(m_fileBuffers[ftid].size()) + long(m_payloads.frontPtr()->size());
         if (sizeSum > m_writeBytes) {  // Split needed.
-          DEBUG(__METHOD_NAME__ << " Processing split.");
+          DEBUG(" Processing split.");
           long splitSize = sizeSum - m_writeBytes;  // Calc split size
           long splitOffset =
               long(m_payloads.frontPtr()->size()) - long(splitSize);  // Calc split offset
@@ -134,10 +132,10 @@ void FileDataLogger::setup() {
   m_fileWriters[1]->set_work(m_writeFunctors[1]);
 }
 
-void FileDataLogger::write() { INFO(__METHOD_NAME__ << " Should write..."); }
+void FileDataLogger::write() { INFO(" Should write..."); }
 
 bool FileDataLogger::write(uint64_t keyId, daqling::utilities::Binary &payload) {
-  INFO(__METHOD_NAME__ << " Should write...");
+  INFO(" Should write...");
   return false;
 }
 

@@ -27,27 +27,24 @@
 #include "Core/Command.hpp"
 #include "Core/ConnectionManager.hpp"
 #include "Utilities/Binary.hpp"
-#include "Utilities/Common.hpp"
 #include "Utilities/Logging.hpp"
 
-#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
 bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr) {
   if (m_is_cmd_setup) {
-    INFO(__METHOD_NAME__ << " Command is already online... Won't do anything.");
+    INFO(" Command is already online... Won't do anything.");
     return false;
   }
   try {
     m_cmd_context = std::make_unique<zmq::context_t>(ioT);
     m_cmd_socket = std::make_unique<zmq::socket_t>(*(m_cmd_context.get()), ZMQ_REP);
     m_cmd_socket->bind(connStr);
-    INFO(__METHOD_NAME__ << " Command is connected on: " << connStr);
+    INFO(" Command is connected on: " << connStr);
   } catch (std::exception& e) {
-    ERROR(__METHOD_NAME__ << " Failed to add Command channel! ZMQ returned: " << e.what());
+    ERROR(" Failed to add Command channel! ZMQ returned: " << e.what());
     return false;
   }
   m_cmd_handler = std::thread([&]() {
@@ -86,16 +83,16 @@ bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr)
 
 bool ConnectionManager::setupStatsConnection(uint8_t ioT, std::string connStr) {
   if (m_is_stats_setup) {
-    INFO(__METHOD_NAME__ << " Statistics socket is already online... Won't do anything.");
+    INFO(" Statistics socket is already online... Won't do anything.");
     return false;
   }
   try {
     m_stats_context = std::make_unique<zmq::context_t>(ioT);
     m_stats_socket = std::make_unique<zmq::socket_t>(*(m_stats_context.get()), ZMQ_PUB);
     m_stats_socket->bind(connStr);
-    INFO(__METHOD_NAME__ << " Statistics are published on: " << connStr);
+    INFO(" Statistics are published on: " << connStr);
   } catch (std::exception& e) {
-    ERROR(__METHOD_NAME__ << " Failed to add Stats publisher channel! ZMQ returned: " << e.what());
+    ERROR(" Failed to add Stats publisher channel! ZMQ returned: " << e.what());
     return false;
   }
   return true;
@@ -115,14 +112,14 @@ bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, const std::stri
     if (dir == EDirection::SUBSCRIBER) {
       try {
         m_sockets[chn]->connect(connStr.c_str());
-        INFO(__METHOD_NAME__ << " Adding SUBSCRIBER channel for: [" << chn << "] connect: " << connStr);
+        INFO(" Adding SUBSCRIBER channel for: [" << chn << "] connect: " << connStr);
       } catch (std::exception& e) {
-        ERROR(__METHOD_NAME__ << " Failed to add channel! ZMQ returned: " << e.what());
+        ERROR(" Failed to add channel! ZMQ returned: " << e.what());
         return false;
       }
       return true;
     } else {
-      INFO(__METHOD_NAME__ << " Socket for channel already exists... Won't add this channel again.");
+      INFO(" Socket for channel already exists... Won't add this channel again.");
       return false;
     }
   }
@@ -136,31 +133,31 @@ bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, const std::stri
     if ( dir == EDirection::SERVER ) {
       m_sockets[chn] = std::make_unique<zmq::socket_t>(*(m_contexts[chn].get()), ZMQ_PAIR);
       m_sockets[chn]->bind(connStr.c_str());
-      INFO(__METHOD_NAME__ << " Adding SERVER channel for: [" << chn << "] bind: " << connStr);
+      INFO(" Adding SERVER channel for: [" << chn << "] bind: " << connStr);
     } else if ( dir == EDirection::CLIENT ) {
       m_sockets[chn] = std::make_unique<zmq::socket_t>(*(m_contexts[chn].get()), ZMQ_PAIR);
       m_sockets[chn]->connect(connStr.c_str());
-      INFO(__METHOD_NAME__ << " Adding CLIENT channel for: [" << chn << "] connect: " << connStr);
+      INFO(" Adding CLIENT channel for: [" << chn << "] connect: " << connStr);
     } else if (dir == EDirection::PUBLISHER) {
       m_sockets[chn] = std::make_unique<zmq::socket_t>(*(m_contexts[chn].get()), ZMQ_PUB);
       m_sockets[chn]->bind(connStr.c_str());
-      INFO(__METHOD_NAME__ << " Adding PUBLISHER channel for: [" << chn << "] bind: " << connStr);
+      INFO(" Adding PUBLISHER channel for: [" << chn << "] bind: " << connStr);
     } else if (dir == EDirection::SUBSCRIBER) {
       m_sockets[chn] = std::make_unique<zmq::socket_t>(*(m_contexts[chn].get()), ZMQ_SUB);
       m_sockets[chn]->connect(connStr.c_str());
       m_sockets[chn]->setsockopt(ZMQ_SUBSCRIBE, "", 0); // TODO add a tag?
-      INFO(__METHOD_NAME__ << " Adding SUBSCRIBER channel for: [" << chn << "] connect: " << connStr);
+      INFO(" Adding SUBSCRIBER channel for: [" << chn << "] connect: " << connStr);
     }
   }
   catch (std::exception& e) {
-    ERROR(__METHOD_NAME__ << " Failed to add channel! ZMQ returned: " << e.what());
+    ERROR(" Failed to add channel! ZMQ returned: " << e.what());
     return false;
   }
   return true;
 }
 
 bool ConnectionManager::addReceiveHandler(uint64_t chn) {
-  INFO(__METHOD_NAME__ << " [CLIENT] ReceiveHandler for channel [" << chn << "] starting...");
+  INFO(" [CLIENT] ReceiveHandler for channel [" << chn << "] starting...");
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
       zmq::message_t msg;
@@ -176,13 +173,13 @@ bool ConnectionManager::addReceiveHandler(uint64_t chn) {
         WARNING("CLIENT -> queue population: " << m_pcqs[chn]->sizeGuess());
       }
     }
-    INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
+    INFO(" joining channel [" << chn << "] handler.");
   });
   return true;
 }
 
 bool ConnectionManager::addSendHandler(uint64_t chn) {
-  INFO(__METHOD_NAME__ << " [SERVER] SendHandler for channel [" << chn << "] starting...");
+  INFO(" [SERVER] SendHandler for channel [" << chn << "] starting...");
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
       zmq::message_t msg;
@@ -195,13 +192,13 @@ bool ConnectionManager::addSendHandler(uint64_t chn) {
         WARNING("SERVER -> queue population: " << m_pcqs[chn]->sizeGuess());
       }
     }
-    INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
+    INFO(" joining channel [" << chn << "] handler.");
   });
   return true;
 }
 
 bool ConnectionManager::addSubscribeHandler(uint64_t chn) {
-  INFO(__METHOD_NAME__ << " [SUB] SubscribeHandler for channel [" << chn << "] starting...");
+  INFO(" [SUB] SubscribeHandler for channel [" << chn << "] starting...");
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
       zmq::message_t msg;
@@ -217,13 +214,13 @@ bool ConnectionManager::addSubscribeHandler(uint64_t chn) {
         WARNING("SUB -> queue population: " << m_pcqs[chn]->sizeGuess());
       }
     }
-    INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
+    INFO(" joining channel [" << chn << "] handler.");
   });
   return true;
 }
 
 bool ConnectionManager::addPublishHandler(uint64_t chn) {
-  INFO(__METHOD_NAME__ << " [PUB] PublishHandler for channel [" << chn << "] starting...");
+  INFO(" [PUB] PublishHandler for channel [" << chn << "] starting...");
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
       zmq::message_t msg;
@@ -236,7 +233,7 @@ bool ConnectionManager::addPublishHandler(uint64_t chn) {
         WARNING("PUB -> queue population: " << m_pcqs[chn]->sizeGuess());
       }
     }
-    INFO(__METHOD_NAME__ << " joining channel [" << chn << "] handler.");
+    INFO(" joining channel [" << chn << "] handler.");
   });
   return true;
 }

@@ -25,8 +25,6 @@
 #include "Core/Command.hpp"
 #include "Core/PluginManager.hpp"
 
-#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 using namespace daqling::core;
 using namespace std::chrono_literals;

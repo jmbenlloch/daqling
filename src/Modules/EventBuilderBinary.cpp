@@ -23,8 +23,6 @@
 
 #include "Modules/EventBuilderBinary.hpp"
 
-#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 using namespace std::chrono_literals;
 
@@ -33,23 +31,23 @@ extern "C" EventBuilder *create_object() { return new EventBuilder; }
 extern "C" void destroy_object(EventBuilder *object) { delete object; }
 
 EventBuilder::EventBuilder() {
-  INFO(__METHOD_NAME__ << " With config: " << m_config.dump() << " getState: " << this->getState());
+  INFO(" With config: " << m_config.dump() << " getState: " << this->getState());
 }
 
 EventBuilder::~EventBuilder() { INFO(__METHOD_NAME__); }
 
 void EventBuilder::start() {
   DAQProcess::start();
-  INFO(__METHOD_NAME__ << " getState: " << getState());
+  INFO(" getState: " << getState());
 }
 
 void EventBuilder::stop() {
   DAQProcess::stop();
-  INFO(__METHOD_NAME__ << " getState: " << this->getState());
+  INFO(" getState: " << this->getState());
 }
 
 void EventBuilder::runner() {
-  INFO(__METHOD_NAME__ << " Running...");
+  INFO(" Running...");
   while (m_run) {
     daqling::utilities::Binary b1, b2;
     while(!m_connections.get(1, b1) && m_run) {
@@ -61,8 +59,8 @@ void EventBuilder::runner() {
 
     daqling::utilities::Binary b3(b1);
     b3 += b2;
-    INFO(__METHOD_NAME__ << " Size of build event: " << b3.size());
+    INFO(" Size of build event: " << b3.size());
     m_connections.put(3, b3);
   }
-  INFO(__METHOD_NAME__ << " Runner stopped");
+  INFO(" Runner stopped");
 }

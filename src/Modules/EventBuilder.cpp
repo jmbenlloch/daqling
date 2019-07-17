@@ -23,8 +23,6 @@
 
 #include "Modules/EventBuilder.hpp"
 
-#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 using namespace std::chrono_literals;
 
@@ -33,23 +31,23 @@ extern "C" EventBuilder *create_object() { return new EventBuilder; }
 extern "C" void destroy_object(EventBuilder *object) { delete object; }
 
 EventBuilder::EventBuilder() {
-  INFO(__METHOD_NAME__ << " With config: " << m_config.dump() << " getState: " << this->getState());
+  INFO(" With config: " << m_config.dump() << " getState: " << this->getState());
 }
 
 EventBuilder::~EventBuilder() { INFO(__METHOD_NAME__); }
 
 void EventBuilder::start() {
   DAQProcess::start();
-  INFO(__METHOD_NAME__ << " getState: " << getState());
+  INFO(" getState: " << getState());
 }
 
 void EventBuilder::stop() {
   DAQProcess::stop();
-  INFO(__METHOD_NAME__ << " getState: " << this->getState());
+  INFO(" getState: " << this->getState());
 }
 
 void EventBuilder::runner() {
-  INFO(__METHOD_NAME__ << " Running...");
+  INFO(" Running...");
   const unsigned c_packing = 20;
   while (m_run) {
     std::string packed = "";
@@ -72,5 +70,5 @@ void EventBuilder::runner() {
       m_connections.putStr(3, packed);
     }
   }
-  INFO(__METHOD_NAME__ << " Runner stopped");
+  INFO(" Runner stopped");
 }

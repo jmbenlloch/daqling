@@ -25,8 +25,6 @@
 
 #include "Modules/BoardReaderBinary.hpp"
 
-#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 using namespace std::chrono_literals;
 using namespace std::chrono;
@@ -50,8 +48,8 @@ extern "C" BoardReader *create_object(std::string name, int num) {
 extern "C" void destroy_object(BoardReader *object) { delete object; }
 
 BoardReader::BoardReader(std::string name, int num) {
-  INFO(__METHOD_NAME__ << " Passed " << name << " " << num << " with constructor");
-  INFO(__METHOD_NAME__ << " With config: " << m_config.dump());
+  INFO(" Passed " << name << " " << num << " with constructor");
+  INFO(" With config: " << m_config.dump());
 
   m_board_id = m_config.getConfig()["settings"]["board_id"];
 }
@@ -60,12 +58,12 @@ BoardReader::~BoardReader() { INFO(__METHOD_NAME__); }
 
 void BoardReader::start() {
   DAQProcess::start();
-  INFO(__METHOD_NAME__ << " getState: " << this->getState());
+  INFO(" getState: " << this->getState());
 }
 
 void BoardReader::stop() {
   DAQProcess::stop();
-  INFO(__METHOD_NAME__ << " getState: " << this->getState());
+  INFO(" getState: " << this->getState());
 }
 
 void BoardReader::runner() {
@@ -76,13 +74,13 @@ void BoardReader::runner() {
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> dis(200, 1500);
 
-  INFO(__METHOD_NAME__ << " Running...");
+  INFO(" Running...");
   while (m_run) {
     timestamp = duration_cast<microseconds>(system_clock::now().time_since_epoch());
     const unsigned payload_size = dis(gen);
     const unsigned total_size = sizeof(data_t) + sizeof(char) * payload_size;
 
-    INFO(__METHOD_NAME__ << " sequence number " << sequence_number << "  >>  timestamp " << std::hex
+    INFO(" sequence number " << sequence_number << "  >>  timestamp " << std::hex
                          << "0x" << timestamp.count() << std::dec << "  >>  payload size "
                          << payload_size);
 
@@ -97,12 +95,12 @@ void BoardReader::runner() {
     auto binary = daqling::utilities::Binary(static_cast<const void *>(data.get()), total_size);
 
     // print binary
-    // INFO(__METHOD_NAME__ << "\n" << binary);
+    // INFO("\n" << binary);
 
     m_connections.put(1, binary);
 
     sequence_number++;
     std::this_thread::sleep_for(500ms);
   }
-  INFO(__METHOD_NAME__ << " Runner stopped");
+  INFO(" Runner stopped");
 }
