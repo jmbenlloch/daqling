@@ -22,16 +22,14 @@
 
 using namespace daqling::core;
 
-
-
-Statistics::Statistics(std::unique_ptr<zmq::socket_t>& statSock, unsigned interval) : m_stat_socket{statSock}, m_interval(interval) {
+Statistics::Statistics(std::unique_ptr<zmq::socket_t>& statSock, unsigned interval) : m_stat_socket{statSock}, m_interval{interval} {
   m_stop_thread = false;
+  m_influxDb = false;
+  m_zmq_publisher = false;  
 }
-  
+
+
 Statistics::~Statistics(){
-/*  for (auto &x : m_reg_metrics){
-    delete x;
-  }*/
   m_reg_metrics.clear();
   m_reg_metrics.shrink_to_fit();
   m_stop_thread = true;

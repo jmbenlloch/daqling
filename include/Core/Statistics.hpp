@@ -31,6 +31,7 @@
 #include <ctime>
 #include <numeric>
 #include "zmq.hpp"
+#include <cpr/cpr.h>
 
 namespace daqling {
 namespace core {
@@ -47,9 +48,19 @@ public:
 
   bool configure(unsigned interval);
 
+  void setZQMpublishing(bool zmq_publisher){m_zmq_publisher = zmq_publisher;}
+  void setInfluxDBsending(bool influxDb){m_influxDb = influxDb;}
+  void setInfluxDBname(std::string influxDb_name){m_influxDb_name = influxDb_name;}
+  void setInfluxDBuri(std::string influxDb_uri){m_influxDb_uri = influxDb_uri;}
+
   void start();
   
   void registerCoreMetric(std::string name, std::atomic<size_t>* metric);
+
+  //template <class T>
+  //void registerVariable(T* pointer, std::string name, metric_type mtype, float delta_t=1) {
+
+  //}
 
   template <class T, class U>
   void registerVariable(T* pointer, std::string name, metric_type mtype, variable_type vtype, float delta_t=1) {
@@ -57,8 +68,6 @@ public:
       delta_t = m_interval;
       INFO("delta_t parameter of registerVariable(...) function can not be smaller than m_interval! Setting delta_t to m_interval value.");
     }
-    //Metric<T, U>* metric = new Metric<T, U>(pointer, name, mtype, vtype, delta_t);
-    //m_reg_metrics.push_back(static_cast<Metric_base*>(metric));
     std::shared_ptr<Metric<T, U> > metric(new Metric<T, U>(pointer, name, mtype, vtype, delta_t));
     std::shared_ptr<Metric_base> metric_base = std::dynamic_pointer_cast<Metric_base>(metric);
     m_reg_metrics.push_back(metric_base);
@@ -76,7 +85,8 @@ public:
 
 
   template <class T, class U>
-  bool publishValue(Metric_base* m){
+  void publishValue(Metric_base* m){
+    INFO("publish value");
     U value = 0;
     Metric<T, U>* metric = static_cast<Metric<T, U>*>(m);
     if(metric->m_mtype == AVERAGE){
@@ -104,24 +114,30 @@ public:
         value = (value - last_value)/(U)std::difftime(std::time(nullptr), metric->m_timestamp);
       else{
         WARNING("Too short time interval to calculate RATE! Extend delta_t parameter of your metric");
-        return false;
+        return;
       }
     }
 
     metric->m_timestamp = std::time(nullptr);
-    std::ostringstream msg;
-    msg<<metric->m_name<<": "<<value;
-    std::cout<<value;
-    std::cout<<msg.str();
-    //std::string msg = metric->m_name + ": " + std::to_string(value);
-    zmq::message_t message(msg.str().size());
-    memcpy (message.data(), msg.str().data(), msg.str().size());
-    INFO(" MSG " << msg.str());
-    bool rc = m_stat_socket->send(message);
-    if(!rc)
-      WARNING("Failed to publish metric: " << metric->m_name);
-    return rc;
 
+    if(m_zmq_publisher){
+      std::ostringstream msg;
+      msg<<metric->m_name<<": "<<value;
+      zmq::message_t message(msg.str().size());
+      memcpy (message.data(), msg.str().data(), msg.str().size());
+      INFO(" MSG " << msg.str());
+      bool rc = m_stat_socket->send(message);
+      if(!rc)
+        WARNING("Failed to publish metric: " << metric->m_name);
+    }
+    if(m_influxDb){
+      INFO("Sending the metric: "<<metric->m_name<<" value: "<<std::to_string(value)<<" to influxDB");
+      INFO(m_influxDb_uri+m_influxDb_name);
+      auto r = cpr::Post(cpr::Url{m_influxDb_uri+m_influxDb_name},
+                           cpr::Payload{{metric->m_name+" value", std::to_string(value)}});
+
+      INFO("InfluxDB response: "<<r.status_code << "\t"<<r.text);
+    }
 
   }
 
@@ -131,6 +147,14 @@ public:
   // Thread control
   std::thread m_stat_thread;
   std::atomic<bool> m_stop_thread;
+
+  // Config for data publishing
+  std::atomic<bool> m_influxDb;
+  std::atomic<bool> m_zmq_publisher;
+
+  // Config for influxDB
+  std::string m_influxDb_name;
+  std::string m_influxDb_uri; 
  
   // Publish socket ref for stats
   std::unique_ptr<zmq::socket_t>& m_stat_socket;
