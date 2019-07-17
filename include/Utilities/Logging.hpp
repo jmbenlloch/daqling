@@ -31,6 +31,7 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/sinks/rotating_file_sink.h"
+#include "Utilities/Common.hpp"
 
 //#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
 //#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
@@ -99,12 +100,15 @@ typedef spdlog::level::level_enum level;
 
 #undef INFO
 
-#define DEBUG(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->debug(writer.str()); } while (0)
-#define INFO(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->info(writer.str()); } while (0)
-#define NOTICE(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->notice(writer.str()); } while (0)
-#define WARNING(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->warn(writer.str()); } while (0)
-#define ERROR(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->error(writer.str()); } while (0)
-#define CRITICAL(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->critical(writer.str()); } while (0)
-#define ALERT(MSG) do { std::ostringstream writer; writer << MSG; daqling::utilities::Logger::instance()->alert(writer.str()); } while (0)
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
+
+#define DEBUG(MSG)    do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->debug(writer.str()); } while (0)
+#define INFO(MSG)     do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->info(writer.str()); } while (0)
+#define NOTICE(MSG)   do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->notice(writer.str()); } while (0)
+#define WARNING(MSG)  do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->warn(writer.str()); } while (0)
+#define ERROR(MSG)    do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->error(writer.str()); } while (0)
+#define CRITICAL(MSG) do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->critical(writer.str()); } while (0)
+#define ALERT(MSG)    do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->alert(writer.str()); } while (0)
 
 #endif // DAQLING_UTILITIES_LOGGING_HPP

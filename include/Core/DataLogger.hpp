@@ -19,12 +19,9 @@
 #define DAQLING_CORE_DATALOGGER_HPP
 
 #include "Core/Configuration.hpp"
-#include "Utilities/Common.hpp"
 #include "Utilities/DataStore.hpp"
 #include "Utilities/Logging.hpp"
 
-#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 /*
  * DataLogger

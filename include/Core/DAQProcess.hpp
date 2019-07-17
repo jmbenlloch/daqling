@@ -28,11 +28,7 @@
 #include "Core/Configuration.hpp"
 #include "Core/ConnectionManager.hpp"
 #include "Core/Statistics.hpp"
-#include "Utilities/Common.hpp"
 #include "Utilities/Logging.hpp"
-
-#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 namespace daqling {
 namespace core {
@@ -66,14 +62,14 @@ class DAQProcess {
   bool setupStatistics() { // TODO
 
     auto statsURI = m_config.getConfig()["settings"]["stats_uri"];
-    INFO(__METHOD_NAME__ << " Setting up statistics on: " << statsURI);
+    INFO(" Setting up statistics on: " << statsURI);
     if (statsURI == "" || statsURI == nullptr){
-      INFO(__METHOD_NAME__ << " No Statistics settings were provided... Running without stats. ");
+      INFO(" No Statistics settings were provided... Running without stats. ");
       m_stats_on = false;
       return false;
     } else {
       if ( !m_connections.setupStatsConnection(1, statsURI) ) {
-        ERROR(__METHOD_NAME__ << " Connection setup failed for Statistics publishing! ");
+        ERROR(" Connection setup failed for Statistics publishing! ");
         return false;
       }
       m_statistics = std::make_unique<Statistics>(m_connections.getStatSocket());

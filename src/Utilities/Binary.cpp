@@ -19,10 +19,7 @@
 #include <cstring>
 #include "Utilities/Binary.hpp"
 #include "Utilities/Logging.hpp"
-#include "Utilities/Common.hpp"
 
-#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
 using namespace daqling::utilities;
 
@@ -77,7 +74,7 @@ const void*
 Binary::data() const
 {
   if(!m_data)
-    ERROR(__METHOD_NAME__ << " Binary data can't be accessed.");
+    ERROR(" Binary data can't be accessed.");
   return startingAddress();
 }
 
