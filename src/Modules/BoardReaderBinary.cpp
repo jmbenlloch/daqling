@@ -40,7 +40,7 @@ struct header_t {
 
 struct data_t {
   header_t header;
-  char payload[];
+  char payload[24000];
 } __attribute__((__packed__));
 
 extern "C" BoardReader *create_object(std::string name, int num) {
@@ -74,7 +74,7 @@ void BoardReader::runner() {
 
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<> dis(1, 128);
+  std::uniform_int_distribution<> dis(200, 1500);
 
   INFO(__METHOD_NAME__ << " Running...");
   while (m_run) {
@@ -97,7 +97,7 @@ void BoardReader::runner() {
     auto binary = daqling::utilities::Binary(static_cast<const void *>(data.get()), total_size);
 
     // print binary
-    // std::cout << binary << std::endl;
+    // INFO(__METHOD_NAME__ << "\n" << binary);
 
     m_connections.put(1, binary);
 

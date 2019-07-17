@@ -71,10 +71,10 @@ bool daqling::core::Command::executeCommand(std::string& response) {
       INFO("key" << it);
       if (it["type"] == "pair") {
         cm.addChannel(it["chid"], ConnectionManager::EDirection::CLIENT, 0, it["host"], it["port"],
-                      100, false);
+                      10000, false);
       } else if (it["type"] == "pubsub") {
         cm.addChannel(it["chid"], ConnectionManager::EDirection::SUBSCRIBER, 0, it["host"],
-                      it["port"], 100, false);
+                      it["port"], 10000, false);
       } else {
         ERROR("Connection type not recognized!");
         response = "Failure";
@@ -89,10 +89,10 @@ bool daqling::core::Command::executeCommand(std::string& response) {
       INFO("key" << it);
       if (it["type"] == "pair") {
         cm.addChannel(it["chid"], ConnectionManager::EDirection::SERVER, 0, it["host"], it["port"],
-                      100, false);
+                      10000, false);
       } else if (it["type"] == "pubsub") {
         cm.addChannel(it["chid"], ConnectionManager::EDirection::PUBLISHER, 0, it["host"],
-                      it["port"], 100, false);
+                      it["port"], 10000, false);
       } else {
         ERROR("Connection type not recognized!");
         response = "Failure";
