@@ -1,0 +1,21 @@
+- name: Install InfluxDB
+  yum:
+    name: https://dl.influxdata.com/influxdb/releases/influxdb-1.7.6.x86_64.rpm
+
+- name: Open port 8086 on firewalld for InfluxDB's HTTP API
+  firewalld:
+    zone: public
+    port: 8086/tcp
+    permanent: true
+    state: enabled
+  notify:
+    - restart firewalld
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Enabling InfluxDB service
+  systemd:
+    name: influxdb
+    enabled: yes
+    daemon_reload: yes
+  notify:
+    - restart influxdb

@@ -7,4 +7,4 @@
 One command to set up your host and install supervisord
 
     cd ansible/
-    ansible-playbook set-up-host.yml --ask-become-pass
+    ansible-playbook set-up-host.yml --ask-become
