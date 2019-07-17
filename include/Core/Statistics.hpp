@@ -63,7 +63,7 @@ public:
   //}
 
   template <class T, class U>
-  void registerVariable(T* pointer, std::string name, metric_type mtype, variable_type vtype, float delta_t=1) {
+  void registerVariable(T* pointer, std::string name, metrics::metric_type mtype, metrics::variable_type vtype, float delta_t=1) {
     if(delta_t < m_interval/1000){
       delta_t = m_interval;
       INFO("delta_t parameter of registerVariable(...) function can not be smaller than m_interval! Setting delta_t to m_interval value.");
@@ -89,19 +89,19 @@ public:
     INFO("publish value");
     U value = 0;
     Metric<T, U>* metric = static_cast<Metric<T, U>*>(m);
-    if(metric->m_mtype == AVERAGE){
+    if(metric->m_mtype == metrics::AVERAGE){
       U average = std::accumulate( metric->m_values.begin(), metric->m_values.end(), 0.0)/metric->m_values.size();
       metric->m_values.clear();
       metric->m_values.shrink_to_fit();
       value = average;
     }
-    else if(metric->m_mtype == LAST_VALUE){
+    else if(metric->m_mtype == metrics::LAST_VALUE){
       value = *(metric->m_metrics_ptr);
       metric->m_values.clear();
       metric->m_values.shrink_to_fit();
       metric->m_values.push_back(value);
     }
-    else if(metric->m_mtype == RATE){
+    else if(metric->m_mtype == metrics::RATE){
       value = *(metric->m_metrics_ptr);
       U last_value = 0;
       if(metric->m_values.size() == 1){

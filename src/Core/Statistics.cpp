@@ -62,21 +62,21 @@ void Statistics::CheckStatistics() {
   
     for (auto &m : m_reg_metrics){
       Metric_base* x = m.get();
-      if(x->m_mtype == AVERAGE){
+      if(x->m_mtype == metrics::AVERAGE){
         switch(x->m_vtype){
-        case FLOAT:
+        case metrics::FLOAT:
           accumulateValue<std::atomic<float>, float >(x);
           break;
-        case INT:
+        case metrics::INT:
           accumulateValue<std::atomic<int>, int>(x);
           break;
-        case DOUBLE:
+        case metrics::DOUBLE:
           accumulateValue<std::atomic<double>, double>(x);
           break;
-        case BOOL:
+        case metrics::BOOL:
           accumulateValue<std::atomic<bool>, bool>(x);
           break;
-        case SIZE:
+        case metrics::SIZE:
           accumulateValue<std::atomic<size_t>, size_t>(x);
           break;
         };
@@ -85,19 +85,19 @@ void Statistics::CheckStatistics() {
 
       if(std::difftime(std::time(nullptr), x->m_timestamp) >= x->m_delta_t){
         switch(x->m_vtype){
-        case FLOAT:
+        case metrics::FLOAT:
           publishValue<std::atomic<float>, float>(x);
           break;
-        case INT:
+        case metrics::INT:
           publishValue<std::atomic<int>, int>(x);
           break;
-        case DOUBLE:
+        case metrics::DOUBLE:
           publishValue<std::atomic<double>, double>(x);
           break;
-        case BOOL:
+        case metrics::BOOL:
           publishValue<std::atomic<bool>, bool>(x);
           break;
-        case SIZE:
+        case metrics::SIZE:
           publishValue<std::atomic<size_t>, size_t>(x);
           break;
         };

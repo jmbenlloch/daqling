@@ -83,8 +83,8 @@ class DAQProcess {
       }
       
       m_statistics = std::make_unique<Statistics>(m_connections.getStatSocket());
-      m_statistics->registerVariable<std::atomic<size_t>, size_t >(&m_connections.getQueueStat(1), "CHN0-QueueSizeGuess", daqling::core::LAST_VALUE, daqling::core::SIZE);
-      m_statistics->registerVariable<std::atomic<size_t>, size_t >(&m_connections.getMsgStat(1), "CHN0-NumMessages", daqling::core::LAST_VALUE, daqling::core::SIZE);
+      m_statistics->registerVariable<std::atomic<size_t>, size_t >(&m_connections.getQueueStat(1), "CHN0-QueueSizeGuess", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
+      m_statistics->registerVariable<std::atomic<size_t>, size_t >(&m_connections.getMsgStat(1), "CHN0-NumMessages", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
       if(statsURI != "" && statsURI != nullptr){
         m_statistics->setZQMpublishing(true);
         m_stats_on = true;

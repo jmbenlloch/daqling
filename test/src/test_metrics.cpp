@@ -37,9 +37,9 @@ int main(int argc, char** argv)
   daqling::core::Statistics stat(std::ref(publisher));
   stat.start();
 
-  stat.registerVariable<std::atomic<float>, float >(&buffer_occupation, "AverageBufferOccupation", daqling::core::AVERAGE, daqling::core::FLOAT, 2);
-  stat.registerVariable<std::atomic<float>, float >(&buffer_occupation, "BufferOccupation", daqling::core::LAST_VALUE, daqling::core::FLOAT);
-  stat.registerVariable<std::atomic<int>, int >(&packets, "PacketsRate", daqling::core::RATE, daqling::core::INT);
+  stat.registerVariable<std::atomic<float>, float >(&buffer_occupation, "AverageBufferOccupation", daqling::core::metrics::AVERAGE, daqling::core::metrics::FLOAT, 2);
+  stat.registerVariable<std::atomic<float>, float >(&buffer_occupation, "BufferOccupation", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::FLOAT);
+  stat.registerVariable<std::atomic<int>, int >(&packets, "PacketsRate", daqling::core::metrics::RATE, daqling::core::metrics::INT);
   //stat.registerVariable("NumberOfPackets", &packets);
   while(1){
     usleep(500000);

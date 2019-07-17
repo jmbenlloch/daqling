@@ -39,16 +39,16 @@ void MetricsSimulator::start() {
   m_metric8 = 0;
   m_metric9 = 0;
   m_metric10 = 0;
-  m_statistics->registerVariable<std::atomic<int>, int>(&m_metric6, "RandomMetric1-int", daqling::core::LAST_VALUE, daqling::core::INT);
-  m_statistics->registerVariable<std::atomic<float>, float>(&m_metric2, "RandomMetric2-float", daqling::core::LAST_VALUE, daqling::core::FLOAT);
-  m_statistics->registerVariable<std::atomic<double>, double>(&m_metric3, "RandomMetric3-dobule", daqling::core::LAST_VALUE, daqling::core::DOUBLE);
-  m_statistics->registerVariable<std::atomic<bool>, bool>(&m_metric4, "RandomMetric4-bool", daqling::core::LAST_VALUE, daqling::core::BOOL);
-  m_statistics->registerVariable<std::atomic<size_t>, size_t>(&m_metric5, "RandomMetric5-size_t", daqling::core::LAST_VALUE, daqling::core::SIZE);
-  m_statistics->registerVariable<std::atomic<int>, int>(&m_metric6, "RandomMetric6-int_average", daqling::core::AVERAGE, daqling::core::INT, 7);
-  m_statistics->registerVariable<std::atomic<float>, float>(&m_metric2, "RandomMetric7-float_rate", daqling::core::RATE, daqling::core::FLOAT, 5);
-  m_statistics->registerVariable<std::atomic<double>, double>(&m_metric3, "RandomMetric8-double_average", daqling::core::AVERAGE, daqling::core::DOUBLE, 5);
-  m_statistics->registerVariable<std::atomic<bool>, bool>(&m_metric9, "RandomMetric9-bool", daqling::core::LAST_VALUE, daqling::core::BOOL);
-  m_statistics->registerVariable<std::atomic<size_t>, size_t>(&m_metric5, "RandomMetric10-size_t_rate", daqling::core::RATE, daqling::core::SIZE, 5);
+  m_statistics->registerVariable<std::atomic<int>, int>(&m_metric6, "RandomMetric1-int", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::INT);
+  m_statistics->registerVariable<std::atomic<float>, float>(&m_metric2, "RandomMetric2-float", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::FLOAT);
+  m_statistics->registerVariable<std::atomic<double>, double>(&m_metric3, "RandomMetric3-dobule", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::DOUBLE);
+  m_statistics->registerVariable<std::atomic<bool>, bool>(&m_metric4, "RandomMetric4-bool", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::BOOL);
+  m_statistics->registerVariable<std::atomic<size_t>, size_t>(&m_metric5, "RandomMetric5-size_t", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
+  m_statistics->registerVariable<std::atomic<int>, int>(&m_metric6, "RandomMetric6-int_average", daqling::core::metrics::AVERAGE, daqling::core::metrics::INT, 7);
+  m_statistics->registerVariable<std::atomic<float>, float>(&m_metric2, "RandomMetric7-float_rate", daqling::core::metrics::RATE, daqling::core::metrics::FLOAT, 5);
+  m_statistics->registerVariable<std::atomic<double>, double>(&m_metric3, "RandomMetric8-double_average", daqling::core::metrics::AVERAGE, daqling::core::metrics::DOUBLE, 5);
+  m_statistics->registerVariable<std::atomic<bool>, bool>(&m_metric9, "RandomMetric9-bool", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::BOOL);
+  m_statistics->registerVariable<std::atomic<size_t>, size_t>(&m_metric5, "RandomMetric10-size_t_rate", daqling::core::metrics::RATE, daqling::core::metrics::SIZE, 5);
   INFO("MetricsSimulator::start");
 }
 
