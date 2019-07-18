@@ -27,6 +27,10 @@ file(GLOB_RECURSE FILEDATALOGGER_SOURCES "FileDataLogger.cpp")
 add_library(filedatalogger SHARED ${FILEDATALOGGER_SOURCES})
 target_link_libraries(filedatalogger PUBLIC core utilities zmq)
 
+file(GLOB_RECURSE METRICSSIMULATOR_SOURCES "MetricsSimulator.cpp")
+add_library(metricssimulator SHARED ${METRICSSIMULATOR_SOURCES})
+target_link_libraries(metricssimulator PUBLIC core utilities zmq)
+
 if (ENABLE_CASSANDRA)
   file(GLOB_RECURSE CASSANDRADATALOGGER_SOURCES "CassandraDataLogger.cpp")
   add_library(cassandradatalogger SHARED ${CASSANDRADATALOGGER_SOURCES})

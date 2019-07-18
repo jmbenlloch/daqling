@@ -6,10 +6,11 @@ project(Core VERSION 0.0.1
                   LANGUAGES CXX)
 
 include_directories("../../include")
+#include_directories(${CPR_INCLUDE_DIRS})
 file(GLOB_RECURSE UTILITIES_SOURCES "*.cpp")
 add_library(core SHARED ${UTILITIES_SOURCES})
 
-target_link_libraries(core PUBLIC utilities zmq)
+target_link_libraries(core PUBLIC utilities zmq cpr curl)
 
 
 #executable

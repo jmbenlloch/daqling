@@ -80,10 +80,16 @@ include_directories(/opt/spdlog/include)
 #add_external(json ${json_version})
 include_directories(/opt/json/single_include)
 
+
+include_directories(/opt/cpr/include)
+link_directories(/opt/cpr/build/lib)
+
 #add_external(cereal ${cereal_version})
 #add_external(evpp   ${evpp_version})
 
 #add_external(cassandra-driver ${cassandra-driver_version})
+
+#add_subdirectory(cpr)
 
 # pass include directories to parent
 get_directory_property(hasParent PARENT_DIRECTORY)

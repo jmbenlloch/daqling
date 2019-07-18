@@ -24,28 +24,31 @@
 int main(int argc, char** argv)
 {
 
-	std::atomic<int> buffer_occupation;
-	std::atomic<int> packets;
-	buffer_occupation = 0;
-	packets = 0;
+  std::atomic<float> buffer_occupation;
+  std::atomic<int> packets;
+  buffer_occupation = 0.1;
+  packets = 0;
 
-        zmq::context_t context(1);
-        std::unique_ptr<zmq::socket_t> publisher;
-        publisher = std::make_unique<zmq::socket_t>(context, ZMQ_PUB);
-        publisher->bind("tcp://*:5556");
+  zmq::context_t context(1);
+  std::unique_ptr<zmq::socket_t> publisher;
+  publisher = std::make_unique<zmq::socket_t>(context, ZMQ_PUB);
+  publisher->bind("tcp://*:5556");
 
-	daqling::core::Statistics stat(std::ref(publisher));
-	stat.start();
-	std::cout<<"Called start"<<'\n'; 
-	stat.registerVariable("BufferOccupation", &buffer_occupation);
-	stat.registerVariable("NumberOfPackets", &packets);
-	while(1){
-		usleep(500000);
-		//std::cout<<"bla"<<std::endl;
-		packets+=2;
-		buffer_occupation+=3;
-	}
+  daqling::core::Statistics stat(std::ref(publisher));
+  stat.start();
 
-	return 0;
+  stat.registerVariable<std::atomic<float>, float >(&buffer_occupation, "AverageBufferOccupation", daqling::core::metrics::AVERAGE, daqling::core::metrics::FLOAT, 2);
+  stat.registerVariable<std::atomic<float>, float >(&buffer_occupation, "BufferOccupation", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::FLOAT);
+  stat.registerVariable<std::atomic<int>, int >(&packets, "PacketsRate", daqling::core::metrics::RATE, daqling::core::metrics::INT);
+  //stat.registerVariable("NumberOfPackets", &packets);
+  while(1){
+    usleep(500000);
+    //std::cout<<"bla"<<std::endl;
+    packets+=2;
+    buffer_occupation = buffer_occupation + 3.1;
+    std::cout<<"Buffer occupation: "<<buffer_occupation<<std::endl;
+  }
+
+  return 0;
 }
 

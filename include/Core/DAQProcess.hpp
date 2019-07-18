@@ -62,21 +62,35 @@ class DAQProcess {
   bool setupStatistics() { // TODO
 
     auto statsURI = m_config.getConfig()["settings"]["stats_uri"];
-    INFO(" Setting up statistics on: " << statsURI);
-    if (statsURI == "" || statsURI == nullptr){
-      INFO(" No Statistics settings were provided... Running without stats. ");
+    auto influxDbURI = m_config.getConfig()["settings"]["influxDb_uri"];
+    auto influxDbName = m_config.getConfig()["settings"]["influxDb_name"];
+    INFO(__METHOD_NAME__ << " Setting up statistics on: " << statsURI);
+    if ((statsURI == "" || statsURI == nullptr) && (influxDbURI == "" || influxDbURI == nullptr)){
+      INFO(__METHOD_NAME__ << " No Statistics settings were provided... Running without stats. ");
       m_stats_on = false;
       return false;
-    } else {
-      if ( !m_connections.setupStatsConnection(1, statsURI) ) {
-        ERROR(" Connection setup failed for Statistics publishing! ");
-        return false;
+    } 
+    else {
+      if(statsURI != "" && statsURI != nullptr){
+        if ( !m_connections.setupStatsConnection(1, statsURI) ) {
+          ERROR(__METHOD_NAME__ << " Connection setup failed for Statistics publishing! ");
+          return false;
+        }
       }
+      
       m_statistics = std::make_unique<Statistics>(m_connections.getStatSocket());
-      m_statistics->registerCoreMetric("CHN0-QueueSizeGuess", &m_connections.getQueueStat(1) );
-      m_statistics->registerCoreMetric("CHN0-NumMessages", &m_connections.getMsgStat(1) );
-      m_statistics->configure(1);
-      m_stats_on = true;
+      m_statistics->registerVariable<std::atomic<size_t>, size_t >(&m_connections.getQueueStat(1), "CHN0-QueueSizeGuess", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
+      m_statistics->registerVariable<std::atomic<size_t>, size_t >(&m_connections.getMsgStat(1), "CHN0-NumMessages", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
+      if(statsURI != "" && statsURI != nullptr){
+        m_statistics->setZQMpublishing(true);
+        m_stats_on = true;
+      }
+      if(influxDbURI != "" && influxDbURI != nullptr){
+        m_statistics->setInfluxDBname(influxDbName);
+        m_statistics->setInfluxDBuri(influxDbURI);
+        m_statistics->setInfluxDBsending(true);
+        m_stats_on = true;
+      }
     }
     return true;
   } 
