@@ -11,3 +11,22 @@
     repo: https://github.com/gabime/spdlog.git
     dest: /opt/spdlog
     version: v1.3.1
+
+- name: Clone whoshuu/cpr
+  git:
+    repo: https://github.com/whoshuu/cpr
+    dest: /opt/cpr
+    version: 1.3.0
+
+- file:
+    path: /opt/cpr/build
+    state: directory
+
+- name: Run cmake3 in cpr
+  cmake: 
+    source_dir: /opt/cpr
+    binary_dir: /opt/cpr/build
+    target: cpr
+    build_type: Release
+    executable: /usr/bin/cmake3
+    cache_vars: {"USE_SYSTEM_CURL": "ON", "BUILD_CPR_TESTS": "OFF", "CMAKE_CXX_FLAGS": "-fPIC"}
