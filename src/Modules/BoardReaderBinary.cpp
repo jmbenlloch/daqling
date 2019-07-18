@@ -78,7 +78,7 @@ void BoardReader::runner() {
   while (m_run) {
     timestamp = duration_cast<microseconds>(system_clock::now().time_since_epoch());
     const unsigned payload_size = dis(gen);
-    const unsigned total_size = sizeof(data_t) + sizeof(char) * payload_size;
+    const unsigned total_size = sizeof(header_t) + sizeof(char) * payload_size;
 
     INFO(" sequence number " << sequence_number << "  >>  timestamp " << std::hex
                          << "0x" << timestamp.count() << std::dec << "  >>  payload size "

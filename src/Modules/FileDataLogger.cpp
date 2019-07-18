@@ -36,7 +36,7 @@ FileDataLogger::FileDataLogger() : m_payloads{10000}, m_stopWriters{false}, m_by
 
 #warning RS -> Needs to be properly configured.
   // Set up static resources...
-  m_writeBytes = 4 * daqutils::Constant::Kilo;  // 4K buffer writes
+  m_writeBytes = 24 * daqutils::Constant::Kilo;  // 4K buffer writes
   std::ios_base::sync_with_stdio(false);
   m_fileNames[1] = "/tmp/test.bin";
   m_fileStreams[1] = std::fstream(m_fileNames[1], std::ios::out | std::ios::binary);
