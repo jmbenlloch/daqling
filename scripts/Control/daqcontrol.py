@@ -111,16 +111,19 @@ class daqcontrol:
       print("Error", p['name'], rv)
 
   def statusCheck(self, p):
+    sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
     status = ""
     while(not self.stop_check):
       sleep(0.5)
       req = json.dumps({'command': 'status'})
-      new_status = self.handleRequest(p['host'], p['port'], req)
-      if new_status != status and new_status != "":
+      state = sd.getProcessState(p['name'])['statename']
+      if state == 'RUNNING':
+        new_status = self.handleRequest(p['host'], p['port'], req)
+      else:
+        new_status = b'not_booted'
+      if new_status != status:
         print(p['name'], "in status", new_status)
         status = new_status
         if status == b'booted':
           print("Automatically configure booted process")
           self.configureProcess(p)
-      elif new_status == "":
-        print("Error", p['name'])
