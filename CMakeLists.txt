@@ -32,11 +32,8 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 endif()
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
-#include(AUTOLOAD)
 
-#set(CMAKE_CXX_FLAGS -DGIT_DESCRIBE="`cd ${CMAKE_CURRENT_SOURCE_DIR}; git describe --tags --always --dirty`")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -Wno-unused-function -Wno-unused-variable -O3 -g -pedantic")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -Wno-unused-function -Wno-unused-variable -O3 -g -pedantic -fPIC")
 
 set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -ldl")
 
@@ -62,40 +59,25 @@ if (ENABLE_BOOST)
   include_directories(${Boost_INCLUDE_DIRS})
 endif (ENABLE_BOOST)
 
-# ZeroMQ
-#felix_add_external(zeromq ${zeromq_version} ${BINARY_TAG})
-# No FindZeroMQ.cmake available yet
-# find_package(ZeroMQ ${zeromq_version} EXACT REQUIRED)
-#include_directories(${ZEROMQ_DIR}/include)
-#link_directories(${ZEROMQ_DIR}/lib)
-
 # others
-#add_external(spdlog ${spdlog_version}) # A spd log version is installed along with CentOS but is too old
 include_directories(/opt/spdlog/include)
 
-#add_external(docopt ${docopt_version})
-
-#set(JSON_BuildTests OFF CACHE BOOL "Build the unit tests when BUILD_TESTING is enabled.")
-#option(JSON_BuildTests "Build the unit tests when BUILD_TESTING is enabled.")
-#add_external(json ${json_version})
 include_directories(/opt/json/single_include)
-
 
 include_directories(/opt/cpr/include)
 link_directories(/opt/cpr/build/lib)
-
-#add_external(cereal ${cereal_version})
-#add_external(evpp   ${evpp_version})
-
-#add_external(cassandra-driver ${cassandra-driver_version})
-
-#add_subdirectory(cpr)
 
 # pass include directories to parent
 get_directory_property(hasParent PARENT_DIRECTORY)
 if (hasParent)
   get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
   set(daqling_include_dirs ${dirs} PARENT_SCOPE)
+endif (hasParent)
+
+# pass link directories to parent
+if (hasParent)
+  get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY LINK_DIRECTORIES)
+  set(daqling_link_dirs ${dirs} PARENT_SCOPE)
 endif (hasParent)
 
 add_subdirectory(src/Utilities)
