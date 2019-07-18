@@ -107,17 +107,21 @@ class daqcontrol:
     if rv != b'Success':
       print("Error", p['name'], rv)
 
-  def statusCheck(self, p):
-    sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
-    status = ""
-    while(not self.stop_check):
-      sleep(0.5)
+  def getStatus(self, p):
+      sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
       req = json.dumps({'command': 'status'})
       state = sd.getProcessState(p['name'])['statename']
       if state == 'RUNNING':
-        new_status = self.handleRequest(p['host'], p['port'], req)
+        status = self.handleRequest(p['host'], p['port'], req)
       else:
-        new_status = b'not_booted'
+        status = b'not_booted'
+      return status
+  
+  def statusCheck(self, p):
+    status = ""
+    while(not self.stop_check):
+      sleep(0.5)
+      new_status = self.getStatus(p)
       if new_status != status:
         print(p['name'], "in status", new_status)
         status = new_status
