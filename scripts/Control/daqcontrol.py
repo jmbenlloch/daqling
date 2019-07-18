@@ -33,20 +33,17 @@ class daqcontrol:
   def removeProcesses(self, components):
     for p in components:
       sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
-      info = sd.getAllProcessInfo()
-      for i in info:
-        print(i)
-        if i['statename'] == 'RUNNING':
-          try:
-            print('Stop', sd.stopProcess(i['name']))
-          except:
-            print("Exception: cannot stop process",
-                  i['name'], "(probably already stopped)")
-          print('State', sd.getProcessState(i['name'])['statename'])
+      if sd.getProcessState(p['name'])['statename'] == 'RUNNING':
         try:
-          print('Remove', sd.removeProcessFromGroup(i['name']))
+          print('Stop', sd.stopProcess(p['name']))
         except:
-          print("Exception:\n  cannot remove process", i['name'])
+          print("Exception: cannot stop process",
+                p['name'], "(probably already stopped)")
+        print('State', sd.getProcessState(p['name'])['statename'])
+      try:
+        print('Remove', sd.removeProcessFromGroup(p['name']))
+      except:
+        print("Exception:\n  cannot remove process", p['name'])
 
   def addProcesses(self, components, debug):
     log_files = []
