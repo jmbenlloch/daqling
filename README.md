@@ -4,9 +4,11 @@ Software framework for development of modular and distributed data acquisition s
 
 # Documentation
 WIP: Scattered documentation can be found at the following links:
+- [CodiMD][codimd]
 - [Google documents][drive]
 - [Overleaf][overleaf]
 
+[codimd]: <https://codimd.web.cern.ch/s/B1oArin-r>
 [drive]: <https://drive.google.com/drive/folders/1sMiRltFLZY9HFLqsrGpXrNlBZx4Yx3qN?usp=sharing>
 [overleaf]: <https://www.overleaf.com/9291872198hhwbjgmdstpv>
 
