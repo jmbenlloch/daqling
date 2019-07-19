@@ -7,6 +7,10 @@ project(Modules VERSION 0.0.1
 
 include_directories("../../include")
 
+file(GLOB_RECURSE NEWMODULE_SOURCES "NewModule.cpp")
+add_library(newmodule_daqling SHARED ${NEWMODULE_SOURCES})
+target_link_libraries(newmodule_daqling PUBLIC core utilities zmq)
+
 file(GLOB_RECURSE BOARDREADER_SOURCES "BoardReader.cpp")
 add_library(boardreader SHARED ${BOARDREADER_SOURCES})
 target_link_libraries(boardreader PUBLIC core utilities zmq)
