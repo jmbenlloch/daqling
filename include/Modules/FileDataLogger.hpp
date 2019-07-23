@@ -56,7 +56,7 @@ class FileDataLogger : public daqling::core::DAQProcess, public daqling::core::D
 
  private:
   // Configs
-  long m_writeBytes;
+  /* long m_pagesize; */
 
   // Internals
   folly::ProducerConsumerQueue<daqling::utilities::Binary> m_payloads;
