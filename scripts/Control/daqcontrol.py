@@ -22,13 +22,14 @@ from time import sleep
 
 
 class daqcontrol:
-  def __init__(self, group, lib_path, dir, exe):
+  def __init__(self, group, lib_path, dir, exe, use_supervisor = True):
     self.group = group
     self.lib_path = lib_path
     self.dir = dir
     self.exe = exe
     self.context = zmq.Context()
     self.stop_check = False
+    self.use_supervisor = use_supervisor
 
   def removeProcesses(self, components):
     for p in components:
@@ -110,15 +111,16 @@ class daqcontrol:
   def getStatus(self, p):
       sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
       req = json.dumps({'command': 'status'})
-      state = ""
-      try:
-        state = sd.getProcessState(p['name'])['statename']
-      except:
-        state = 'RUNNING'
+      state = "RUNNING"
+      if self.use_supervisor:
+        try:
+          state = sd.getProcessState(p['name'])['statename']
+        except:
+          state = 'NOT_EXISTING'
       if state == 'RUNNING':
         status = self.handleRequest(p['host'], p['port'], req)
       else:
-        status = b'not_booted'
+        status = b'down'
       return status
   
   def statusCheck(self, p):
@@ -129,6 +131,6 @@ class daqcontrol:
       if new_status != status:
         print(p['name'], "in status", new_status)
         status = new_status
-        if status == b'booted':
-          print("Automatically configure booted process")
-          self.configureProcess(p)
+        # if status == b'booted':
+        #   print("Automatically configure booted process")
+        #   self.configureProcess(p)

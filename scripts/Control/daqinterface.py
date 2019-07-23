@@ -92,7 +92,11 @@ dir = env['DAQ_BUILD_DIR']
 exe = "bin/main_core"
 lib_path = 'LD_LIBRARY_PATH='+env['LD_LIBRARY_PATH']
 
-dc = daqcontrol.daqcontrol(group, lib_path, dir, exe)
+if arg == "configure":
+  dc = daqcontrol.daqcontrol(group, lib_path, dir, exe, False)
+else:
+  dc = daqcontrol.daqcontrol(group, lib_path, dir, exe)
+
 
 if arg == "remove":
   dc.removeProcesses(data['components'])
