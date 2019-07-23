@@ -15,10 +15,9 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Modules/NewModule.hpp_template"
+#include "Modules/NewModule.hpp"
 
 extern "C" NewModule *create_object() { return new NewModule; }
-
 extern "C" void destroy_object(NewModule *object) { delete object; }
 
 NewModule::NewModule() { INFO("NewModule::NewModule"); }
