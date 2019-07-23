@@ -110,7 +110,11 @@ class daqcontrol:
   def getStatus(self, p):
       sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
       req = json.dumps({'command': 'status'})
-      state = sd.getProcessState(p['name'])['statename']
+      state = ""
+      try:
+        state = sd.getProcessState(p['name'])['statename']
+      except:
+        state = 'RUNNING'
       if state == 'RUNNING':
         status = self.handleRequest(p['host'], p['port'], req)
       else:
