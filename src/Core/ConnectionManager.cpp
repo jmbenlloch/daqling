@@ -186,6 +186,8 @@ bool ConnectionManager::addSendHandler(uint64_t chn) {
       if (m_pcqs[chn]->read(msg)) {
         m_sockets[chn]->send(msg);
         m_numMsgsHandled[chn]++;
+      } else {
+        std::this_thread::sleep_for(1ms);
       }
       m_pcqSizes[chn].store(m_pcqs[chn]->sizeGuess());
       if (m_pcqs[chn]->sizeGuess() > m_pcqs[chn]->capacity()*0.9) {
@@ -227,6 +229,8 @@ bool ConnectionManager::addPublishHandler(uint64_t chn) {
       if (m_pcqs[chn]->read(msg)) {
         m_sockets[chn]->send(msg);
         m_numMsgsHandled[chn]++;
+      } else {
+        std::this_thread::sleep_for(1ms);
       }
       m_pcqSizes[chn].store(m_pcqs[chn]->sizeGuess());      
       if (m_pcqs[chn]->sizeGuess() > m_pcqs[chn]->capacity()*0.9) {
