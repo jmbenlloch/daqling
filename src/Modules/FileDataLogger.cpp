@@ -18,6 +18,7 @@
 /// \cond
 #include <chrono>
 #include <sstream>
+#include <ctime>
 /// \endcond
 
 #include "Modules/FileDataLogger.hpp"
@@ -31,15 +32,32 @@ extern "C" FileDataLogger *create_object() { return new FileDataLogger; }
 
 extern "C" void destroy_object(FileDataLogger *object) { delete object; }
 
+static std::ofstream create_ofile(int n)
+{
+    std::stringstream ss;
+    std::time_t t = std::time(nullptr);
+
+    char tstr[128];
+    if (!std::strftime(tstr, sizeof(tstr), "%F-%T", std::localtime(&t))) {
+        throw std::runtime_error("Failed to format timestamp");
+    }
+
+    ss << "/home/vsoneste/test-" << tstr << "." << n << ".bin";
+    return std::ofstream(ss.str(), std::ios::binary);
+}
+
 FileDataLogger::FileDataLogger() : m_payloads{10000}, m_stopWriters{false}, m_bytes_sent{0} {
   INFO(__METHOD_NAME__);
 
 #warning RS -> Needs to be properly configured.
   // Set up static resources...
   std::ios_base::sync_with_stdio(false);
-  m_fileNames[1] = "/tmp/test.bin";
-  m_fileStreams[1] = std::fstream(m_fileNames[1], std::ios::out | std::ios::binary);
-  m_fileBuffers[1] = daqling::utilities::Binary(0);
+
+  m_fileStreams[0] = create_ofile(m_filenum++);
+  m_fileStreams[1] = create_ofile(m_filenum++);
+  assert(m_fileStreams[0].is_open() && m_fileStreams[1].is_open());
+
+  m_fileBuffers[0] = daqling::utilities::Binary(0);
   setup();
 }
 
@@ -47,6 +65,7 @@ FileDataLogger::~FileDataLogger() {
   INFO(__METHOD_NAME__);
   // Tear down resources...
   m_stopWriters.store(true);
+  m_fileStreams[0].close();
   m_fileStreams[1].close();
 }
 
@@ -77,7 +96,6 @@ void FileDataLogger::runner() {
   INFO(" Runner stopped");
 }
 
-#warning RS -> File rotation implementation is missing
 #warning RS -> Hardcoded values should come from config.
 void FileDataLogger::setup() {
   const long pagesize = std::invoke([this]() -> long {
@@ -87,15 +105,35 @@ void FileDataLogger::setup() {
       return 4 * daqutils::Constant::Kilo; // 4K buffer
     }
   });
+  const long max_filesize = std::invoke([this]() -> long {
+    try {
+      return std::stoi(std::string(m_config.getConfig()["settings"]["max_filesize"]));
+    } catch (const nlohmann::json::exception&) {
+      return 1 * daqutils::Constant::Giga;
+    }
+  });
 
   // Loop through sources from config and add a file writer for each sink.
-  int tid = 1;
+  const int tid = 0;
   m_fileWriters[tid] = std::make_unique<daqling::utilities::ReusableThread>(11111);
   m_writeFunctors[tid] = [&, tid, pagesize] {
+    const long max_filesize = 1 * daqutils::Constant::Giga;
+    long bytes_written = 0;
     int ftid = tid;
+
     INFO(" Spawning fileWriter for link: " << ftid);
     while (!m_stopWriters) {
       if (m_payloads.sizeGuess() > 0) {
+        if (bytes_written > max_filesize) { // rotate output file
+          INFO(" File rotation");
+          m_fileStreams[0].flush();
+          m_fileStreams[0] = std::move(m_fileStreams[1]);
+          m_fileStreams[1] = create_ofile(m_filenum++);
+          assert(m_fileStreams[1].is_open());
+
+          bytes_written = 0;
+        }
+
         DEBUG(" SIZES: Queue pop.: " << m_payloads.sizeGuess()
                               << " loc.buff. size: " << m_fileBuffers[ftid].size()
                               << " payload size: " << m_payloads.frontPtr()->size());
@@ -122,12 +160,14 @@ void FileDataLogger::setup() {
           m_fileStreams[ftid].write(static_cast<char *>(m_fileBuffers[ftid].startingAddress()),
                                     m_fileBuffers[ftid].size());
           m_bytes_sent += m_fileBuffers[ftid].size();
+          bytes_written += m_fileBuffers[ftid].size();
 
           // Flush the tail until it is small enough to fit in a page
           while (tailLength > pagesize) {
             daqling::utilities::Binary body(tail.startingAddress(), pagesize);
             m_fileStreams[ftid].write(static_cast<char *>(body.startingAddress()), body.size());
             m_bytes_sent += body.size();
+            bytes_written += m_fileBuffers[ftid].size();
 
             daqling::utilities::Binary nextTail(static_cast<char *>(tail.startingAddress())
                     + pagesize, tailLength - pagesize);
@@ -155,7 +195,7 @@ void FileDataLogger::setup() {
       }
     }
   };
-  m_fileWriters[1]->set_work(m_writeFunctors[1]);
+  m_fileWriters[tid]->set_work(m_writeFunctors[tid]);
 }
 
 void FileDataLogger::write() { INFO(" Should write..."); }
