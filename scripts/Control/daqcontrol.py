@@ -34,17 +34,16 @@ class daqcontrol:
   def removeProcesses(self, components):
     for p in components:
       sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
-      if sd.getProcessState(p['name'])['statename'] == 'RUNNING':
-        try:
-          print('Stop', sd.stopProcess(p['name']))
-        except:
-          print("Exception: cannot stop process",
-                p['name'], "(probably already stopped)")
-        print('State', sd.getProcessState(p['name'])['statename'])
       try:
+        if sd.getProcessState(p['name'])['statename'] == 'RUNNING':
+          try:
+            print('Stop', sd.stopProcess(p['name']))
+          except:
+            print("Exception: cannot stop process",
+                  p['name'], "(probably already stopped)")
         print('Remove', sd.removeProcessFromGroup(p['name']))
       except:
-        print("Exception:\n  cannot remove process", p['name'])
+        print("Exception: Couldn't get process state")
 
   def addProcesses(self, components, debug):
     log_files = []
@@ -78,50 +77,52 @@ class daqcontrol:
     try:
       reply = socket.recv()
       # print(reply)
-      return reply
+      return reply, False
     except:
       print("Timeout occurred")
-      return ""
+      return b'', True
 
   def configureProcess(self, p):
     req = json.dumps({'command': 'configure'})
     config = json.dumps(p)
-    rv = self.handleRequest(p['host'], p['port'], req, config)
+    rv, rv1 = self.handleRequest(p['host'], p['port'], req, config)
     if rv != b'Success':
-      print("Error", p['name'], rv)
+      print("Error", p['name'], rv, rv1)
 
   def startProcess(self, p):
     req = json.dumps({'command': 'start'})
-    rv = self.handleRequest(p['host'], p['port'], req)
+    rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("Error", p['name'], rv)
+      print("Error", p['name'], rv, rv1)
 
   def stopProcess(self, p):
     req = json.dumps({'command': 'stop'})
-    rv = self.handleRequest(p['host'], p['port'], req)
+    rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("Error", p['name'], rv)
+      print("Error", p['name'], rv, rv1)
 
   def shutdownProcess(self, p):
     req = json.dumps({'command': 'shutdown'})
-    rv = self.handleRequest(p['host'], p['port'], req)
+    rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("Error", p['name'], rv)
+      print("Error", p['name'], rv, rv1)
 
   def getStatus(self, p):
       sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
       req = json.dumps({'command': 'status'})
       state = "RUNNING"
+      timeout = False
       if self.use_supervisor:
         try:
           state = sd.getProcessState(p['name'])['statename']
         except:
-          state = 'NOT_EXISTING'
+          state = 'NOT_ADDED'
+          status = b'not_added'
       if state == 'RUNNING':
-        status = self.handleRequest(p['host'], p['port'], req)
-      else:
-        status = b'down'
-      return status
+        status, timeout = self.handleRequest(p['host'], p['port'], req)
+      elif state != 'NOT_ADDED':
+        status = b'added'
+      return status, timeout
   
   def statusCheck(self, p):
     status = ""
