@@ -19,6 +19,7 @@
 #include <chrono>
 #include <sstream>
 #include <ctime>
+#include <functional>
 /// \endcond
 
 #include "FileDataLoggerModule.hpp"
@@ -34,16 +35,16 @@ extern "C" void destroy_object(FileDataLogger *object) { delete object; }
 
 static std::ofstream create_ofile(int n)
 {
-    std::stringstream ss;
-    std::time_t t = std::time(nullptr);
+  std::stringstream ss;
+  std::time_t t = std::time(nullptr);
 
-    char tstr[128];
-    if (!std::strftime(tstr, sizeof(tstr), "%F-%T", std::localtime(&t))) {
-        throw std::runtime_error("Failed to format timestamp");
-    }
+  char tstr[128];
+  if (!std::strftime(tstr, sizeof(tstr), "%F-%T", std::localtime(&t))) {
+      throw std::runtime_error("Failed to format timestamp");
+  }
 
-    ss << "/home/vsoneste/test-" << tstr << "." << n << ".bin";
-    return std::ofstream(ss.str(), std::ios::binary);
+  ss << "/home/vsoneste/test-" << tstr << "." << n << ".bin";
+  return std::ofstream(ss.str(), std::ios::binary);
 }
 
 FileDataLogger::FileDataLogger() : m_payloads{10000}, m_stopWriters{false}, m_bytes_sent{0} {
@@ -57,7 +58,7 @@ FileDataLogger::FileDataLogger() : m_payloads{10000}, m_stopWriters{false}, m_by
   m_fileStreams[1] = create_ofile(m_filenum++);
   assert(m_fileStreams[0].is_open() && m_fileStreams[1].is_open());
 
-  m_fileBuffers[0] = daqling::utilities::Binary(0);
+  m_fileBuffers[0] = std::make_tuple(daqling::utilities::Binary(0), std::make_unique<std::mutex>(), std::make_unique<std::condition_variable>());
   setup();
 }
 
@@ -96,106 +97,126 @@ void FileDataLoggerModule::runner() {
   INFO(" Runner stopped");
 }
 
+#warning RS -> proper termination not implemented
+void FileDataLogger::pager()
+{
+  const int ftid = 0;
+  auto &[buffer, mutex, cv] = m_fileBuffers[ftid];
+
+  while (!m_stopWriters) {
+    if (m_payloads.isEmpty()) {
+      continue;
+    }
+
+    std::unique_lock<std::mutex> lk{*mutex};
+    DEBUG(" SIZES: Queue pop.: " << m_payloads.sizeGuess()
+        << " loc.buff. size: " << buffer.size()
+        << " payload size: " << m_payloads.frontPtr()->size());
+    const long sizeSum = static_cast<long>(buffer.size()) + m_payloads.frontPtr()->size();
+
+    if (sizeSum <= m_pagesize) {  // We can safely extend the buffer
+      // This is fishy:
+      buffer += *(reinterpret_cast<daqling::utilities::Binary *>(m_payloads.frontPtr()));
+      assert(buffer.size() <= m_pagesize);
+      m_payloads.popFront();
+    } else {  // Payload split required
+      // Split the payload into a head and a tail
+      const long buffer_size = buffer.size();
+      const long splitOffset = m_pagesize - buffer_size;
+      long tailLength = sizeSum - m_pagesize;
+      assert(splitOffset >= 0 && tailLength > 0);
+      daqling::utilities::Binary head(m_payloads.frontPtr()->startingAddress(), splitOffset);
+      daqling::utilities::Binary tail(static_cast<char *>(m_payloads.frontPtr()->startingAddress())
+              + splitOffset, tailLength);
+      m_payloads.popFront();
+      DEBUG(" -> head length: " << splitOffset << "; tail length: " << tailLength);
+
+      // Fill the buffer and wait until flush
+      buffer += head;
+      assert(buffer.size() == m_pagesize);
+      cv->notify_one();
+      cv->wait(lk, [&]() { return buffer.size() == 0; });
+
+      // Flush the tail until it is small enough to fit in a page
+      while (tailLength > m_pagesize) {
+        daqling::utilities::Binary body(tail.startingAddress(), m_pagesize);
+        buffer = body;
+        assert(buffer.size() <= m_pagesize);
+        cv->notify_one();
+        cv->wait(lk, [&]() { return buffer.size() == 0; });
+
+        daqling::utilities::Binary nextTail(static_cast<char *>(tail.startingAddress())
+                + m_pagesize, tailLength - m_pagesize);
+        tail = nextTail;
+        tailLength = nextTail.size();
+        DEBUG(" -> head of tail flushed; new tail length: " << tailLength);
+      }
+
+      buffer = tail;
+      assert(buffer.size() <= m_pagesize);
+    }
+  }
+}
+
+#warning RS -> proper termination not implemented
+void FileDataLogger::flusher()
+{
+  const int ftid = 0;
+  long bytes_written = 0;
+  auto &[buffer, mutex, cv] = m_fileBuffers[ftid];
+
+  while (!m_stopWriters) {
+    std::unique_lock<std::mutex> lk{*mutex};
+    cv->wait(lk, [&]() { return buffer.size() >= m_pagesize; });
+
+    if (bytes_written > m_max_filesize) { // Rotate output files
+      INFO(" Rotating output files");
+      m_fileStreams[0].flush();
+      m_fileStreams[0] = std::move(m_fileStreams[1]);
+      m_fileStreams[1] = create_ofile(m_filenum++);
+      assert(m_fileStreams[1].is_open());
+
+      bytes_written = 0;
+    }
+
+    assert(buffer.size() == m_pagesize);
+    m_fileStreams[ftid].write(static_cast<char *>(buffer.startingAddress()), buffer.size());
+    m_bytes_sent += buffer.size();
+    bytes_written += buffer.size();
+    buffer = daqling::utilities::Binary(0);
+
+    cv->notify_one();
+  }
+}
+
 #warning RS -> Hardcoded values should come from config.
 void FileDataLogger::setup() {
-  const long pagesize = std::invoke([this]() -> long {
+  m_pagesize = std::invoke([this]() -> long {
     try {
       return std::stoi(std::string(m_config.getConfig()["settings"]["pagesize"]));
     } catch (const nlohmann::json::exception&) {
-      return 4 * daqutils::Constant::Kilo; // 4K buffer
+      return 1 * daqutils::Constant::Kilo; // 4K buffer
     }
   });
-  const long max_filesize = std::invoke([this]() -> long {
+  m_max_filesize = std::invoke([this]() -> long {
     try {
       return std::stoi(std::string(m_config.getConfig()["settings"]["max_filesize"]));
     } catch (const nlohmann::json::exception&) {
-      return 1 * daqutils::Constant::Giga;
+      return 4 * daqutils::Constant::Kilo;
     }
   });
 
   // Loop through sources from config and add a file writer for each sink.
   const int tid = 0;
-  m_fileWriters[tid] = std::make_unique<daqling::utilities::ReusableThread>(11111);
-  m_writeFunctors[tid] = [&, tid, pagesize] {
-    const long max_filesize = 1 * daqutils::Constant::Giga;
-    long bytes_written = 0;
-    int ftid = tid;
+  int threadid = 11111;
 
-    INFO(" Spawning fileWriter for link: " << ftid);
-    while (!m_stopWriters) {
-      if (m_payloads.sizeGuess() > 0) {
-        if (bytes_written > max_filesize) { // rotate output file
-          INFO(" File rotation");
-          m_fileStreams[0].flush();
-          m_fileStreams[0] = std::move(m_fileStreams[1]);
-          m_fileStreams[1] = create_ofile(m_filenum++);
-          assert(m_fileStreams[1].is_open());
+  // Construct and start pager
+  m_fileWriters[tid] = std::make_unique<daqling::utilities::ReusableThread>(threadid++);
+  m_fileWriters[tid]->set_work(std::bind(&FileDataLogger::pager, this));
 
-          bytes_written = 0;
-        }
-
-        DEBUG(" SIZES: Queue pop.: " << m_payloads.sizeGuess()
-                              << " loc.buff. size: " << m_fileBuffers[ftid].size()
-                              << " payload size: " << m_payloads.frontPtr()->size());
-        const long sizeSum = static_cast<long>(m_fileBuffers[ftid].size()) + m_payloads.frontPtr()->size();
-        if (sizeSum > pagesize) {  // Split needed.
-
-          DEBUG(" Processing split.");
-
-          // Split the payload into a head and a tail
-          const long buffer_size = m_fileBuffers[ftid].size();
-          const long splitOffset = pagesize - buffer_size;
-          long tailLength = sizeSum - pagesize;
-          assert(splitOffset >= 0 && tailLength > 0);
-          daqling::utilities::Binary head(m_payloads.frontPtr()->startingAddress(), splitOffset);
-          daqling::utilities::Binary tail(static_cast<char *>(m_payloads.frontPtr()->startingAddress())
-                  + splitOffset, tailLength);
-          m_payloads.popFront();
-          DEBUG(" -> head length: " << splitOffset << "; tail length: " << tailLength);
-
-          // Write head into buffer and flush it
-          m_fileBuffers[ftid] += head;
-          assert(m_fileBuffers[ftid].size() <= pagesize);
-          DEBUG(" -> " << m_fileBuffers[ftid].size() << " [Bytes] will be written.");
-          m_fileStreams[ftid].write(static_cast<char *>(m_fileBuffers[ftid].startingAddress()),
-                                    m_fileBuffers[ftid].size());
-          m_bytes_sent += m_fileBuffers[ftid].size();
-          bytes_written += m_fileBuffers[ftid].size();
-
-          // Flush the tail until it is small enough to fit in a page
-          while (tailLength > pagesize) {
-            daqling::utilities::Binary body(tail.startingAddress(), pagesize);
-            m_fileStreams[ftid].write(static_cast<char *>(body.startingAddress()), body.size());
-            m_bytes_sent += body.size();
-            bytes_written += m_fileBuffers[ftid].size();
-
-            daqling::utilities::Binary nextTail(static_cast<char *>(tail.startingAddress())
-                    + pagesize, tailLength - pagesize);
-            tail = nextTail;
-            tailLength = nextTail.size();
-            DEBUG(" -> head of tail flushed; new tail length: " << tailLength);
-          }
-
-          m_fileBuffers[ftid] = tail;
-          assert(m_fileBuffers[ftid].size() <= pagesize);
-        } else {                           // We can safely extend the buffer.
-
-          // This is fishy:
-          m_fileBuffers[ftid] +=
-              *(reinterpret_cast<daqling::utilities::Binary *>(m_payloads.frontPtr()));
-          assert(m_fileBuffers[ftid].size() <= pagesize);
-          m_payloads.popFront();
-
-          // daqling::utilities::Binary frontPayload(0);
-          // m_payloads.read( std::ref(frontPayload) );
-          // m_fileBuffers[ftid] += frontPayload;
-        }
-      } else {
-        std::this_thread::sleep_for(1ms);
-      }
-    }
-  };
-  m_fileWriters[tid]->set_work(m_writeFunctors[tid]);
+  // Construct and start flusher
+  m_fileWriters[tid + 1] = std::make_unique<daqling::utilities::ReusableThread>(threadid);
+  m_fileWriters[tid + 1]->set_work(std::bind(&FileDataLogger::flusher, this));
 }
 
 void FileDataLoggerModule::write() { INFO(" Should write..."); }

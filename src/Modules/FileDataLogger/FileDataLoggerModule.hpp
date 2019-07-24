@@ -21,6 +21,9 @@
 #include <fstream>
 #include <map>
 #include <queue>
+#include <memory>
+#include <tuple>
+#include <condition_variable>
 /// \endcond
 
 #include "Core/DAQProcess.hpp"
@@ -52,17 +55,21 @@ class FileDataLoggerModule : public daqling::core::DAQProcess, public daqling::c
   void shutdown();
 
  private:
+  void pager();
+  void flusher();
+
   // Configs
-  unsigned long m_writeBytes;
+  long m_pagesize;
+  long m_max_filesize;
 
   // Internals
   folly::ProducerConsumerQueue<daqling::utilities::Binary> m_payloads;
-  daqling::utilities::Binary m_buffer;
+  /* daqling::utilities::Binary m_buffer; */
   std::map<uint64_t, std::unique_ptr<daqling::utilities::ReusableThread>> m_fileWriters;
   std::map<uint64_t, std::function<void()>> m_writeFunctors;
   /* std::map<uint64_t, std::string> m_fileNames; */
   std::map<uint64_t, std::ofstream> m_fileStreams;
-  std::map<uint64_t, daqling::utilities::Binary> m_fileBuffers;
+  std::map<uint64_t, std::tuple<daqling::utilities::Binary, std::unique_ptr<std::mutex>, std::unique_ptr<std::condition_variable>>> m_fileBuffers;
   std::map<uint64_t, uint32_t> m_fileRotationCounters;
   long m_filenum = 0;
 
