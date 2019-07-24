@@ -83,6 +83,27 @@ void Statistics::CheckStatistics() {
 
       }
 
+      if( x->m_mtype == metrics::ACCUMULATE){
+        switch(x->m_vtype){
+        case metrics::FLOAT:
+          accumulateValueAndReset<std::atomic<float>, float >(x);
+          break;
+        case metrics::INT:
+          accumulateValueAndReset<std::atomic<int>, int>(x);
+          break;
+        case metrics::DOUBLE:
+          accumulateValueAndReset<std::atomic<double>, double>(x);
+          break;
+        case metrics::BOOL:
+          accumulateValueAndReset<std::atomic<bool>, bool>(x);
+          break;
+        case metrics::SIZE:
+          accumulateValueAndReset<std::atomic<size_t>, size_t>(x);
+          break;
+        };
+
+      }
+
       if(std::difftime(std::time(nullptr), x->m_timestamp) >= x->m_delta_t){
         switch(x->m_vtype){
         case metrics::FLOAT:
