@@ -35,17 +35,22 @@ namespace core {
 
 class DAQProcess {
  public:
-  DAQProcess() : m_state{"ready"} {};
+  DAQProcess() {};
 
   virtual ~DAQProcess(){};
 
   /* use virtual otherwise linker will try to perform static linkage */
-  virtual void start() {
-    m_run = true;
-    m_runner_thread = std::make_unique<std::thread>(&DAQProcess::runner, this);
+  virtual void configure() {
+    setupStatistics();
     if (m_stats_on) {
       m_statistics->start();
     }
+    m_state = "ready";
+  };
+
+  virtual void start() {
+    m_run = true;
+    m_runner_thread = std::make_unique<std::thread>(&DAQProcess::runner, this);
     m_state = "running";
   };
 
