@@ -85,7 +85,7 @@ void FileDataLogger::runner() {
     while (!m_connections.get(1, std::ref(pl)) && m_run) {
       std::this_thread::sleep_for(1ms);
     }
-    m_payloads.write(pl);
+    while (!m_payloads.write(pl)); // try until successfully appended
     // DEBUG("Wrote data from channel 1...");
   }
   INFO(" Runner stopped");
