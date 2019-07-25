@@ -34,17 +34,17 @@ Binary::Binary( long initialSizeInBytes )
   : m_size( initialSizeInBytes )
 {
   if ( m_size<0 ) // Fix Coverity-related bug #95349
-    ERROR(__METHOD_NAME__  << " Cannot create a Binary with a negative size!");
+    ERROR("Cannot create a Binary with a negative size!");
   m_data = ::malloc( m_size ); // Fix Coverity NEGATIVE_RETURNS
   if ( (!m_data) && m_size>0 )
-    ERROR(__METHOD_NAME__  << "::malloc failed!");
+    ERROR("::malloc failed!");
 }
 
 Binary::Binary( const void* data, long size )
   : m_size( size )
 {
   if ( m_size<0 )
-    ERROR(__METHOD_NAME__  << " Cannot copy a Binary with a negative size!");
+    ERROR("Cannot copy a Binary with a negative size!");
   m_data = ::malloc( m_size ); // Fix Coverity NEGATIVE_RETURNS
   ::memcpy( startingAddress(), data, size );
 }
@@ -74,7 +74,7 @@ const void*
 Binary::data() const
 {
   if(!m_data)
-    ERROR(" Binary data can't be accessed.");
+    ERROR("Binary data can't be accessed.");
   return startingAddress();
 }
 
@@ -89,12 +89,12 @@ void
 Binary::extend( long additionalSizeInBytes )
 {
   if ( additionalSizeInBytes<0 ) // Fix Coverity-related bug #95349
-    ERROR(__METHOD_NAME__  << " Cannot extend by a negative size!");
+    ERROR("Cannot extend by a negative size!");
 
   m_data = ::realloc( m_data, m_size + additionalSizeInBytes );
   m_size += additionalSizeInBytes;
   if ( (!m_data) && m_size>0 )
-    ERROR(__METHOD_NAME__  << "::realloc failed!");
+    ERROR("::realloc failed!");
 }
 
 
@@ -102,14 +102,14 @@ void
 Binary::resize( long sizeInBytes )
 {
   if ( sizeInBytes<0 ) // Fix Coverity-related bug #95349
-    ERROR(__METHOD_NAME__  << " Cannot resize to a negative size!");
+    ERROR("Cannot resize to a negative size!");
 
   if ( sizeInBytes != m_size )
   {
     m_data = ::realloc( m_data, sizeInBytes );
     m_size = sizeInBytes;
     if ( (!m_data) && m_size>0 )
-      ERROR(__METHOD_NAME__  << "::realloc failed");
+      ERROR("::realloc failed");
 
   }
 }
@@ -120,13 +120,13 @@ Binary::Binary( const Binary& rhs )
   , m_data( 0 )
 {
   if ( m_size<0 ) // Fix Coverity-related bug #95349
-    ERROR(__METHOD_NAME__  << " Cannot copy a Binary with a negative size!");
+    ERROR("Cannot copy a Binary with a negative size!");
 
   if ( m_size > 0 )
   {
     m_data = ::malloc( m_size );
     if ( (!m_data) && m_size>0 )
-      ERROR(__METHOD_NAME__  << "::malloc failed");
+      ERROR("::malloc failed");
 
     m_data = ::memcpy( m_data, rhs.m_data, m_size );
   }
@@ -138,7 +138,7 @@ Binary::operator=( const Binary& rhs )
 {
   if ( this == &rhs ) return *this;  // Fix Coverity SELF_ASSIGN
   if ( rhs.m_size < 0 ) // Fix Coverity-related bug #95349
-    ERROR(__METHOD_NAME__  << " Cannot assign a Binary with a negative size!");
+    ERROR("Cannot assign a Binary with a negative size!");
 
   if ( m_data ) // check that old data is non-0 (instead of old m_size != 0)
   {
@@ -147,7 +147,7 @@ Binary::operator=( const Binary& rhs )
     {
       m_data = ::realloc( m_data, rhs.m_size ); // realloc old (non-0) data
       if ( (!m_data) )
-        ERROR(__METHOD_NAME__  << "::realloc failed");
+        ERROR("::realloc failed");
 
       ::memcpy( m_data, rhs.m_data, rhs.m_size );
     }
@@ -164,7 +164,7 @@ Binary::operator=( const Binary& rhs )
     {
       m_data = ::malloc( rhs.m_size ); // malloc new data (old was 0)
       if ( (!m_data) )
-        ERROR(__METHOD_NAME__  << "::malloc failed");
+        ERROR("::malloc failed");
 
       ::memcpy( m_data, rhs.m_data, rhs.m_size );
     }

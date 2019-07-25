@@ -48,22 +48,22 @@ extern "C" BoardReader *create_object(std::string name, int num) {
 extern "C" void destroy_object(BoardReader *object) { delete object; }
 
 BoardReader::BoardReader(std::string name, int num) {
-  INFO(" Passed " << name << " " << num << " with constructor");
-  INFO(" With config: " << m_config.dump());
+  INFO("Passed " << name << " " << num << " with constructor");
+  INFO("With config: " << m_config.dump());
 
   m_board_id = m_config.getConfig()["settings"]["board_id"];
 }
 
-BoardReader::~BoardReader() { INFO(__METHOD_NAME__); }
+BoardReader::~BoardReader() {}
 
 void BoardReader::start() {
   DAQProcess::start();
-  INFO(" getState: " << this->getState());
+  INFO("getState: " << this->getState());
 }
 
 void BoardReader::stop() {
   DAQProcess::stop();
-  INFO(" getState: " << this->getState());
+  INFO("getState: " << this->getState());
 }
 
 void BoardReader::runner() {
@@ -74,13 +74,13 @@ void BoardReader::runner() {
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> dis(200, 1500);
 
-  INFO(" Running...");
+  INFO("Running...");
   while (m_run) {
     timestamp = duration_cast<microseconds>(system_clock::now().time_since_epoch());
     const unsigned payload_size = dis(gen);
     const unsigned total_size = sizeof(header_t) + sizeof(char) * payload_size;
 
-    INFO(" sequence number " << sequence_number << "  >>  timestamp " << std::hex
+    INFO("sequence number " << sequence_number << "  >>  timestamp " << std::hex
                          << "0x" << timestamp.count() << std::dec << "  >>  payload size "
                          << payload_size);
 
@@ -102,5 +102,5 @@ void BoardReader::runner() {
     sequence_number++;
     std::this_thread::sleep_for(500ms);
   }
-  INFO(" Runner stopped");
+  INFO("Runner stopped");
 }
