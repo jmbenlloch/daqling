@@ -59,18 +59,18 @@ class FileDataLoggerModule : public daqling::core::DAQProcess, public daqling::c
   void flusher();
 
   // Configs
-  long m_pagesize;
+  /* long m_pagesize; */
   long m_max_filesize;
 
   // Internals
   folly::ProducerConsumerQueue<daqling::utilities::Binary> m_payloads;
   /* daqling::utilities::Binary m_buffer; */
   std::map<uint64_t, std::unique_ptr<daqling::utilities::ReusableThread>> m_fileWriters;
-  std::map<uint64_t, std::function<void()>> m_writeFunctors;
+  /* std::map<uint64_t, std::function<void()>> m_writeFunctors; */
   /* std::map<uint64_t, std::string> m_fileNames; */
   std::map<uint64_t, std::ofstream> m_fileStreams;
-  std::map<uint64_t, std::tuple<daqling::utilities::Binary, std::unique_ptr<std::mutex>, std::unique_ptr<std::condition_variable>>> m_fileBuffers;
-  std::map<uint64_t, uint32_t> m_fileRotationCounters;
+  /* std::map<uint64_t, std::tuple<daqling::utilities::Binary, std::unique_ptr<std::mutex>, std::unique_ptr<std::condition_variable>>> m_fileBuffers; */
+  /* std::map<uint64_t, uint32_t> m_fileRotationCounters; */
   long m_filenum = 0;
 
   std::atomic<int> m_bytes_sent;
