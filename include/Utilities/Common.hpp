@@ -162,8 +162,5 @@ inline std::string className(const std::string& prettyFunction)
 } // namespace utilities
 } // namespace daqling
 
-//#define __METHOD_NAME__ daq::utilities::methodName(__PRETTY_FUNCTION__)
-//#define __CLASS_NAME__ daq::utilities::className(__PRETTY_FUNCTION__)
-
 #endif // DAQLING_UTILITIES_COMMON_HPP
 

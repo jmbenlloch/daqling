@@ -69,16 +69,16 @@ class DAQProcess {
     auto statsURI = m_config.getConfig()["settings"]["stats_uri"];
     auto influxDbURI = m_config.getConfig()["settings"]["influxDb_uri"];
     auto influxDbName = m_config.getConfig()["settings"]["influxDb_name"];
-    INFO(__METHOD_NAME__ << " Setting up statistics on: " << statsURI);
+    INFO("Setting up statistics on: " << statsURI);
     if ((statsURI == "" || statsURI == nullptr) && (influxDbURI == "" || influxDbURI == nullptr)){
-      INFO(__METHOD_NAME__ << " No Statistics settings were provided... Running without stats. ");
+      INFO("No Statistics settings were provided... Running without stats.");
       m_stats_on = false;
       return false;
     } 
     else {
       if(statsURI != "" && statsURI != nullptr){
         if ( !m_connections.setupStatsConnection(1, statsURI) ) {
-          ERROR(__METHOD_NAME__ << " Connection setup failed for Statistics publishing! ");
+          ERROR("Connection setup failed for Statistics publishing!");
           return false;
         }
       }

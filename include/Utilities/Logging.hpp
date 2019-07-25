@@ -33,9 +33,6 @@
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "Utilities/Common.hpp"
 
-//#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
-//#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
-
 namespace daqling {
 namespace utilities
 {
