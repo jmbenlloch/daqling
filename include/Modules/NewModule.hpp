@@ -25,6 +25,7 @@ class NewModule : public daqling::core::DAQProcess {
   NewModule();
   ~NewModule();
 
+  void configure(); // optional (configuration can be handled in the constructor)
   void start();
   void stop();
 

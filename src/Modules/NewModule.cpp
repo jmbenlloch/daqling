@@ -24,6 +24,12 @@ NewModule::NewModule() { INFO(""); }
 
 NewModule::~NewModule() { INFO(""); }
 
+// optional (configuration can be handled in the constructor)
+void NewModule::configure() {
+  daqling::core::DAQProcess::configure();
+  INFO("");
+}
+
 void NewModule::start() {
   daqling::core::DAQProcess::start();
   INFO("");
