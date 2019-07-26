@@ -34,7 +34,6 @@
 
 /*
  * CassandraDataLogger
- * Author: Roland.Sipos@cern.ch
  * Description: Data logger with Cassandra persistency layer
  *   Heavily relies on the CondDB payload chunked storage.
  * Date: November 2017

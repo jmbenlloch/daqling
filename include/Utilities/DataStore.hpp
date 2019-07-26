@@ -20,7 +20,6 @@
 
 /*
  * DataStore
- * Author: Roland.Sipos@cern.ch
  * Description: 
  *   Generic data source with casters
  * Date: March 2019

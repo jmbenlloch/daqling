@@ -20,7 +20,6 @@
 
 /*
  * Types
- * Author: Roland.Sipos@cern.ch
  * Description: 
  *   Singleton template from CodeReviews
  *   https://codereview.stackexchange.com/questions/173929/modern-c-singleton-template

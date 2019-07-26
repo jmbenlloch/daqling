@@ -15,8 +15,6 @@
  along with DAQling. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# enrico.gamberini@cern.ch
-
 import sys
 import signal
 from os import environ as env

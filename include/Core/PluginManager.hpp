@@ -17,7 +17,6 @@
 
 /**
  * @file PluginManager.hpp
- * @author Enrico.Gamberini@cern.ch
  * @brief Load shared objects of type DAQProcess
  * @date 2019-05-14
  */

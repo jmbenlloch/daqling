@@ -1,6 +1,3 @@
-#Roland Sipos <roland.siposo@cern.ch> 2018
----
-
 - name: install the latest version of redis from the cernonly
   yum:
     name: redis

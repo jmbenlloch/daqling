@@ -15,8 +15,6 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// enrico.gamberini@cern.ch
-
 #ifndef DAQLING_MODULES_EVENTBUILDERBINARY_HPP
 #define DAQLING_MODULES_EVENTBUILDERBINARY_HPP
 

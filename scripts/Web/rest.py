@@ -15,11 +15,8 @@
  along with DAQling. If not, see <http://www.gnu.org/licenses/>.
 """
 
-__author__ = "Roland Sipos"
 __credits__ = [""]
 __version__ = "0.0.1"
-__maintainer__ = "Roland Sipos"
-__email__ = "roland.sipos@cern.ch"
 
 import ctypes
 from multiprocessing.pool import ThreadPool

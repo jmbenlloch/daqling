@@ -17,7 +17,6 @@
 
 /**
  * @file DAQProcess.hpp
- * @author Enrico.Gamberini@cern.ch
  * @brief Base class for Modules loaded via the PluginManager
  * @date 2019-02-20
  */

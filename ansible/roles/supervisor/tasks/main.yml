@@ -1,5 +1,3 @@
-#Marco Boretto <marco.boretto@cern.ch> 2019
----
 - name: Open port 9001 on firewalld for supervisor web/XML-RPC Interface
   firewalld:
     zone: public

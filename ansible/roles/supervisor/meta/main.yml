@@ -1,5 +1,3 @@
-#Marco Boretto <marco.boretto@cern.ch> 2019
----
 dependencies:
   - { role: firewall }
 

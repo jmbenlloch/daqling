@@ -24,7 +24,6 @@
                 This utility is ported from curl examples.
 */
 //
-// Author:      Roland Sipos
 // Created:     June 2015
 //
 

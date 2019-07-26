@@ -1,5 +1,3 @@
-# Enrico.Gamberini@cern.ch
-
 - name: Download and unpack boost_1_70_0
   unarchive:
     src: https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz

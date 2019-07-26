@@ -17,9 +17,9 @@
 
 #ifndef DAQLING_UTILITIES_TYPES_HPP
 #define DAQLING_UTILITIES_TYPES_HPP
+
 /*
  * Types
- * Author: Roland.Sipos@cern.ch
  * Description: 
  *   Collection of custom types used in the DAQ.
  * Date: May 2018

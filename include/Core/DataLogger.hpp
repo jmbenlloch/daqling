@@ -25,7 +25,6 @@
 
 /*
  * DataLogger
- * Author: Roland.Sipos@cern.ch
  * Description: DataLogger interface with generic datastore
  * Date: March 2019
  */

@@ -25,7 +25,6 @@
                  import java.nio.ByteBuffer;
 */
 //
-// Author:      Roland Sipos
 // Created:     June 2015
 //
 
