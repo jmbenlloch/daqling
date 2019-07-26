@@ -33,27 +33,53 @@ extern "C" FileDataLogger *create_object() { return new FileDataLogger; }
 
 extern "C" void destroy_object(FileDataLogger *object) { delete object; }
 
-static std::ofstream create_ofile(int n)
-{
-  std::stringstream ss;
-  std::time_t t = std::time(nullptr);
 
-  char tstr[128];
-  if (!std::strftime(tstr, sizeof(tstr), "%F-%T", std::localtime(&t))) {
-      throw std::runtime_error("Failed to format timestamp");
+std::ofstream FileDataLogger::FileGenerator::next()
+{
+
+  const auto handle_arg = [this](char c) -> std::string {
+    switch (c) {
+      case 'D': // Full date in YYYY-MM-DD-HH:MM:SS (ISO 8601) format
+      {
+        std::time_t t = std::time(nullptr);
+        char tstr[128];
+        if (!std::strftime(tstr, sizeof(tstr), "%F-%T", std::localtime(&t))) {
+            throw std::runtime_error("Failed to format timestamp");
+        }
+        return std::string(tstr);
+      }
+      case 'n': // The nth generated output (equals the number of times called `next()`, minus 1)
+        return std::to_string(m_filenum++);
+      default:
+        std::stringstream ss;
+        ss << "Unknown output file argument '" << c << "'";
+        throw std::runtime_error(ss.str());
+    }
+  };
+
+  // Append every character until we hit a '%' (control character),
+  // where the next character denotes an argument.
+  std::stringstream ss;
+  for (auto c = m_pattern.cbegin(); c != m_pattern.cend(); c++) {
+    if (*c == '%' && c + 1 != m_pattern.cend()) {
+      ss << handle_arg(*(++c));
+    } else {
+      ss << *c;
+    }
   }
 
-  ss << "/home/vsoneste/test-" << tstr << "." << n << ".bin";
   return std::ofstream(ss.str(), std::ios::binary);
 }
 
-FileDataLogger::FileDataLogger() : m_payloads{10000}, m_stopWriters{false}, m_bytes_sent{0} {
+FileDataLogger::FileDataLogger()
+  : m_payloads{10000}, m_stopWriters{false}, m_bytes_sent{0}, m_fileGenerator("/home/vsoneste/test-%D-%n.bin") {
+
   INFO(__METHOD_NAME__);
 
 #warning RS -> Needs to be properly configured.
   // Set up static resources...
   std::ios_base::sync_with_stdio(false);
-  m_fileStreams[0] = create_ofile(m_filenum++);
+  m_fileStreams[0] = m_fileGenerator.next();
   setup();
 }
 
@@ -104,7 +130,7 @@ void FileDataLogger::flusher()
       INFO(" Rotating output files");
       m_fileStreams[0].flush();
       m_fileStreams[0].close();
-      m_fileStreams[0] = create_ofile(m_filenum++);
+      m_fileStreams[0] = m_fileGenerator.next();
       bytes_written = 0;
     }
 
