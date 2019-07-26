@@ -55,6 +55,20 @@ class FileDataLoggerModule : public daqling::core::DAQProcess, public daqling::c
   void shutdown();
 
  private:
+
+  /*
+   * A wrapper around a printf-like output file generator.
+   */
+  class FileGenerator {
+  public:
+    FileGenerator(const std::string pattern) : m_pattern(pattern) {}
+    std::ofstream next();
+
+  private:
+    const std::string m_pattern;
+    unsigned m_filenum = 0;
+  };
+
   void pager();
   void flusher();
 
@@ -77,4 +91,6 @@ class FileDataLoggerModule : public daqling::core::DAQProcess, public daqling::c
   std::unique_ptr<std::thread> m_monitor_thread;
   // Thread control
   std::atomic<bool> m_stopWriters;
+
+  FileGenerator m_fileGenerator;
 };
