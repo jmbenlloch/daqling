@@ -147,6 +147,10 @@ void FileDataLogger::flusher(PayloadQueue &pq, FileGenerator &&fg, const uint64_
     auto payload = pq.frontPtr();
     pq.popFront();
     out.write(static_cast<char *>(payload->startingAddress()), payload->size());
+    if (out.fail()) {
+        CRITICAL(" Write operation for channel " << chid << " of size " << payload->size() << "B failed!");
+        throw std::runtime_error("std::ofstream::fail()");
+    }
     m_bytes_sent += payload->size();
     bytes_written += payload->size();
   }
