@@ -78,7 +78,8 @@
       "port": 5558,
       "type": "FileDataLogger",
       "settings": {
-        "ring": "127.0.0.1"
+        "ring": "127.0.0.1",
+        "file_pattern": "/tmp/test-%D.%n.%c.bin"
       },
       "connections": {
         "receivers": [
