@@ -68,11 +68,12 @@ class FileDataLoggerModule : public daqling::core::DAQProcess, public daqling::c
    */
   class FileGenerator {
   public:
-    FileGenerator(const std::string pattern) : m_pattern(pattern) {}
+    FileGenerator(const std::string pattern, const uint64_t chid) : m_pattern(pattern), m_chid(chid) {}
     std::ofstream next();
 
   private:
     const std::string m_pattern;
+    const uint64_t m_chid;
     unsigned m_filenum = 0;
   };
 

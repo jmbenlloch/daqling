@@ -49,6 +49,8 @@ std::ofstream FileDataLogger::FileGenerator::next()
       }
       case 'n': // The nth generated output (equals the number of times called `next()`, minus 1)
         return std::to_string(m_filenum++);
+      case 'c': // The channel id
+        return std::to_string(m_chid);
       default:
         std::stringstream ss;
         ss << "Unknown output file argument '" << c << "'";
@@ -174,7 +176,7 @@ void FileDataLogger::setup() {
     // Start the context's consumer thread.
     std::get<ThreadContext>(it->second).consumer.set_work([this, it]() {
       const auto pattern = std::string("/home/vsoneste/test-%D.%n.") + std::to_string(it->first) + ".bin";
-      return flusher(std::get<PayloadQueue>(it->second), FileGenerator(pattern), it->first);
+      return flusher(std::get<PayloadQueue>(it->second), FileGenerator(pattern, it->first), it->first);
     });
   }
   assert(m_channelContexts.size() == m_channels);
