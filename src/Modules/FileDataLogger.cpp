@@ -152,17 +152,11 @@ void FileDataLogger::flusher(PayloadQueue &pq, FileGenerator &&fg, const uint64_
   }
 }
 
-#warning RS -> Hardcoded values should come from config.
 void FileDataLogger::setup() {
   // Read out required and optional configurations
-  m_max_filesize = std::invoke([this]() -> long {
-    try {
-      return std::stoi(std::string(m_config.getConfig()["settings"]["max_filesize"]));
-    } catch (const nlohmann::json::exception&) {
-      return 1 * daqutils::Constant::Giga;
-    }
-  });
+  m_max_filesize = m_config.getConfig()["settings"].value("max_filesize", 1 * daqutils::Constant::Giga);
   m_channels = m_config.getConfig()["connections"]["receivers"].size();
+  const std::string pattern = m_config.getConfig()["settings"]["filename_pattern"];
 
   int threadid = 11111; // XXX: magic
   constexpr size_t queue_size = 10000; // XXX: magic
@@ -174,8 +168,7 @@ void FileDataLogger::setup() {
     assert(success);
 
     // Start the context's consumer thread.
-    std::get<ThreadContext>(it->second).consumer.set_work([this, it]() {
-      const auto pattern = std::string("/home/vsoneste/test-%D.%n.") + std::to_string(it->first) + ".bin";
+    std::get<ThreadContext>(it->second).consumer.set_work([this, pattern, it]() {
       return flusher(std::get<PayloadQueue>(it->second), FileGenerator(pattern, it->first), it->first);
     });
   }
