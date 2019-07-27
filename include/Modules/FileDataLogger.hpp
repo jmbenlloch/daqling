@@ -58,6 +58,13 @@ class FileDataLogger : public daqling::core::DAQProcess, public daqling::core::D
   void shutdown();
 
  private:
+  struct ThreadContext {
+    ThreadContext(std::array<int, 2> tids) : consumer(tids[0]), producer(tids[1]) {}
+    daqling::utilities::ReusableThread consumer;
+    daqling::utilities::ReusableThread producer;
+  };
+  using PayloadQueue = folly::ProducerConsumerQueue<daqling::utilities::Binary>;
+  using Context = std::tuple<PayloadQueue, ThreadContext>;
 
   /*
    * A wrapper around a printf-like output file generator.
@@ -72,30 +79,19 @@ class FileDataLogger : public daqling::core::DAQProcess, public daqling::core::D
     unsigned m_filenum = 0;
   };
 
-  void pager();
-  void flusher();
-
   // Configs
-  /* long m_pagesize; */
   long m_max_filesize;
+  uint64_t m_channels = 0;
 
-  // Internals
-  folly::ProducerConsumerQueue<daqling::utilities::Binary> m_payloads;
-  /* daqling::utilities::Binary m_buffer; */
-  std::map<uint64_t, std::unique_ptr<daqling::utilities::ReusableThread>> m_fileWriters;
-  /* std::map<uint64_t, std::function<void()>> m_writeFunctors; */
-  /* std::map<uint64_t, std::string> m_fileNames; */
-  std::map<uint64_t, std::ofstream> m_fileStreams;
-  /* std::map<uint64_t, std::tuple<daqling::utilities::Binary, std::unique_ptr<std::mutex>, std::unique_ptr<std::condition_variable>>> m_fileBuffers; */
-  /* std::map<uint64_t, uint32_t> m_fileRotationCounters; */
-  long m_filenum = 0;
-
-  std::atomic<int> m_bytes_sent;
-  std::unique_ptr<std::thread> m_monitor_thread;
   // Thread control
   std::atomic<bool> m_stopWriters;
 
-  FileGenerator m_fileGenerator;
+  // Internals
+  void flusher(PayloadQueue &pq, FileGenerator &&fg, const uint64_t chid) const;
+  std::map<uint64_t, Context> m_channelContexts;
+  mutable std::atomic<int> m_bytes_sent;
+  std::thread m_monitor_thread;
+
 };
 
 #endif  // DAQLING_MODULES_FILEDATALOGGER_HPP
