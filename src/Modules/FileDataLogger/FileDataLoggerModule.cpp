@@ -125,7 +125,6 @@ void FileDataLoggerModule::runner() {
   INFO(" Runner stopped");
 }
 
-#warning RS -> proper termination not implemented
 void FileDataLogger::flusher(PayloadQueue &pq, FileGenerator &&fg, const uint64_t chid) const
 {
   long bytes_written = 0;
@@ -133,6 +132,7 @@ void FileDataLogger::flusher(PayloadQueue &pq, FileGenerator &&fg, const uint64_
 
   while (!m_stopWriters) {
     while (pq.isEmpty() && !m_stopWriters); // wait until we have something to write
+    if (m_stopWriters) return;
 
     if (bytes_written > m_max_filesize) { // Rotate output files
       INFO(" Rotating output files for channel " << chid);
