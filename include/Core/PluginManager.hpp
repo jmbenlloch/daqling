@@ -38,11 +38,32 @@ namespace core {
 
 class PluginManager : public daqling::utilities::Singleton<PluginManager> {
  private:
-  daqling::core::DAQProcess *(*m_create)(...);
-  void (*m_destroy)(daqling::core::DAQProcess *);
+  using CreateFunc = DAQProcess*(...);
+  using DestroyFunc = void(DAQProcess *);
+
+  CreateFunc *m_create;
+  DestroyFunc *m_destroy;
+
   daqling::core::DAQProcess *m_dp;
   void *m_handle;
   bool m_loaded;
+
+  template<typename FuncSig>
+  FuncSig* resolve(const char* symbol)
+  {
+    assert(m_handle != nullptr);
+    dlerror(); // discard any previous errors
+
+    char *error;
+    void *handle = dlsym(m_handle, symbol);
+    error = dlerror();
+    if (error) {
+      ERROR("Module resolution error: " << error);
+      throw std::runtime_error("resolution error");
+    }
+
+    return reinterpret_cast<FuncSig*>(handle);
+  }
 
  public:
   PluginManager();
