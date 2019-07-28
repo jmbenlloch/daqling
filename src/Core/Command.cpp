@@ -105,6 +105,7 @@ bool daqling::core::Command::executeCommand(std::string& response) {
       response = "Failure";
       ERROR("Shutting down...");
       stop_and_notify();
+      return false;
     }
     m_plugin.configure();
 
