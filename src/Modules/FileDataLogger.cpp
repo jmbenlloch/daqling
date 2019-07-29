@@ -127,17 +127,33 @@ void FileDataLogger::runner() {
   INFO(" Runner stopped");
 }
 
-void FileDataLogger::flusher(PayloadQueue &pq, FileGenerator &&fg, const uint64_t chid) const
+void FileDataLogger::flusher(const uint64_t chid, PayloadQueue &pq, const long max_buffer_size, FileGenerator &&fg) const
 {
   long bytes_written = 0;
   std::ofstream out = fg.next();
+  auto buffer = daqutils::Binary(0);
+
+  const auto flush = [&](daqutils::Binary &data) {
+    out.write(static_cast<char *>(data.startingAddress()), data.size());
+    if (out.fail()) {
+        CRITICAL(" Write operation for channel " << chid << " of size " << data.size() << "B failed!");
+        throw std::runtime_error("std::ofstream::fail()");
+    }
+    m_bytes_sent += data.size();
+    bytes_written += data.size();
+    data = daqutils::Binary(0);
+  };
 
   while (!m_stopWriters) {
     while (pq.isEmpty() && !m_stopWriters); // wait until we have something to write
-    if (m_stopWriters) return;
+    if (m_stopWriters) {
+      flush(buffer);
+      return;
+    }
 
-    if (bytes_written > m_max_filesize) { // Rotate output files
+    if (bytes_written + buffer.size() > m_max_filesize) { // Rotate output files
       INFO(" Rotating output files for channel " << chid);
+      flush(buffer);
       out.flush();
       out.close();
       out = fg.next();
@@ -146,22 +162,53 @@ void FileDataLogger::flusher(PayloadQueue &pq, FileGenerator &&fg, const uint64_
 
     auto payload = pq.frontPtr();
     pq.popFront();
-    out.write(static_cast<char *>(payload->startingAddress()), payload->size());
-    if (out.fail()) {
-        CRITICAL(" Write operation for channel " << chid << " of size " << payload->size() << "B failed!");
-        throw std::runtime_error("std::ofstream::fail()");
+
+    if (payload->size() + buffer.size() <= max_buffer_size) {
+      buffer += *payload;
+    } else {
+      DEBUG("Processing buffer split.");
+      const long split_offset = max_buffer_size - buffer.size();
+      long tail_len = buffer.size() + payload->size() - max_buffer_size;
+      assert(split_offset >= 0 && tail_len > 0);
+
+      // Split the payload into a head and a tail
+      daqutils::Binary head(payload->startingAddress(), split_offset);
+      daqutils::Binary tail(static_cast<char *>(payload->startingAddress()) + split_offset, tail_len);
+      DEBUG(" -> head length: " << head.size() << "; tail length: " << tail.size());
+      assert(head.size() + tail.size() == payload->size());
+
+      buffer += head;
+      flush(buffer);
+
+      // Flush the tail until it is small enough to fit in the buffer
+      while (tail_len > max_buffer_size) {
+        daqutils::Binary body(tail.startingAddress(), max_buffer_size);
+        daqutils::Binary next_tail(static_cast<char *>(tail.startingAddress())
+                + max_buffer_size, tail_len - max_buffer_size);
+        assert(body.size() + next_tail.size() == tail.size());
+        flush(body);
+
+        tail = next_tail;
+        tail_len = next_tail.size();
+        DEBUG(" -> head of tail flushed; new tail length: " << tail_len);
+      }
+
+      buffer = tail;
+      assert(buffer.size() <= max_buffer_size);
     }
-    m_bytes_sent += payload->size();
-    bytes_written += payload->size();
   }
 }
 
 void FileDataLogger::setup() {
   // Read out required and optional configurations
   m_max_filesize = m_config.getConfig()["settings"].value("max_filesize", 1 * daqutils::Constant::Giga);
+  const long buffer_size = m_config.getConfig()["settings"].value("buffer_size", 4 * daqutils::Constant::Kilo);
   m_channels = m_config.getConfig()["connections"]["receivers"].size();
   const std::string pattern = m_config.getConfig()["settings"]["filename_pattern"];
-  INFO("Maximum filesize configured for " << m_max_filesize << "B");
+  INFO("Configuration:");
+  INFO(" -> Maximum filesize: " << m_max_filesize << "B");
+  INFO(" -> Buffer size: " << buffer_size << "B");
+  INFO(" -> channels: " << m_channels);
 
   int threadid = 11111; // XXX: magic
   constexpr size_t queue_size = 10000; // XXX: magic
@@ -173,8 +220,13 @@ void FileDataLogger::setup() {
     assert(success);
 
     // Start the context's consumer thread.
-    std::get<ThreadContext>(it->second).consumer.set_work([this, pattern, it]() {
-      return flusher(std::get<PayloadQueue>(it->second), FileGenerator(pattern, it->first), it->first);
+    std::get<ThreadContext>(it->second).consumer.set_work([this, it, buffer_size, pattern]() {
+      return flusher(
+          it->first,
+          std::get<PayloadQueue>(it->second),
+          buffer_size,
+          FileGenerator(pattern, it->first)
+      );
     });
   }
   assert(m_channelContexts.size() == m_channels);
