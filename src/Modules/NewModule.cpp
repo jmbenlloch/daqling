@@ -20,23 +20,29 @@
 extern "C" NewModule *create_object() { return new NewModule; }
 extern "C" void destroy_object(NewModule *object) { delete object; }
 
-NewModule::NewModule() { INFO("NewModule::NewModule"); }
+NewModule::NewModule() { INFO(""); }
 
-NewModule::~NewModule() { INFO("NewModule::~NewModule"); }
+NewModule::~NewModule() { INFO(""); }
+
+// optional (configuration can be handled in the constructor)
+void NewModule::configure() {
+  daqling::core::DAQProcess::configure();
+  INFO("");
+}
 
 void NewModule::start() {
   daqling::core::DAQProcess::start();
-  INFO("NewModule::start");
+  INFO("");
 }
 
 void NewModule::stop() {
   daqling::core::DAQProcess::stop();
-  INFO("NewModule::stop");
+  INFO("");
 }
 
 void NewModule::runner() {
-  INFO(" Running...");
+  INFO("Running...");
   while (m_run) {
   }
-  INFO(" Runner stopped");
+  INFO("Runner stopped");
 }

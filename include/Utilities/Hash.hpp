@@ -25,7 +25,6 @@
 
 /*
  * Hash
- * Author: Roland.Sipos@cern.ch
  * Description: 
  *   Hash utils from CondDB
  * Date: March 2019

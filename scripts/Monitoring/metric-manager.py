@@ -16,8 +16,6 @@
 """
 
 __version__ = "0.0.1"
-__maintainer__ = "Roland Sipos"
-__email__ = "roland.sipos@cern.ch"
 
 import sys
 import zmq

@@ -27,7 +27,6 @@
 
 /********************************
  * ReusableThread
- * Author: Roland.Sipos@cern.ch
  * Copied from: 
  *   // https://codereview.stackexchange.com/questions/134214/reuseable-c11-thread
  * Description: Pausable thread

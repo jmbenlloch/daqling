@@ -15,8 +15,6 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// enrico.gamberini@cern.ch
-
 /// \cond
 #include <chrono>
 /// \endcond
@@ -31,23 +29,23 @@ extern "C" EventBuilder *create_object() { return new EventBuilder; }
 extern "C" void destroy_object(EventBuilder *object) { delete object; }
 
 EventBuilder::EventBuilder() {
-  INFO(" With config: " << m_config.dump() << " getState: " << this->getState());
+  INFO("With config: " << m_config.dump() << " getState: " << this->getState());
 }
 
-EventBuilder::~EventBuilder() { INFO(__METHOD_NAME__); }
+EventBuilder::~EventBuilder() {}
 
 void EventBuilder::start() {
   DAQProcess::start();
-  INFO(" getState: " << getState());
+  INFO("getState: " << getState());
 }
 
 void EventBuilder::stop() {
   DAQProcess::stop();
-  INFO(" getState: " << this->getState());
+  INFO("getState: " << this->getState());
 }
 
 void EventBuilder::runner() {
-  INFO(" Running...");
+  INFO("Running...");
   const unsigned c_packing = 20;
   while (m_run) {
     std::string packed = "";
@@ -70,5 +68,5 @@ void EventBuilder::runner() {
       m_connections.putStr(3, packed);
     }
   }
-  INFO(" Runner stopped");
+  INFO("Runner stopped");
 }

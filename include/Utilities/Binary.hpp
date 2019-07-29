@@ -20,7 +20,6 @@
 
 /*
  * Binary
- * Added by: Roland.Sipos@cern.ch
  * Description:
  *   A really nice void* wrapper from CORAL
  *   https://twiki.cern.ch/twiki/bin/view/Persistency/Coral 

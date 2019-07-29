@@ -1,5 +1,3 @@
-#Marco Boretto <marco.boretto@cern.ch> 2019
----
 # Cvmfs handlers
 
 - name: restart cvmfs

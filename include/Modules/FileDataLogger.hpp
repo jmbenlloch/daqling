@@ -35,7 +35,6 @@
 
 /*
  * FileDataLogger
- * Author: Roland.Sipos@cern.ch
  * Description: Data logger for binary files with fstream.
  *   Relies on fixed size file IO with Binary splitting and concatenation.
  * Date: April 2019

@@ -23,9 +23,9 @@ extern "C" MetricsSimulator *create_object() { return new MetricsSimulator; }
 
 extern "C" void destroy_object(MetricsSimulator *object) { delete object; }
 
-MetricsSimulator::MetricsSimulator() { INFO("MetricsSimulator::MetricsSimulator"); }
+MetricsSimulator::MetricsSimulator() { INFO(""); }
 
-MetricsSimulator::~MetricsSimulator() { INFO("MetricsSimulator::~MetricsSimulator"); }
+MetricsSimulator::~MetricsSimulator() { INFO(""); }
 
 void MetricsSimulator::start() {
   daqling::core::DAQProcess::start();
@@ -49,16 +49,16 @@ void MetricsSimulator::start() {
   m_statistics->registerVariable<std::atomic<double>, double>(&m_metric3, "RandomMetric8-double_average", daqling::core::metrics::AVERAGE, daqling::core::metrics::DOUBLE, 5);
   m_statistics->registerVariable<std::atomic<bool>, bool>(&m_metric9, "RandomMetric9-bool", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::BOOL);
   m_statistics->registerVariable<std::atomic<size_t>, size_t>(&m_metric5, "RandomMetric10-size_t_rate", daqling::core::metrics::RATE, daqling::core::metrics::SIZE, 5);
-  INFO("MetricsSimulator::start");
+  INFO("");
 }
 
 void MetricsSimulator::stop() {
   daqling::core::DAQProcess::stop();
-  INFO("MetricsSimulator::stop");
+  INFO("");
 }
 
 void MetricsSimulator::runner() {
-  INFO(" Running...");
+  INFO("Running...");
   srand (time(NULL));
   while (m_run) {
     m_metric1 += 4;
@@ -80,5 +80,5 @@ void MetricsSimulator::runner() {
     m_metric10 = rand() % 100;
     std::this_thread::sleep_for( std::chrono::milliseconds(500) );
   }
-  INFO(" Runner stopped");
+  INFO("Runner stopped");
 }

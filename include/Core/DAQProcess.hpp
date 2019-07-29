@@ -17,7 +17,6 @@
 
 /**
  * @file DAQProcess.hpp
- * @author Enrico.Gamberini@cern.ch
  * @brief Base class for Modules loaded via the PluginManager
  * @date 2019-02-20
  */
@@ -35,17 +34,22 @@ namespace core {
 
 class DAQProcess {
  public:
-  DAQProcess() : m_state{"ready"} {};
+  DAQProcess() {};
 
   virtual ~DAQProcess(){};
 
   /* use virtual otherwise linker will try to perform static linkage */
-  virtual void start() {
-    m_run = true;
-    m_runner_thread = std::make_unique<std::thread>(&DAQProcess::runner, this);
+  virtual void configure() {
+    setupStatistics();
     if (m_stats_on) {
       m_statistics->start();
     }
+    m_state = "ready";
+  };
+
+  virtual void start() {
+    m_run = true;
+    m_runner_thread = std::make_unique<std::thread>(&DAQProcess::runner, this);
     m_state = "running";
   };
 
@@ -64,16 +68,16 @@ class DAQProcess {
     auto statsURI = m_config.getConfig()["settings"]["stats_uri"];
     auto influxDbURI = m_config.getConfig()["settings"]["influxDb_uri"];
     auto influxDbName = m_config.getConfig()["settings"]["influxDb_name"];
-    INFO(__METHOD_NAME__ << " Setting up statistics on: " << statsURI);
+    INFO("Setting up statistics on: " << statsURI);
     if ((statsURI == "" || statsURI == nullptr) && (influxDbURI == "" || influxDbURI == nullptr)){
-      INFO(__METHOD_NAME__ << " No Statistics settings were provided... Running without stats. ");
+      INFO("No Statistics settings were provided... Running without stats.");
       m_stats_on = false;
       return false;
     } 
     else {
       if(statsURI != "" && statsURI != nullptr){
         if ( !m_connections.setupStatsConnection(1, statsURI) ) {
-          ERROR(__METHOD_NAME__ << " Connection setup failed for Statistics publishing! ");
+          ERROR("Connection setup failed for Statistics publishing!");
           return false;
         }
       }

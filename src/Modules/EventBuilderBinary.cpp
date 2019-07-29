@@ -15,8 +15,6 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// enrico.gamberini@cern.ch
-
 /// \cond
 #include <chrono>
 /// \endcond
@@ -31,23 +29,23 @@ extern "C" EventBuilder *create_object() { return new EventBuilder; }
 extern "C" void destroy_object(EventBuilder *object) { delete object; }
 
 EventBuilder::EventBuilder() {
-  INFO(" With config: " << m_config.dump() << " getState: " << this->getState());
+  INFO("With config: " << m_config.dump() << " getState: " << this->getState());
 }
 
-EventBuilder::~EventBuilder() { INFO(__METHOD_NAME__); }
+EventBuilder::~EventBuilder() {}
 
 void EventBuilder::start() {
   DAQProcess::start();
-  INFO(" getState: " << getState());
+  INFO("getState: " << getState());
 }
 
 void EventBuilder::stop() {
   DAQProcess::stop();
-  INFO(" getState: " << this->getState());
+  INFO("getState: " << this->getState());
 }
 
 void EventBuilder::runner() {
-  INFO(" Running...");
+  INFO("Running...");
   while (m_run) {
     daqling::utilities::Binary b1, b2;
     while(!m_connections.get(1, b1) && m_run) {
@@ -59,8 +57,8 @@ void EventBuilder::runner() {
 
     daqling::utilities::Binary b3(b1);
     b3 += b2;
-    INFO(" Size of build event: " << b3.size());
+    INFO("Size of build event: " << b3.size());
     m_connections.put(3, b3);
   }
-  INFO(" Runner stopped");
+  INFO("Runner stopped");
 }

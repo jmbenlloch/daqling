@@ -40,7 +40,6 @@ namespace core {
 
 /*
  * ConnectionManager
- * Author: Roland.Sipos@cern.ch
  * Description: Wrapper class for sockets and SPSC circular buffers.
  *   Makes the communication between DAQ processes easier and scalable.
  * Date: November 2017

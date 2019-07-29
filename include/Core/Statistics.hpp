@@ -82,6 +82,15 @@ public:
     metric->m_values.push_back(value);
   }
 
+  template <class T, class U>
+  void accumulateValueAndReset(Metric_base* m){
+    Metric<T, U>* metric = static_cast<Metric<T, U>*>(m);
+    U value = *(metric->m_metrics_ptr);
+    *(metric->m_metrics_ptr) = 0.;
+    metric->m_values.push_back(value);
+  }
+
+
 
 
   template <class T, class U>
@@ -94,6 +103,12 @@ public:
       metric->m_values.clear();
       metric->m_values.shrink_to_fit();
       value = average;
+    }
+    else if(metric->m_mtype == metrics::ACCUMULATE){
+      U sum = std::accumulate( metric->m_values.begin(), metric->m_values.end(), 0.0);
+      metric->m_values.clear();
+      metric->m_values.shrink_to_fit();
+      value = sum;
     }
     else if(metric->m_mtype == metrics::LAST_VALUE){
       value = *(metric->m_metrics_ptr);
