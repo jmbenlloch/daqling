@@ -161,6 +161,7 @@ void FileDataLogger::setup() {
   m_max_filesize = m_config.getConfig()["settings"].value("max_filesize", 1 * daqutils::Constant::Giga);
   m_channels = m_config.getConfig()["connections"]["receivers"].size();
   const std::string pattern = m_config.getConfig()["settings"]["filename_pattern"];
+  INFO("Maximum filesize configured for " << m_max_filesize << "B");
 
   int threadid = 11111; // XXX: magic
   constexpr size_t queue_size = 10000; // XXX: magic
