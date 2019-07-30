@@ -15,7 +15,7 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Utilities/Logging.hpp"
+#include "Utils/Logging.hpp"
 #include "tbb/flow_graph.h"
 
 using namespace daqling;

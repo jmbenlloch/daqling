@@ -22,10 +22,10 @@
 #include <thread>
 /// \endcond
 
-#include "Core/Command.hpp"
-#include "Core/Configuration.hpp"
-#include "Core/ConnectionManager.hpp"
-#include "Core/PluginManager.hpp"
+#include "Command.hpp"
+#include "Configuration.hpp"
+#include "ConnectionManager.hpp"
+#include "PluginManager.hpp"
 
 
 using namespace daqling::core;

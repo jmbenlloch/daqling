@@ -15,23 +15,39 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef DAQLING_CORE_DATALOGGER_HPP
+#define DAQLING_CORE_DATALOGGER_HPP
+
+#include "Configuration.hpp"
+#include "Utils/DataStore.hpp"
 #include "Utils/Logging.hpp"
-#include "Core/ConnectionManager.hpp"
 
-using namespace daqling;
 
-int
-main(int argc, char** argv)
-{
+/*
+ * DataLogger
+ * Description: DataLogger interface with generic datastore
+ * Date: March 2019
+ */
 
-  INFO("WOOF WOOF");
-  WARNING("Ugh!" << 12345 << "bof bof" << '\n');
+namespace daqling {
+namespace core {
 
-  INFO("Testing ConnectionManager.hpp");
-  daqling::core::ConnectionManager& cm = daqling::core::ConnectionManager::instance();
-  
+class DataLogger {
+ public:
+  DataLogger() {}
+  virtual ~DataLogger(){};
 
-  ERROR("About to die...");
-  return 0;
-}
+  virtual void setup() = 0;
+  virtual void write() = 0;
+  virtual void read() = 0;
+  virtual bool write(uint64_t keyId, daqling::utilities::Binary& payload) = 0;
+  virtual void shutdown() = 0;
 
+ protected:
+  daqling::utilities::DataStoreBase m_dataStore;
+};
+
+} // namespace core
+} // namespace daqling
+
+#endif // DAQLING_CORE_DATALOGGER_HPP

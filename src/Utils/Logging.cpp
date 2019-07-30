@@ -15,23 +15,7 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Utils/Logging.hpp"
-#include "Core/ConnectionManager.hpp"
+#include "Logging.hpp"
 
-using namespace daqling;
-
-int
-main(int argc, char** argv)
-{
-
-  INFO("WOOF WOOF");
-  WARNING("Ugh!" << 12345 << "bof bof" << '\n');
-
-  INFO("Testing ConnectionManager.hpp");
-  daqling::core::ConnectionManager& cm = daqling::core::ConnectionManager::instance();
-  
-
-  ERROR("About to die...");
-  return 0;
-}
+std::shared_ptr<spdlog::logger> daqling::utilities::Logger::logger;
 

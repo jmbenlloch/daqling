@@ -22,8 +22,8 @@
 #include <thread>
 /// \endcond
 
-#include "Core/Command.hpp"
-#include "Core/PluginManager.hpp"
+#include "Command.hpp"
+#include "PluginManager.hpp"
 
 
 using namespace daqling::core;

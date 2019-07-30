@@ -1,0 +1,5 @@
+if (ENABLE_CASSANDRA)
+  file(GLOB_RECURSE CASSANDRADATALOGGER_SOURCES "CassandraDataLogger.cpp")
+  add_library(cassandradatalogger SHARED ${CASSANDRADATALOGGER_SOURCES})
+  target_link_libraries(cassandradatalogger PUBLIC DaqlingCore DaqlingUtils libzmq cassandra)
+endif (ENABLE_CASSANDRA)

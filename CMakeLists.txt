@@ -1,44 +1,75 @@
-cmake_minimum_required(VERSION 3.4.3)
+cmake_minimum_required(VERSION 3.4.3 FATAL_ERROR)
+# if(COMMAND CMAKE_POLICY)
+#   cmake_policy(SET CMP0048 NEW) # set project version
+# endif()
 
 set(PACKAGE daqling)
 set(PACKAGE_VERSION 0.0.1)
 
 project(${PACKAGE} VERSION ${PACKAGE_VERSION}
         DESCRIPTION "Data acquisition framework"
-        LANGUAGES CXX)
+        LANGUAGES C CXX)
+
+# Set default build type
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build. Options are: Debug RelWithDebInfo" FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
+
+# Print version
+message(STATUS "Building ${PACKAGE} version ${PACKAGE_VERSION}")
+message(STATUS "Building \"${CMAKE_BUILD_TYPE}\"")
+
+###############################################
+# Setup the environment for the documentation #
+###############################################
+
+option(BUILD_DOCS_ONLY "Build documentation only" OFF)
 
 find_package(Doxygen)
-if (DOXYGEN_FOUND)
-  set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
-  set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
-  configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
-  message("Doxygen build started")
-  add_custom_target( doc_doxygen 
-    COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+if(DOXYGEN_FOUND)
+  configure_file(${CMAKE_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_BINARY_DIR}/doc/Doxyfile @ONLY)
+  add_custom_target(doc
+    ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doc/Doxyfile
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/doc
     COMMENT "Generating API documentation with Doxygen"
-    VERBATIM )
-else (DOXYGEN_FOUND)
-  message("Doxygen need to be installed to generate the doxygen documentation")
-endif (DOXYGEN_FOUND)
+    VERBATIM
+    )
+else(DOXYGEN_FOUND)
+  message("Doxygen not found. Cannot build documentation.")
+endif(DOXYGEN_FOUND)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
-    message(FATAL_ERROR "GCC version must be at least 4.8!")
-  endif()
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+# If only building docs, stop processing the rest of the CMake file:
+if(BUILD_DOCS_ONLY)
+  RETURN()
+ENDIF()
+
+###############################
+# Setup the build environment #
+###############################
+
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
+  message(FATAL_ERROR "GCC version must be at least 4.8!")
+endif()
+
+# Require a C++17 compliant compiler
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Set some debug flags
+if(CMAKE_BUILD_TYPE MATCHES Debug AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
+    message(STATUS "Running debug build, adding extra sanitizer flags")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined")
+elseif(CMAKE_BUILD_TYPE MATCHES Release AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-prefetch -unroll-aggressive -march=native -mtune=native")
 endif()
 
+# Include Threads
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+FIND_PACKAGE(Threads REQUIRED)
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -Wno-unused-function -Wno-unused-variable -O3 -g -pedantic -fPIC")
-
-set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -ldl")
-
-#message("CMAKE_CXX_FLAGS = " ${CMAKE_CXX_FLAGS})
-#message("CMAKE_CXX_LINK_FLAGS = " ${CMAKE_CXX_LINK_FLAGS})
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -59,28 +90,48 @@ if (ENABLE_BOOST)
   include_directories(${Boost_INCLUDE_DIRS})
 endif (ENABLE_BOOST)
 
-# others
-include_directories(/opt/spdlog/include)
+set(BUILD_TESTS OFF)
+set(USE_SYSTEM_CURL ON)
+set(BUILD_CPR_TESTS OFF)
+set(ZMQ_BUILD_TESTS OFF)
 
-include_directories(/opt/json/single_include)
+set(BUILD_SHARED_LIBS ON)
 
-include_directories(/opt/cpr/include)
-link_directories(/opt/cpr/build/lib)
+add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/zmq)
+add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/cpr)
 
-# pass include directories to parent
-get_directory_property(hasParent PARENT_DIRECTORY)
-if (hasParent)
-  get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-  set(daqling_include_dirs ${dirs} PARENT_SCOPE)
-endif (hasParent)
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/spdlog/include)
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/json/include)
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/cpr/include)
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/zmq/include)
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/cppzmq)
 
-# pass link directories to parent
-if (hasParent)
-  get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY LINK_DIRECTORIES)
-  set(daqling_link_dirs ${dirs} PARENT_SCOPE)
-endif (hasParent)
+set(DAQLING_LIBRARIES "")
+set(DAQLING_DEPS_LIBRARIES Threads::Threads)
 
-add_subdirectory(src/Utilities)
+# Set standard build flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wconversion -Wuseless-cast -Wctor-dtor-privacy -Wzero-as-null-pointer-constant -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Wredundant-decls -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Werror -Wshadow -Wformat-security -Wdeprecated -fdiagnostics-color=auto -Wno-overloaded-virtual")
+
+# XXX: spdlog/fmt
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ctor-dtor-privacy -Wno-switch-default -Wno-sign-promo -Wno-shadow -Wno-strict-overflow -Wno-useless-cast")
+
+# XXX: json
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated")
+
+# TODO(Utils): remove these
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-conversion -Wno-zero-as-null-pointer-constant -Wno-old-style-cast -Wno-cast-qual")
+
+# TODO(Core): remove these
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function -Wno-conversion -Wno-unused-parameter -Wno-format-y2k")
+
+# TODO(Modules): remove these
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-declarations -Wno-ignored-qualifiers -Wno-reorder -Wno-cpp -Wno-error -Wno-deprecated-declarations")
+
+include_directories(${CMAKE_SOURCE_DIR}/src)
+
+add_subdirectory(src/Utils)
 add_subdirectory(src/Core)
+add_subdirectory(src/Exec)
 add_subdirectory(src/Modules)
+
 add_subdirectory(test)
