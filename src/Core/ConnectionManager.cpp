@@ -24,10 +24,10 @@
 #include <exception>
 /// \endcond
 
-#include "Core/Command.hpp"
-#include "Core/ConnectionManager.hpp"
-#include "Utilities/Binary.hpp"
-#include "Utilities/Logging.hpp"
+#include "Command.hpp"
+#include "ConnectionManager.hpp"
+#include "Utils/Binary.hpp"
+#include "Utils/Logging.hpp"
 
 
 using namespace daqling::core;

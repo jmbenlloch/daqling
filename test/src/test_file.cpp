@@ -15,7 +15,7 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Utilities/Logging.hpp"
+#include "Utils/Logging.hpp"
 #include "Core/ConnectionManager.hpp"
 
 using namespace daqling;

@@ -23,9 +23,9 @@
 #include <thread>
 /// \endcond
 
-#include "Modules/BoardReader.hpp"
-#include "Modules/EventBuilder.hpp"
-#include "Utilities/Logging.hpp"
+#include "Modules/BoardReader/BoardReader.hpp"
+#include "Modules/EventBuilder/EventBuilder.hpp"
+#include "Utils/Logging.hpp"
 #include "Core/ConnectionManager.hpp"
 
 using namespace std::chrono_literals;

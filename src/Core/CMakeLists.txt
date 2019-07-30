@@ -1,19 +1,19 @@
-cmake_minimum_required(VERSION 3.4.3)
+add_library(DaqlingCore SHARED
+  Core.cpp
+  Command.cpp
+  ConnectionManager.cpp
+  PluginManager.cpp
+  Statistics.cpp
+)
 
-#library
-project(Core VERSION 0.0.1
-                  DESCRIPTION "Data acquisition framework"
-                  LANGUAGES CXX)
+find_package(CURL QUIET REQUIRED)
 
-include_directories("../../include")
-#include_directories(${CPR_INCLUDE_DIRS})
-file(GLOB_RECURSE UTILITIES_SOURCES "*.cpp")
-add_library(core SHARED ${UTILITIES_SOURCES})
+# target_link_libraries(DaqlingCore ${DAQLING_DEPS_LIBRARIES})
+# target_link_libraries(DaqlingCore ${DAQLING_LIBRARIES})
 
-target_link_libraries(core PUBLIC utilities zmq cpr curl)
-
+target_link_libraries(DaqlingCore PUBLIC DaqlingUtils libzmq cpr ${CURL_LIBRARIES} dl)
 
 #executable
-add_executable(main_core main_core.cpp)
-target_link_libraries(main_core PUBLIC pthread rt utilities core)
-install(TARGETS main_core EXPORT DESTINATION bin)
+# add_executable(main_core main_core.cpp)
+# target_link_libraries(main_core PUBLIC pthread rt utilities core)
+# install(TARGETS main_core EXPORT DESTINATION bin)

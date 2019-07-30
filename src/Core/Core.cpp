@@ -20,7 +20,7 @@
 #include <iomanip>
 /// \endcond
 
-#include "Core/Core.hpp"
+#include "Core.hpp"
 
 
 using namespace daqling::core;

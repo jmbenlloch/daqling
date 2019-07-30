@@ -15,23 +15,34 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Utils/Logging.hpp"
-#include "Core/ConnectionManager.hpp"
+#include "NewModule.hpp"
 
-using namespace daqling;
+extern "C" NewModule *create_object() { return new NewModule; }
+extern "C" void destroy_object(NewModule *object) { delete object; }
 
-int
-main(int argc, char** argv)
-{
+NewModule::NewModule() { INFO(""); }
 
-  INFO("WOOF WOOF");
-  WARNING("Ugh!" << 12345 << "bof bof" << '\n');
+NewModule::~NewModule() { INFO(""); }
 
-  INFO("Testing ConnectionManager.hpp");
-  daqling::core::ConnectionManager& cm = daqling::core::ConnectionManager::instance();
-  
-
-  ERROR("About to die...");
-  return 0;
+// optional (configuration can be handled in the constructor)
+void NewModule::configure() {
+  daqling::core::DAQProcess::configure();
+  INFO("");
 }
 
+void NewModule::start() {
+  daqling::core::DAQProcess::start();
+  INFO("");
+}
+
+void NewModule::stop() {
+  daqling::core::DAQProcess::stop();
+  INFO("");
+}
+
+void NewModule::runner() {
+  INFO("Running...");
+  while (m_run) {
+  }
+  INFO("Runner stopped");
+}
