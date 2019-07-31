@@ -15,19 +15,15 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "MetricsSimulator.hpp"
+#include "MetricsSimulatorModule.hpp"
 #include "Core/Statistics.hpp"
 #include <stdlib.h>
 
-extern "C" MetricsSimulator *create_object() { return new MetricsSimulator(); }
+MetricsSimulatorModule::MetricsSimulatorModule() { INFO(""); }
 
-extern "C" void destroy_object(MetricsSimulator *object) { delete object; }
+MetricsSimulatorModule::~MetricsSimulatorModule() { INFO(""); }
 
-MetricsSimulator::MetricsSimulator() { INFO(""); }
-
-MetricsSimulator::~MetricsSimulator() { INFO(""); }
-
-void MetricsSimulator::start() {
+void MetricsSimulatorModule::start() {
   daqling::core::DAQProcess::start();
   m_metric1 = 0;
   m_metric2 = 0;
@@ -52,12 +48,12 @@ void MetricsSimulator::start() {
   INFO("");
 }
 
-void MetricsSimulator::stop() {
+void MetricsSimulatorModule::stop() {
   daqling::core::DAQProcess::stop();
   INFO("");
 }
 
-void MetricsSimulator::runner() {
+void MetricsSimulatorModule::runner() {
   INFO("Running...");
   srand (time(NULL));
   while (m_run) {

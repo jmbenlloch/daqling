@@ -1,3 +1,12 @@
-file(GLOB_RECURSE BOARDREADERBINARY_SOURCES "BoardReaderBinary.cpp")
-add_library(boardreaderbinary SHARED ${BOARDREADERBINARY_SOURCES})
-target_link_libraries(boardreaderbinary PUBLIC DaqlingCore DaqlingUtils libzmq)
+# Define module
+daqling_module(module_name)
+
+# Add source file to library
+daqling_module_sources(${module_name}
+    BoardReaderBinaryModule.cpp
+)
+
+target_link_libraries(${module_name} DaqlingCore DaqlingUtils libzmq)
+
+# Provide standard install target
+daqling_module_install(${module_name})

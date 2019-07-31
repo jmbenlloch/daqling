@@ -15,8 +15,7 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQLING_MODULES_FILEDATALOGGER_HPP
-#define DAQLING_MODULES_FILEDATALOGGER_HPP
+#pragma once
 
 /// \cond
 #include <fstream>
@@ -31,15 +30,15 @@
 #include "Utils/ProducerConsumerQueue.hpp"
 
 /*
- * FileDataLogger
+ * FileDataLoggerModule
  * Description: Data logger for binary files with fstream.
  *   Relies on fixed size file IO with Binary splitting and concatenation.
  * Date: April 2019
  */
-class FileDataLogger : public daqling::core::DAQProcess, public daqling::core::DataLogger {
+class FileDataLoggerModule : public daqling::core::DAQProcess, public daqling::core::DataLogger {
  public:
-  FileDataLogger();
-  ~FileDataLogger();
+  FileDataLoggerModule();
+  ~FileDataLoggerModule();
 
   void start();
   void stop();
@@ -72,5 +71,3 @@ class FileDataLogger : public daqling::core::DAQProcess, public daqling::core::D
   // Thread control
   std::atomic<bool> m_stopWriters;
 };
-
-#endif  // DAQLING_MODULES_FILEDATALOGGER_HPP

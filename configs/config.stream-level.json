@@ -3,7 +3,7 @@
     "name": "boardreader01",
     "host": "host01",
     "port": 5555,
-    "type": "boardreader",
+    "type": "BoardReader",
     "stream_level": 0,
     "settings": {
       "some_int": 42,
@@ -14,7 +14,7 @@
     "name": "eventbuilder01",
     "host": "host03",
     "port": 5557,
-    "type": "eventbuilder",
+    "type": "EventBuilder",
     "stream_level": 1,
     "settings": {
       "some_int": 42,
@@ -25,7 +25,7 @@
     "name": "boardreader02",
     "host": "host02",
     "port": 5556,
-    "type": "boardreader",
+    "type": "BoardReader",
     "stream_level": 0,
     "settings": {
       "some_int": 42,
@@ -37,7 +37,7 @@
     "name": "datalogger01",
     "host": "host03",
     "port": 5558,
-    "type": "cassandradatalogger",
+    "type": "CassandraDataLogger",
     "stream_level": 2,
     "settings": {
       "ring": "127.0.0.1",

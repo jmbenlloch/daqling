@@ -1,0 +1,26 @@
+{
+  "version": 5,
+  "group": "daq",
+  "components": [
+    {
+      "name": "boardreader01",
+      "host": "localhost",
+      "port": 5555,
+      "type": "BoardReader",
+      "settings": {
+        "board_id": 0
+      },
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 1,
+            "host": "*",
+            "port": 8101
+          }
+        ]
+      }
+    }
+  ]
+}
+

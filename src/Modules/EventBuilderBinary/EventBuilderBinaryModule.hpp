@@ -15,34 +15,17 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQLING_MODULES_METRICSSIMULATOR_HPP
-#define DAQLING_MODULES_METRICSSIMULATOR_HPP
+#pragma once
 
 #include "Core/DAQProcess.hpp"
 
-class MetricsSimulator : public daqling::core::DAQProcess {
+class EventBuilderBinaryModule : public daqling::core::DAQProcess {
  public:
-  MetricsSimulator();
-  ~MetricsSimulator();
+  EventBuilderBinaryModule();
+  ~EventBuilderBinaryModule();
 
   void start();
   void stop();
 
   void runner();
-
-  protected:
-  std::atomic<int> m_metric1;
-  std::atomic<float> m_metric2;
-  std::atomic<double> m_metric3;
-  std::atomic<bool> m_metric4;
-  std::atomic<size_t> m_metric5;
-  std::atomic<int> m_metric6;
-  std::atomic<float> m_metric7;
-  std::atomic<double> m_metric8;
-  std::atomic<bool> m_metric9;
-  std::atomic<size_t> m_metric10;
-
-
 };
-
-#endif // DAQLING_MODULES_METRICSSIMULATOR_HPP

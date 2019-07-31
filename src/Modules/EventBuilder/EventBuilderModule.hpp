@@ -15,34 +15,17 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "NewModule.hpp"
+#pragma once
 
-extern "C" NewModule *create_object() { return new NewModule(); }
-extern "C" void destroy_object(NewModule *object) { delete object; }
+#include "Core/DAQProcess.hpp"
 
-NewModule::NewModule() { INFO(""); }
+class EventBuilderModule : public daqling::core::DAQProcess {
+ public:
+  EventBuilderModule();
+  ~EventBuilderModule();
 
-NewModule::~NewModule() { INFO(""); }
+  void start();
+  void stop();
 
-// optional (configuration can be handled in the constructor)
-void NewModule::configure() {
-  daqling::core::DAQProcess::configure();
-  INFO("");
-}
-
-void NewModule::start() {
-  daqling::core::DAQProcess::start();
-  INFO("");
-}
-
-void NewModule::stop() {
-  daqling::core::DAQProcess::stop();
-  INFO("");
-}
-
-void NewModule::runner() {
-  INFO("Running...");
-  while (m_run) {
-  }
-  INFO("Runner stopped");
-}
+  void runner();
+};

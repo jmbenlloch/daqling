@@ -20,18 +20,14 @@
 #include <sstream>
 /// \endcond
 
-#include "FileDataLogger.hpp"
+#include "FileDataLoggerModule.hpp"
 #include "Utils/Logging.hpp"
 
 
 using namespace std::chrono_literals;
 namespace daqutils = daqling::utilities;
 
-extern "C" FileDataLogger *create_object() { return new FileDataLogger(); }
-
-extern "C" void destroy_object(FileDataLogger *object) { delete object; }
-
-FileDataLogger::FileDataLogger() : m_payloads{10000}, m_stopWriters{false}, m_bytes_sent{0} {
+FileDataLoggerModule::FileDataLoggerModule() : m_payloads{10000}, m_stopWriters{false}, m_bytes_sent{0} {
   INFO(__METHOD_NAME__);
 
 #warning RS -> Needs to be properly configured.
@@ -44,27 +40,27 @@ FileDataLogger::FileDataLogger() : m_payloads{10000}, m_stopWriters{false}, m_by
   setup();
 }
 
-FileDataLogger::~FileDataLogger() {
+FileDataLoggerModule::~FileDataLoggerModule() {
   INFO(__METHOD_NAME__);
   // Tear down resources...
   m_stopWriters.store(true);
   m_fileStreams[1].close();
 }
 
-void FileDataLogger::start() {
+void FileDataLoggerModule::start() {
   DAQProcess::start();
   INFO(" getState: " << getState());
-  m_monitor_thread = std::make_unique<std::thread>(&FileDataLogger::monitor_runner, this);
+  m_monitor_thread = std::make_unique<std::thread>(&FileDataLoggerModule::monitor_runner, this);
 }
 
-void FileDataLogger::stop() {
+void FileDataLoggerModule::stop() {
   DAQProcess::stop();
   INFO(" getState: " << this->getState());
   m_monitor_thread->join();
   INFO("Joined successfully monitor thread");
 }
 
-void FileDataLogger::runner() {
+void FileDataLoggerModule::runner() {
   INFO(" Running...");
   // auto& cm = daqling::core::ConnectionManager::instance();
   while (m_run) {
@@ -80,7 +76,7 @@ void FileDataLogger::runner() {
 
 #warning RS -> File rotation implementation is missing
 #warning RS -> Hardcoded values should come from config.
-void FileDataLogger::setup() {
+void FileDataLoggerModule::setup() {
   // Loop through sources from config and add a file writer for each sink.
   int tid = 1;
   m_fileWriters[tid] = std::make_unique<daqling::utilities::ReusableThread>(11111);
@@ -132,18 +128,18 @@ void FileDataLogger::setup() {
   m_fileWriters[1]->set_work(m_writeFunctors[1]);
 }
 
-void FileDataLogger::write() { INFO(" Should write..."); }
+void FileDataLoggerModule::write() { INFO(" Should write..."); }
 
-bool FileDataLogger::write(uint64_t keyId, daqling::utilities::Binary &payload) {
+bool FileDataLoggerModule::write(uint64_t keyId, daqling::utilities::Binary &payload) {
   INFO(" Should write...");
   return false;
 }
 
-void FileDataLogger::read() {}
+void FileDataLoggerModule::read() {}
 
-void FileDataLogger::shutdown() {}
+void FileDataLoggerModule::shutdown() {}
 
-void FileDataLogger::monitor_runner() {
+void FileDataLoggerModule::monitor_runner() {
   while (m_run) {
     std::this_thread::sleep_for(1s);
     INFO("Write throughput: " << (double)m_bytes_sent / double(1000000) << " MBytes/s");

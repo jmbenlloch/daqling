@@ -15,8 +15,7 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQLING_MODULES_BOARDREADERBINARY_HPP
-#define DAQLING_MODULES_BOARDREADERBINARY_HPP
+#pragma once
 
 /// \cond
 #include <string>
@@ -24,10 +23,10 @@
 
 #include "Core/DAQProcess.hpp"
 
-class BoardReader : public daqling::core::DAQProcess {
+class BoardReaderBinaryModule : public daqling::core::DAQProcess {
  public:
-  BoardReader();
-  ~BoardReader();
+  BoardReaderBinaryModule();
+  ~BoardReaderBinaryModule();
   void start();
   void stop();
 
@@ -36,5 +35,3 @@ class BoardReader : public daqling::core::DAQProcess {
  private:
   unsigned m_board_id;
 };
-
-#endif // DAQLING_MODULES_BOARDREADERBINARY_HPP

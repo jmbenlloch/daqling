@@ -1,3 +1,12 @@
-file(GLOB_RECURSE EVENTBUILDER_SOURCES "EventBuilder.cpp")
-add_library(eventbuilder SHARED ${EVENTBUILDER_SOURCES})
-target_link_libraries(eventbuilder PUBLIC DaqlingCore DaqlingUtils libzmq)
+# Define module
+daqling_module(module_name)
+
+# Add source file to library
+daqling_module_sources(${module_name}
+    EventBuilderModule.cpp
+)
+
+target_link_libraries(${module_name} DaqlingCore DaqlingUtils libzmq)
+
+# Provide standard install target
+daqling_module_install(${module_name})
