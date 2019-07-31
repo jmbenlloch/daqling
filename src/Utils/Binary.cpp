@@ -25,26 +25,22 @@ using namespace daqling::utilities;
 
 Binary::Binary()
   : m_size( 0 )
-  , m_data( 0 )
+  , m_data( nullptr )
 {
 }
 
 
-Binary::Binary( long initialSizeInBytes )
+Binary::Binary( size_t initialSizeInBytes )
   : m_size( initialSizeInBytes )
 {
-  if ( m_size<0 ) // Fix Coverity-related bug #95349
-    ERROR("Cannot create a Binary with a negative size!");
   m_data = ::malloc( m_size ); // Fix Coverity NEGATIVE_RETURNS
   if ( (!m_data) && m_size>0 )
     ERROR("::malloc failed!");
 }
 
-Binary::Binary( const void* data, long size )
+Binary::Binary( const void* data, size_t size )
   : m_size( size )
 {
-  if ( m_size<0 )
-    ERROR("Cannot copy a Binary with a negative size!");
   m_data = ::malloc( m_size ); // Fix Coverity NEGATIVE_RETURNS
   ::memcpy( startingAddress(), data, size );
 }
@@ -78,7 +74,7 @@ Binary::data() const
   return startingAddress();
 }
 
-long
+size_t
 Binary::size() const
 {
   return m_size;
@@ -86,11 +82,8 @@ Binary::size() const
 
 
 void
-Binary::extend( long additionalSizeInBytes )
+Binary::extend( size_t additionalSizeInBytes )
 {
-  if ( additionalSizeInBytes<0 ) // Fix Coverity-related bug #95349
-    ERROR("Cannot extend by a negative size!");
-
   m_data = ::realloc( m_data, m_size + additionalSizeInBytes );
   m_size += additionalSizeInBytes;
   if ( (!m_data) && m_size>0 )
@@ -99,11 +92,8 @@ Binary::extend( long additionalSizeInBytes )
 
 
 void
-Binary::resize( long sizeInBytes )
+Binary::resize( size_t sizeInBytes )
 {
-  if ( sizeInBytes<0 ) // Fix Coverity-related bug #95349
-    ERROR("Cannot resize to a negative size!");
-
   if ( sizeInBytes != m_size )
   {
     m_data = ::realloc( m_data, sizeInBytes );
@@ -117,11 +107,8 @@ Binary::resize( long sizeInBytes )
 
 Binary::Binary( const Binary& rhs )
   : m_size( rhs.m_size )
-  , m_data( 0 )
+  , m_data( nullptr )
 {
-  if ( m_size<0 ) // Fix Coverity-related bug #95349
-    ERROR("Cannot copy a Binary with a negative size!");
-
   if ( m_size > 0 )
   {
     m_data = ::malloc( m_size );
@@ -137,8 +124,6 @@ Binary&
 Binary::operator=( const Binary& rhs )
 {
   if ( this == &rhs ) return *this;  // Fix Coverity SELF_ASSIGN
-  if ( rhs.m_size < 0 ) // Fix Coverity-related bug #95349
-    ERROR("Cannot assign a Binary with a negative size!");
 
   if ( m_data ) // check that old data is non-0 (instead of old m_size != 0)
   {
@@ -154,7 +139,7 @@ Binary::operator=( const Binary& rhs )
     else
     {
       ::free( m_data ); // free and zero old (non-0) data
-      m_data = 0;
+      m_data = nullptr;
     }
   }
   else // old data was 0
@@ -181,7 +166,7 @@ Binary::operator=( const Binary& rhs )
 Binary&
 Binary::operator+=( const Binary& rhs )
 {
-  long initialSize = m_size;
+  size_t initialSize = m_size;
   this->extend( rhs.size() );
   ::memcpy( static_cast<char*>(m_data) + initialSize, rhs.m_data, rhs.size() );
   return *this;
@@ -195,7 +180,7 @@ Binary::operator==( const Binary& rhs ) const
   if ( m_size == 0 ) return true;
   const unsigned char* thisData = static_cast<const unsigned char*>(m_data);
   const unsigned char* rhsData = static_cast<const unsigned char*>(rhs.m_data);
-  for ( long i = 0; i < m_size; ++i, ++thisData, ++rhsData )
+  for ( size_t i = 0; i < m_size; ++i, ++thisData, ++rhsData )
     if ( *thisData != *rhsData )
       return false;
   return true;

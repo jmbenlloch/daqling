@@ -73,14 +73,14 @@
 #endif
 
 //  Provide random number from 0..(num-1)
-#define within(num) (int) ((float) (num) * random () / (RAND_MAX + 1.0))
+#define within(num) static_cast<int>(static_cast<float>(num) * random () / (RAND_MAX + 1.0))
 
 //  Receive 0MQ string from socket and convert into string
 static std::string
 s_recv (zmq::socket_t & socket) {
 
     zmq::message_t message;
-    socket.recv(&message);
+    socket.recv(message);
 
     return std::string(static_cast<char*>(message.data()), message.size());
 }
@@ -92,8 +92,7 @@ s_send (zmq::socket_t & socket, const std::string & string) {
     zmq::message_t message(string.size());
     memcpy (message.data(), string.data(), string.size());
 
-    bool rc = socket.send (message);
-    return (rc);
+    return socket.send(message, zmq::send_flags::none).has_value();
 }
 
 //  Sends string as 0MQ string, as multipart non-terminal
@@ -103,8 +102,7 @@ s_sendmore (zmq::socket_t & socket, const std::string & string) {
     zmq::message_t message(string.size());
     memcpy (message.data(), string.data(), string.size());
 
-    bool rc = socket.send (message, ZMQ_SNDMORE);
-    return (rc);
+    return socket.send(message, zmq::send_flags::sndmore).has_value();
 }
 
 //  Receives all message parts from socket, prints neatly
@@ -117,28 +115,28 @@ s_dump (zmq::socket_t & socket)
     while (1) {
         //  Process all parts of the message
         zmq::message_t message;
-        socket.recv(&message);
+        socket.recv(message);
 
         //  Dump the message as text or binary
-        int size = message.size();
+        size_t size = message.size();
         std::string data(static_cast<char*>(message.data()), size);
 
         bool is_text = true;
 
-        int char_nbr;
+        size_t char_nbr;
         unsigned char byte;
         for (char_nbr = 0; char_nbr < size; char_nbr++) {
-            byte = data [char_nbr];
+            byte = static_cast<unsigned char>(data [char_nbr]);
             if (byte < 32 || byte > 127)
                 is_text = false;
         }
         std::cout << "[" << std::setfill('0') << std::setw(3) << size << "]";
         for (char_nbr = 0; char_nbr < size; char_nbr++) {
             if (is_text)
-                std::cout << (char)data [char_nbr];
+                std::cout << static_cast<char>(data [char_nbr]);
             else
                 std::cout << std::setfill('0') << std::setw(2)
-                   << std::hex << (unsigned int) data [char_nbr];
+                   << std::hex << static_cast<unsigned int>(data [char_nbr]);
         }
         std::cout << std::endl;
 
@@ -217,8 +215,8 @@ s_clock (void)
 	return (int64_t)largeInt;
 #else
     struct timeval tv;
-    gettimeofday (&tv, NULL);
-    return (int64_t) (tv.tv_sec * 1000 + tv.tv_usec / 1000);
+    gettimeofday (&tv, nullptr);
+    return static_cast<int64_t>(tv.tv_sec * 1000 + tv.tv_usec / 1000);
 #endif
 }
 
@@ -232,17 +230,17 @@ s_sleep (int msecs)
     struct timespec t;
     t.tv_sec = msecs / 1000;
     t.tv_nsec = (msecs % 1000) * 1000000;
-    nanosleep (&t, NULL);
+    nanosleep (&t, nullptr);
 #endif
 }
 
 static void
 s_console (const char *format, ...)
 {
-    time_t curtime = time (NULL);
+    time_t curtime = time (nullptr);
     struct tm *loctime = localtime (&curtime);
-    char *formatted = new char[20];
-    strftime (formatted, 20, "%y-%m-%d %H:%M:%S ", loctime);
+    char *formatted = new char[22];
+    strftime (formatted, 22, "%Y-%m-%d %H:%M:%S ", loctime);
     printf ("%s", formatted);
     delete[] formatted;
 
@@ -261,7 +259,7 @@ s_console (const char *format, ...)
 //  zmq_poll.
 
 static int s_interrupted = 0;
-static void s_signal_handler (int signal_value)
+static void s_signal_handler (int)
 {
     s_interrupted = 1;
 }
@@ -273,8 +271,8 @@ static void s_catch_signals ()
     action.sa_handler = s_signal_handler;
     action.sa_flags = 0;
     sigemptyset (&action.sa_mask);
-    sigaction (SIGINT, &action, NULL);
-    sigaction (SIGTERM, &action, NULL);
+    sigaction (SIGINT, &action, nullptr);
+    sigaction (SIGTERM, &action, nullptr);
 #endif
 }
 

@@ -21,7 +21,7 @@
 #include <atomic> 
 #include "zmq.hpp"
 
-int main(int argc, char** argv)
+int main(int, char**)
 {
 
   std::atomic<float> buffer_occupation;

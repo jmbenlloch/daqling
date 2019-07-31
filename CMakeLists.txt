@@ -106,20 +106,14 @@ set(DAQLING_DEPS_LIBRARIES Threads::Threads)
 # Set standard build flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wconversion -Wuseless-cast -Wctor-dtor-privacy -Wzero-as-null-pointer-constant -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Wredundant-decls -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Werror -Wshadow -Wformat-security -Wdeprecated -fdiagnostics-color=auto -Wno-overloaded-virtual")
 
+# Disable some for convenience
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function -Wno-conversion")
+
 # XXX: spdlog/fmt
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ctor-dtor-privacy -Wno-switch-default -Wno-sign-promo -Wno-shadow -Wno-strict-overflow -Wno-useless-cast")
 
 # XXX: json
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated")
-
-# TODO(Utils): remove these
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-conversion -Wno-zero-as-null-pointer-constant -Wno-old-style-cast -Wno-cast-qual")
-
-# TODO(Core): remove these
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function -Wno-conversion -Wno-unused-parameter -Wno-format-y2k")
-
-# TODO(Modules): remove these
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-declarations -Wno-ignored-qualifiers -Wno-reorder -Wno-cpp -Wno-error -Wno-deprecated-declarations")
 
 # Set some debug flags
 if(CMAKE_BUILD_TYPE MATCHES Debug AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))

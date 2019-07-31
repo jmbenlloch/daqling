@@ -41,9 +41,9 @@ namespace utilities {
     Binary();
 
     /// Constructor initializing a BLOB with initialSize bytes
-    explicit Binary( long initialSizeInBytes );
+    explicit Binary( size_t initialSizeInBytes );
 
-    explicit Binary( const void* data, long size );
+    explicit Binary( const void* data, size_t size );
 
     /// Destructor. Frees internally allocated memory
     ~Binary();
@@ -72,18 +72,18 @@ namespace utilities {
     const void* data() const;
 
     /// Current size of the blob
-    long size() const;
+    size_t size() const;
 
     /// Extends the BLOB by additionalSizeInBytes
-    void extend( long additionalSizeInBytes );
+    void extend( size_t additionalSizeInBytes );
 
     /// Resizes a BLOB to sizeInBytes
-    void resize( long sizeInBytes );
+    void resize( size_t sizeInBytes );
 
   private:
 
     /// The current size of the BLOB
-    long m_size;
+    size_t m_size;
 
     /// The BLOB data buffer
     void* m_data;
@@ -102,9 +102,9 @@ daqling::utilities::Binary::operator!=( const Binary& rhs ) const
 
 inline std::ostream& operator<<(std::ostream& out, const daqling::utilities::Binary& rhs)
 {
-  for (int i = 0; i < rhs.size(); i++) {
+  for (size_t i = 0; i < rhs.size(); i++) {
     std::cout << std::hex << std::setw(2) << std::setfill('0')
-              << (int)*((unsigned char*)rhs.data() + i) << std::dec;
+              << static_cast<int>(*(static_cast<const unsigned char*>(rhs.data()) + i)) << std::dec;
     if (i % 4 == 3)
     {
       if (i % 16 == 15)

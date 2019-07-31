@@ -52,7 +52,7 @@ bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr)
     zmq::message_t cmdMsg;
     while (!m_stop_cmd_handler) {
       // INFO(m_className << " CMD_THREAD: Going for RECV poll...");
-      if ((m_cmd_socket->recv(&cmdMsg, ZMQ_DONTWAIT)) == true) {
+      if (m_cmd_socket->recv(cmdMsg, zmq::recv_flags::dontwait)) {
         std::string cmdmsgStr(static_cast<char*>(cmdMsg.data()), cmdMsg.size());
         DEBUG(m_className << " CMD_THREAD: Got CMD: " << cmdmsgStr);
         cmd.setCommand(cmdmsgStr);
@@ -62,7 +62,7 @@ bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr)
         DEBUG("getsockopt RCVMORE " << more);
         if(more) {
           zmq::message_t configMsg;
-          m_cmd_socket->recv(&configMsg, ZMQ_DONTWAIT);
+          m_cmd_socket->recv(configMsg, zmq::recv_flags::dontwait);
           std::string configStr(static_cast<char*>(configMsg.data()), configMsg.size());
           DEBUG("======== RECEIVE MORE " << configStr);
           cmd.setConfig(configStr);
@@ -98,8 +98,8 @@ bool ConnectionManager::setupStatsConnection(uint8_t ioT, std::string connStr) {
   return true;
 }
 
-bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, uint16_t tag, std::string host,
-                                   uint16_t port, size_t queueSize, bool zerocopy) {
+bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, uint16_t, std::string host,
+                                   uint16_t port, size_t queueSize, bool) {
   std::ostringstream connStr;
   connStr << "tcp://" << host << ":" << port;
   return addChannel(chn, dir, connStr.str(), queueSize);
@@ -161,7 +161,7 @@ bool ConnectionManager::addReceiveHandler(uint64_t chn) {
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
       zmq::message_t msg;
-      if ((m_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) == true) {
+      if (m_sockets[chn]->recv(msg, zmq::recv_flags::dontwait)) {
         m_pcqs[chn]->write(std::move(msg));
         m_numMsgsHandled[chn]++;
         // DEBUG("    -> wrote to queue");
@@ -184,7 +184,7 @@ bool ConnectionManager::addSendHandler(uint64_t chn) {
     while (!m_stop_handlers) {
       zmq::message_t msg;
       if (m_pcqs[chn]->read(msg)) {
-        m_sockets[chn]->send(msg);
+        m_sockets[chn]->send(msg, zmq::send_flags::none);
         m_numMsgsHandled[chn]++;
       } else {
         std::this_thread::sleep_for(1ms);
@@ -204,7 +204,7 @@ bool ConnectionManager::addSubscribeHandler(uint64_t chn) {
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
       zmq::message_t msg;
-      if ((m_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) == true) {
+      if (m_sockets[chn]->recv(msg, zmq::recv_flags::dontwait)) {
         m_pcqs[chn]->write(std::move(msg));
         m_numMsgsHandled[chn]++;
         // DEBUG("    -> wrote to queue");
@@ -227,7 +227,7 @@ bool ConnectionManager::addPublishHandler(uint64_t chn) {
     while (!m_stop_handlers) {
       zmq::message_t msg;
       if (m_pcqs[chn]->read(msg)) {
-        m_sockets[chn]->send(msg);
+        m_sockets[chn]->send(msg, zmq::send_flags::none);
         m_numMsgsHandled[chn]++;
       } else {
         std::this_thread::sleep_for(1ms);

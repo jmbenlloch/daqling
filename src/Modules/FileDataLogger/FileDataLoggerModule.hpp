@@ -26,7 +26,6 @@
 #include "Core/DAQProcess.hpp"
 #include "Core/DataLogger.hpp"
 #include "Utils/Binary.hpp"
-#include "Utils/ChunkedStorage.hpp"
 #include "Utils/ProducerConsumerQueue.hpp"
 
 /*
@@ -54,7 +53,7 @@ class FileDataLoggerModule : public daqling::core::DAQProcess, public daqling::c
 
  private:
   // Configs
-  long m_writeBytes;
+  unsigned long m_writeBytes;
 
   // Internals
   folly::ProducerConsumerQueue<daqling::utilities::Binary> m_payloads;
