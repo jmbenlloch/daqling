@@ -26,7 +26,7 @@
 
 class BoardReader : public daqling::core::DAQProcess {
  public:
-  BoardReader(std::string name, int num);
+  BoardReader();
   ~BoardReader();
   void start();
   void stop();

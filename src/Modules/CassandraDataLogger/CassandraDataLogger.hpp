@@ -41,7 +41,7 @@
 class CassandraDataLogger : public daqling::core::DAQProcess, public daqling::core::DataLogger {
   class CassandraChunkedStorageProvider : public daqling::persistency::ChunkedStorageProvider {
    public:
-    explicit CassandraChunkedStorageProvider(...) {
+    explicit CassandraChunkedStorageProvider() {
       // Any init?
     }
 

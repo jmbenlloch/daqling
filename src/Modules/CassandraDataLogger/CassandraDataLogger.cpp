@@ -29,7 +29,7 @@
 using namespace std::chrono_literals;
 namespace daqutils = daqling::utilities;
 
-extern "C" CassandraDataLogger* create_object() { return new CassandraDataLogger; }
+extern "C" CassandraDataLogger* create_object() { return new CassandraDataLogger(); }
 
 extern "C" void destroy_object(CassandraDataLogger* object) { delete object; }
 

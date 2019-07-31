@@ -19,7 +19,7 @@
 #include "Core/Statistics.hpp"
 #include <stdlib.h>
 
-extern "C" MetricsSimulator *create_object() { return new MetricsSimulator; }
+extern "C" MetricsSimulator *create_object() { return new MetricsSimulator(); }
 
 extern "C" void destroy_object(MetricsSimulator *object) { delete object; }
 
