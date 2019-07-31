@@ -15,23 +15,31 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQLING_MODULES_BOARDREADER_HPP
-#define DAQLING_MODULES_BOARDREADER_HPP
-
-/// \cond
-#include <string>
-/// \endcond
+#pragma once
 
 #include "Core/DAQProcess.hpp"
 
-class BoardReader : public daqling::core::DAQProcess {
+class MetricsSimulatorModule : public daqling::core::DAQProcess {
  public:
-  BoardReader();
-  ~BoardReader();
+  MetricsSimulatorModule();
+  ~MetricsSimulatorModule();
+
   void start();
   void stop();
 
   void runner();
-};
 
-#endif  // DAQLING_MODULES_BOARDREADER_HPP
+  protected:
+  std::atomic<int> m_metric1;
+  std::atomic<float> m_metric2;
+  std::atomic<double> m_metric3;
+  std::atomic<bool> m_metric4;
+  std::atomic<size_t> m_metric5;
+  std::atomic<int> m_metric6;
+  std::atomic<float> m_metric7;
+  std::atomic<double> m_metric8;
+  std::atomic<bool> m_metric9;
+  std::atomic<size_t> m_metric10;
+
+
+};

@@ -47,6 +47,7 @@ ENDIF()
 # Setup the build environment #
 ###############################
 
+include(cmake/daqling.cmake)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
   message(FATAL_ERROR "GCC version must be at least 4.8!")
@@ -57,13 +58,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Set some debug flags
-if(CMAKE_BUILD_TYPE MATCHES Debug AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
-    message(STATUS "Running debug build, adding extra sanitizer flags")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined")
-elseif(CMAKE_BUILD_TYPE MATCHES Release AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-prefetch -unroll-aggressive -march=native -mtune=native")
-endif()
 
 # Include Threads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -126,6 +120,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function -Wno-conversion -Wn
 
 # TODO(Modules): remove these
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-declarations -Wno-ignored-qualifiers -Wno-reorder -Wno-cpp -Wno-error -Wno-deprecated-declarations")
+
+# Set some debug flags
+if(CMAKE_BUILD_TYPE MATCHES Debug AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
+    # message(STATUS "Running debug build, adding extra sanitizer flags")
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined")
+elseif(CMAKE_BUILD_TYPE MATCHES Release AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-prefetch -unroll-aggressive -march=native -mtune=native")
+endif()
+
+# set(BUILD_ALL_MODULES ON)
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 

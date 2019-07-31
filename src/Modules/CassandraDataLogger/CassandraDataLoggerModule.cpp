@@ -20,7 +20,7 @@
 #include <sstream>
 /// \endcond
 
-#include "CassandraDataLogger.hpp"
+#include "CassandraDataLoggerModule.hpp"
 #include "Utils/Common.hpp"
 #include "Utils/Hash.hpp"
 #include "Utils/Logging.hpp"
@@ -29,18 +29,14 @@
 using namespace std::chrono_literals;
 namespace daqutils = daqling::utilities;
 
-extern "C" CassandraDataLogger* create_object() { return new CassandraDataLogger(); }
-
-extern "C" void destroy_object(CassandraDataLogger* object) { delete object; }
-
-CassandraDataLogger::CassandraDataLogger() {
+CassandraDataLoggerModule::CassandraDataLoggerModule() {
   INFO(" setting up session.");
   m_cluster = cass_cluster_new();
   m_session = cass_session_new();
   setup();
 }
 
-CassandraDataLogger::~CassandraDataLogger() {
+CassandraDataLoggerModule::~CassandraDataLoggerModule() {
   INFO(" Closing session and connection to cluster...");
   CassFuture* future = cass_session_close(m_session);
   cass_future_wait(future);
@@ -49,14 +45,14 @@ CassandraDataLogger::~CassandraDataLogger() {
   INFO(" Cassandra connection closed.");
 }
 
-void CassandraDataLogger::readIntoBinary(daqutils::Binary& binary, const CassValue* const& value) {
+void CassandraDataLoggerModule::readIntoBinary(daqutils::Binary& binary, const CassValue* const& value) {
   const cass_byte_t* value_bytes;
   size_t value_length;
   cass_value_get_bytes(value, &value_bytes, &value_length);
   binary = daqutils::Binary(static_cast<const void*>(value_bytes), value_length);
 }
 
-const std::string CassandraDataLogger::getErrorStr(CassFuture*& future) {
+const std::string CassandraDataLoggerModule::getErrorStr(CassFuture*& future) {
   CassError rc = cass_future_error_code(future);
   std::string errStr(cass_error_desc(rc));
   const char* message;
@@ -67,7 +63,7 @@ const std::string CassandraDataLogger::getErrorStr(CassFuture*& future) {
   return finalStr;
 }
 
-bool CassandraDataLogger::prepareQuery(const std::string& qStr, const CassPrepared** prepared) {
+bool CassandraDataLoggerModule::prepareQuery(const std::string& qStr, const CassPrepared** prepared) {
   bool success = false;
   CassFuture* future = cass_session_prepare(m_session, qStr.c_str());
   cass_future_wait(future);
@@ -83,7 +79,7 @@ bool CassandraDataLogger::prepareQuery(const std::string& qStr, const CassPrepar
   return success;
 }
 
-bool CassandraDataLogger::executeStatement(CassStatement*& statement) {
+bool CassandraDataLoggerModule::executeStatement(CassStatement*& statement) {
   bool success = false;
   CassFuture* future = cass_session_execute(m_session, statement);
   cass_future_wait(future);
@@ -95,7 +91,7 @@ bool CassandraDataLogger::executeStatement(CassStatement*& statement) {
   return success;
 }
 
-bool CassandraDataLogger::executeStatement(CassStatement*& statement, const CassResult** result) {
+bool CassandraDataLoggerModule::executeStatement(CassStatement*& statement, const CassResult** result) {
   bool success = false;
   CassFuture* future = cass_session_execute(m_session, statement);
   cass_future_wait(future);
@@ -109,7 +105,7 @@ bool CassandraDataLogger::executeStatement(CassStatement*& statement, const Cass
   return success;
 }
 
-bool CassandraDataLogger::executeQuery(const std::string& queryStr) {
+bool CassandraDataLoggerModule::executeQuery(const std::string& queryStr) {
   bool success = false;
   CassStatement* statement = cass_statement_new(queryStr.c_str(), 0);
   CassFuture* future = cass_session_execute(m_session, statement);
@@ -124,7 +120,7 @@ bool CassandraDataLogger::executeQuery(const std::string& queryStr) {
   return success;
 }
 
-bool CassandraDataLogger::columnFamilyExists(const std::string& columnFamilyName) {
+bool CassandraDataLoggerModule::columnFamilyExists(const std::string& columnFamilyName) {
   bool found = false;
   const CassPrepared* prepared = nullptr;
   // std::string qStr = "SELECT columnfamily_name FROM system.SCHEMA_COLUMNFAMILIES WHERE
@@ -148,11 +144,11 @@ bool CassandraDataLogger::columnFamilyExists(const std::string& columnFamilyName
   return found;
 }
 
-bool CassandraDataLogger::exists() {
+bool CassandraDataLoggerModule::exists() {
   return columnFamilyExists(M_CF_NAME) && m_chunkProvider.exists();
 }
 
-bool CassandraDataLogger::create() {
+bool CassandraDataLoggerModule::create() {
   /*
     std::stringstream qssChunk;
     qssChunk << "CREATE TABLE " << KEYSPACE_NAME<< "." << M_NAME
@@ -201,17 +197,17 @@ bool CassandraDataLogger::create() {
 
 #warning RS -> YOU NEED TO INTRODUCE A PROPER SESSION LAYER BETWEEN STORAGE AND DAQ!
 
-void CassandraDataLogger::start() {
+void CassandraDataLoggerModule::start() {
   DAQProcess::start();
   INFO(" getState: " << getState());
 }
 
-void CassandraDataLogger::stop() {
+void CassandraDataLoggerModule::stop() {
   DAQProcess::stop();
   INFO(" getState: " << this->getState());
 }
 
-void CassandraDataLogger::runner() {
+void CassandraDataLoggerModule::runner() {
   INFO(" Running...");
   uint64_t incr = 0;
   while (m_run) {
@@ -226,7 +222,7 @@ void CassandraDataLogger::runner() {
   INFO(" Runner stopped");
 }
 
-void CassandraDataLogger::setup() {
+void CassandraDataLoggerModule::setup() {
   INFO(" Connecting to storage cluster based on configuration.");
   std::string clusterStr = m_config.getConfig()["settings"]["ring"];
 
@@ -255,11 +251,11 @@ void CassandraDataLogger::setup() {
   cass_future_free(future);
 }
 
-void CassandraDataLogger::write() {}
+void CassandraDataLoggerModule::write() {}
 
-void CassandraDataLogger::read() {}
+void CassandraDataLoggerModule::read() {}
 
-bool CassandraDataLogger::write(uint64_t keyId, daqling::utilities::Binary& payload) {
+bool CassandraDataLoggerModule::write(uint64_t keyId, daqling::utilities::Binary& payload) {
   daqutils::Binary sinfoData(0);
   bool success = false;
   const CassPrepared* prepared = nullptr;
@@ -295,4 +291,4 @@ bool CassandraDataLogger::write(uint64_t keyId, daqling::utilities::Binary& payl
   return success;
 }
 
-void CassandraDataLogger::shutdown() {}
+void CassandraDataLoggerModule::shutdown() {}

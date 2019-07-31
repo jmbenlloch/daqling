@@ -15,20 +15,18 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQLING_MODULES_EVENTBUILDER_HPP
-#define DAQLING_MODULES_EVENTBUILDER_HPP
+#pragma once
 
 #include "Core/DAQProcess.hpp"
 
-class EventBuilder : public daqling::core::DAQProcess {
+class DummyModule : public daqling::core::DAQProcess {
  public:
-  EventBuilder();
-  ~EventBuilder();
+  DummyModule();
+  ~DummyModule();
 
+  void configure(); // optional (configuration can be handled in the constructor)
   void start();
   void stop();
 
   void runner();
 };
-
-#endif // DAQLING_MODULES_EVENTBUILDER_HPP

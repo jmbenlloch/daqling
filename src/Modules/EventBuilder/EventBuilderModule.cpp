@@ -19,46 +19,50 @@
 #include <chrono>
 /// \endcond
 
-#include "EventBuilderBinary.hpp"
+#include "EventBuilderModule.hpp"
 
 
 using namespace std::chrono_literals;
 
-extern "C" EventBuilder *create_object() { return new EventBuilder(); }
-
-extern "C" void destroy_object(EventBuilder *object) { delete object; }
-
-EventBuilder::EventBuilder() {
+EventBuilderModule::EventBuilderModule() {
   INFO("With config: " << m_config.dump() << " getState: " << this->getState());
 }
 
-EventBuilder::~EventBuilder() {}
+EventBuilderModule::~EventBuilderModule() {}
 
-void EventBuilder::start() {
+void EventBuilderModule::start() {
   DAQProcess::start();
   INFO("getState: " << getState());
 }
 
-void EventBuilder::stop() {
+void EventBuilderModule::stop() {
   DAQProcess::stop();
   INFO("getState: " << this->getState());
 }
 
-void EventBuilder::runner() {
+void EventBuilderModule::runner() {
   INFO("Running...");
+  const unsigned c_packing = 20;
   while (m_run) {
-    daqling::utilities::Binary b1, b2;
-    while(!m_connections.get(1, b1) && m_run) {
-      std::this_thread::sleep_for(10ms);
+    std::string packed = "";
+    for (unsigned i = 0; i < c_packing;) {
+      std::string s1{m_connections.getStr(1)};
+      std::string s2{m_connections.getStr(2)};
+      if (s1 != "") {
+        INFO("Received on channel 1 " << s1);
+        packed += s1;
+        i++;
+      }
+      if (s2 != "") {
+        INFO("Received on channel 2 " << s2);
+        packed += s2;
+        i++;
+      }
     }
-    while(!m_connections.get(2, b2) && m_run) {
-      std::this_thread::sleep_for(10ms);
+    if (packed != "") {
+      INFO("Sending mega string on channel 3 " << packed);
+      m_connections.putStr(3, packed);
     }
-
-    daqling::utilities::Binary b3(b1);
-    b3 += b2;
-    INFO("Size of build event: " << b3.size());
-    m_connections.put(3, b3);
   }
   INFO("Runner stopped");
 }

@@ -15,8 +15,7 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQLING_MODULES_CASSANDRADATALOGGER_HPP
-#define DAQLING_MODULES_CASSANDRADATALOGGER_HPP
+#pragma once
 
 /// \cond
 #include <iostream>
@@ -33,12 +32,12 @@
 #define EVID_MODE
 
 /*
- * CassandraDataLogger
+ * CassandraDataLoggerModule
  * Description: Data logger with Cassandra persistency layer
  *   Heavily relies on the CondDB payload chunked storage.
  * Date: November 2017
  */
-class CassandraDataLogger : public daqling::core::DAQProcess, public daqling::core::DataLogger {
+class CassandraDataLoggerModule : public daqling::core::DAQProcess, public daqling::core::DataLogger {
   class CassandraChunkedStorageProvider : public daqling::persistency::ChunkedStorageProvider {
    public:
     explicit CassandraChunkedStorageProvider() {
@@ -70,8 +69,8 @@ class CassandraDataLogger : public daqling::core::DAQProcess, public daqling::co
 
 
   public:
-    CassandraDataLogger();
-    ~CassandraDataLogger();
+    CassandraDataLoggerModule();
+    ~CassandraDataLoggerModule();
 
     void start();
     void stop();
@@ -120,5 +119,3 @@ class CassandraDataLogger : public daqling::core::DAQProcess, public daqling::co
 
 
 };
-
-#endif // DAQLING_MODULES_CASSANDRADATALOGGER_HPP

@@ -1,3 +1,12 @@
-file(GLOB_RECURSE FILEDATALOGGER_SOURCES "FileDataLogger.cpp")
-add_library(filedatalogger SHARED ${FILEDATALOGGER_SOURCES})
-target_link_libraries(filedatalogger PUBLIC DaqlingCore DaqlingUtils libzmq)
+# Define module
+daqling_module(module_name)
+
+# Add source file to library
+daqling_module_sources(${module_name}
+    FileDataLoggerModule.cpp
+)
+
+target_link_libraries(${module_name} DaqlingCore DaqlingUtils libzmq)
+
+# Provide standard install target
+daqling_module_install(${module_name})

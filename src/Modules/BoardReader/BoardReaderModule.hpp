@@ -15,20 +15,20 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAQLING_MODULES_EVENTBUILDERBINARY_HPP
-#define DAQLING_MODULES_EVENTBUILDERBINARY_HPP
+#pragma once
+
+/// \cond
+#include <string>
+/// \endcond
 
 #include "Core/DAQProcess.hpp"
 
-class EventBuilder : public daqling::core::DAQProcess {
+class BoardReaderModule : public daqling::core::DAQProcess {
  public:
-  EventBuilder();
-  ~EventBuilder();
-
+  BoardReaderModule();
+  ~BoardReaderModule();
   void start();
   void stop();
 
   void runner();
 };
-
-#endif // DAQLING_MODULES_EVENTBUILDERBINARY_HPP

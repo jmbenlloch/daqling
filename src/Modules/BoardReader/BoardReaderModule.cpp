@@ -19,36 +19,36 @@
 #include <chrono>
 /// \endcond
 
-#include "BoardReader.hpp"
+#include "BoardReaderModule.hpp"
 
 
 using namespace std::chrono_literals;
 using namespace std::chrono;
 
-extern "C" BoardReader *create_object() {
-  return new BoardReader();
-}
+/* extern "C" BoardReader *create_object() { */
+/*   return new BoardReader(); */
+/* } */
 
-extern "C" void destroy_object(BoardReader *object) { delete object; }
+/* extern "C" void destroy_object(BoardReader *object) { delete object; } */
 
-BoardReader::BoardReader() {
+BoardReaderModule::BoardReaderModule() {
   /* INFO("Passed " << name << " " << num << " with constructor"); */
   INFO("With config: " << m_config.dump());
 }
 
-BoardReader::~BoardReader() {}
+BoardReaderModule::~BoardReaderModule() {}
 
-void BoardReader::start() {
+void BoardReaderModule::start() {
   DAQProcess::start();
   INFO("getState: " << this->getState());
 }
 
-void BoardReader::stop() {
+void BoardReaderModule::stop() {
   DAQProcess::stop();
   INFO("getState: " << this->getState());
 }
 
-void BoardReader::runner() {
+void BoardReaderModule::runner() {
   INFO("Running...");
   while (m_run) {
     m_connections.putStr(1, "WoofBla");

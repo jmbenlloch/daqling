@@ -23,8 +23,8 @@
 #include <thread>
 /// \endcond
 
-#include "Modules/BoardReader/BoardReader.hpp"
-#include "Modules/EventBuilder/EventBuilder.hpp"
+#include "Modules/BoardReader/BoardReaderModule.hpp"
+#include "Modules/EventBuilder/EventBuilderModule.hpp"
 #include "Utils/Logging.hpp"
 #include "Core/ConnectionManager.hpp"
 

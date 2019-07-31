@@ -25,15 +25,14 @@
 #include "Command.hpp"
 #include "PluginManager.hpp"
 
-
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
 PluginManager::PluginManager() : m_create{}, m_destroy{}, m_dp{}, m_loaded{false} {}
 
 PluginManager::~PluginManager() {
-  if (m_handle && m_destroy) {
-    m_destroy(m_dp);
+  if (m_handle /* && m_destroy */) {
+    /* m_destroy(m_dp); */
     dlclose(m_handle);
     m_loaded = false;
   }
@@ -41,7 +40,7 @@ PluginManager::~PluginManager() {
 
 bool PluginManager::load(std::string name) {
   // Load the shared object
-  std::string pluginName = "lib" + name + ".so";
+  std::string pluginName = "libDaqlingModule" + name + ".so";
   m_handle = dlopen(pluginName.c_str(), RTLD_NOW);
   if (m_handle == nullptr) {
     ERROR("Unable to dlopen module " << name << "; reason: " << dlerror());
@@ -51,8 +50,8 @@ bool PluginManager::load(std::string name) {
   // Resolve functions for module creation/destruction
   try {
     // TODO: #define or constexpr these somewhere; c.f. dynamic_module_impl.cpp from ap²
-    m_create = resolve<CreateFunc>("create_object");
-    m_destroy = resolve<DestroyFunc>("destroy_object");
+    m_create = resolve<CreateFunc>("daqling_module_generator");
+    /* m_destroy = resolve<DestroyFunc>("destroy_object"); */
   } catch (const std::runtime_error&) {
     return false;
   }
