@@ -32,24 +32,32 @@ using namespace std::chrono_literals;
 PluginManager::PluginManager() : m_create{}, m_destroy{}, m_dp{}, m_loaded{false} {}
 
 PluginManager::~PluginManager() {
-  if (m_handle != 0) {
+  if (m_handle && m_destroy) {
     m_destroy(m_dp);
+    dlclose(m_handle);
     m_loaded = false;
   }
 }
 
 bool PluginManager::load(std::string name) {
+  // Load the shared object
   std::string pluginName = "lib" + name + ".so";
-  m_handle = dlopen(pluginName.c_str(), RTLD_LAZY);
-  if (m_handle == 0) {
-    ERROR("Plugin not loaded!");
+  m_handle = dlopen(pluginName.c_str(), RTLD_NOW);
+  if (m_handle == nullptr) {
+    ERROR("Unable to dlopen module " << name << "; reason: " << dlerror());
     return false;
   }
 
-  m_create = (DAQProcess * (*)(...)) dlsym(m_handle, "create_object");
-  m_destroy = (void (*)(DAQProcess *))dlsym(m_handle, "destroy_object");
+  // Resolve functions for module creation/destruction
+  try {
+    // TODO: #define or constexpr these somewhere; c.f. dynamic_module_impl.cpp from ap²
+    m_create = resolve<CreateFunc>("create_object");
+    m_destroy = resolve<DestroyFunc>("destroy_object");
+  } catch (const std::runtime_error&) {
+    return false;
+  }
 
-  m_dp = (DAQProcess *)m_create();
+  m_dp = m_create();
   m_loaded = true;
   return true;
 }
