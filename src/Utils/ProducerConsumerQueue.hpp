@@ -202,12 +202,12 @@ struct ProducerConsumerQueue {
   //   be removing items concurrently).
   // * It is undefined to call this from any other thread.
   size_t sizeGuess() const {
-    int ret = writeIndex_.load(std::memory_order_acquire) -
-        readIndex_.load(std::memory_order_acquire);
+    int ret = static_cast<int>(writeIndex_.load(std::memory_order_acquire)) -
+        static_cast<int>(readIndex_.load(std::memory_order_acquire));
     if (ret < 0) {
-      ret += size_;
+      ret += static_cast<int>(size_);
     }
-    return ret;
+    return static_cast<size_t>(ret);
   }
 
   // maximum number of items in the queue.

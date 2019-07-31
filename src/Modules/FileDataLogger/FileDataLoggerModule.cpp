@@ -27,10 +27,10 @@
 using namespace std::chrono_literals;
 namespace daqutils = daqling::utilities;
 
-FileDataLoggerModule::FileDataLoggerModule() : m_payloads{10000}, m_stopWriters{false}, m_bytes_sent{0} {
+FileDataLoggerModule::FileDataLoggerModule() : m_payloads{10000}, m_bytes_sent{0}, m_stopWriters{false} {
   INFO(__METHOD_NAME__);
 
-#warning RS -> Needs to be properly configured.
+/* #warning RS -> Needs to be properly configured. */
   // Set up static resources...
   m_writeBytes = 24 * daqutils::Constant::Kilo;  // 4K buffer writes
   std::ios_base::sync_with_stdio(false);
@@ -74,26 +74,26 @@ void FileDataLoggerModule::runner() {
   INFO(" Runner stopped");
 }
 
-#warning RS -> File rotation implementation is missing
-#warning RS -> Hardcoded values should come from config.
+/* #warning RS -> File rotation implementation is missing */
+/* #warning RS -> Hardcoded values should come from config. */
 void FileDataLoggerModule::setup() {
   // Loop through sources from config and add a file writer for each sink.
-  int tid = 1;
+  unsigned tid = 1;
   m_fileWriters[tid] = std::make_unique<daqling::utilities::ReusableThread>(11111);
   m_writeFunctors[tid] = [&, tid] {
-    int ftid = tid;
+    unsigned ftid = tid;
     INFO(" Spawning fileWriter for link: " << ftid);
     while (!m_stopWriters) {
       if (m_payloads.sizeGuess() > 0) {
         DEBUG(" SIZES: Queue pop.: " << m_payloads.sizeGuess()
                               << " loc.buff. size: " << m_fileBuffers[ftid].size()
                               << " payload size: " << m_payloads.frontPtr()->size());
-        long sizeSum = long(m_fileBuffers[ftid].size()) + long(m_payloads.frontPtr()->size());
+        unsigned sizeSum = long(m_fileBuffers[ftid].size()) + long(m_payloads.frontPtr()->size());
         if (sizeSum > m_writeBytes) {  // Split needed.
           DEBUG(" Processing split.");
-          long splitSize = sizeSum - m_writeBytes;  // Calc split size
-          long splitOffset =
-              long(m_payloads.frontPtr()->size()) - long(splitSize);  // Calc split offset
+          unsigned long splitSize = sizeSum - m_writeBytes;  // Calc split size
+          unsigned long splitOffset =
+              m_payloads.frontPtr()->size() - splitSize;  // Calc split offset
           DEBUG(" -> Sizes: | postPart: " << splitSize << " | For fillPart: " << splitOffset);
           daqling::utilities::Binary fillPart(m_payloads.frontPtr()->startingAddress(),
                                               splitOffset);
@@ -105,7 +105,7 @@ void FileDataLoggerModule::setup() {
           m_fileBuffers[ftid] += fillPart;
           DEBUG(" -> " << m_fileBuffers[ftid].size() << " [Bytes] will be written.");
           m_fileStreams[ftid].write(static_cast<char *>(m_fileBuffers[ftid].startingAddress()),
-                                    m_fileBuffers[ftid].size());  // write
+                                    static_cast<std::streamsize>(m_fileBuffers[ftid].size()));  // write
           m_bytes_sent += m_fileBuffers[ftid].size();
           m_fileBuffers[ftid] = postPart;  // Reset buffer to postPart.
           m_payloads.popFront();           // Pop processed payload
@@ -130,7 +130,7 @@ void FileDataLoggerModule::setup() {
 
 void FileDataLoggerModule::write() { INFO(" Should write..."); }
 
-bool FileDataLoggerModule::write(uint64_t keyId, daqling::utilities::Binary &payload) {
+bool FileDataLoggerModule::write(uint64_t, daqling::utilities::Binary&) {
   INFO(" Should write...");
   return false;
 }
@@ -142,7 +142,7 @@ void FileDataLoggerModule::shutdown() {}
 void FileDataLoggerModule::monitor_runner() {
   while (m_run) {
     std::this_thread::sleep_for(1s);
-    INFO("Write throughput: " << (double)m_bytes_sent / double(1000000) << " MBytes/s");
+    INFO("Write throughput: " << static_cast<double>(m_bytes_sent) / 1000000.0 << " MBytes/s");
     INFO("Size guess " << m_payloads.sizeGuess());
     m_bytes_sent = 0;
   }

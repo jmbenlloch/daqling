@@ -55,14 +55,14 @@ void MetricsSimulatorModule::stop() {
 
 void MetricsSimulatorModule::runner() {
   INFO("Running...");
-  srand (time(NULL));
+  srand (time(nullptr));
   while (m_run) {
     m_metric1 += 4;
     m_metric6 = rand() % 10 + 1;
-    m_metric2 = 100.5*(float)rand()/RAND_MAX;
-    m_metric7 = (float)rand()/RAND_MAX;
-    m_metric3 = 0.5*(double)rand()/RAND_MAX;
-    m_metric8 = 10.*(double)rand()/RAND_MAX;
+    m_metric2 = 100.5*static_cast<float>(rand())/RAND_MAX;
+    m_metric7 = static_cast<float>(rand())/RAND_MAX;
+    m_metric3 = 0.5*static_cast<double>(rand())/RAND_MAX;
+    m_metric8 = 10.*static_cast<double>(rand())/RAND_MAX;
     if(m_metric4)
       m_metric4 = false;
     else
@@ -73,7 +73,7 @@ void MetricsSimulatorModule::runner() {
       m_metric9 = true;
     
     m_metric5 += 50;
-    m_metric10 = rand() % 100;
+    m_metric10 = static_cast<long unsigned int>(rand() % 100);
     std::this_thread::sleep_for( std::chrono::milliseconds(500) );
   }
   INFO("Runner stopped");

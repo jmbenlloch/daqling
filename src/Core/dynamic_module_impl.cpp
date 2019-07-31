@@ -7,11 +7,15 @@
 #include DAQLING_MODULE_HEADER
 
 namespace daqling::core {
+    extern "C" {
+        // declare to satisfy -Werror=missing-declarations
+        DAQProcess* daqling_module_generator();
 
-    extern "C" DAQProcess* daqling_module_generator()
-    {
-        auto module = new DAQLING_MODULE_NAME();
-        return static_cast<DAQProcess*>(module);
+        // and then define
+        DAQProcess* daqling_module_generator()
+        {
+            auto module = new DAQLING_MODULE_NAME();
+            return static_cast<DAQProcess*>(module);
+        }
     }
-
 }

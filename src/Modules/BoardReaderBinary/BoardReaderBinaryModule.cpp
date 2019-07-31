@@ -69,18 +69,18 @@ void BoardReaderBinaryModule::runner() {
   INFO("Running...");
   while (m_run) {
     timestamp = duration_cast<microseconds>(system_clock::now().time_since_epoch());
-    const unsigned payload_size = dis(gen);
+    const unsigned payload_size = static_cast<unsigned>(dis(gen));
     const unsigned total_size = sizeof(header_t) + sizeof(char) * payload_size;
 
     INFO("sequence number " << sequence_number << "  >>  timestamp " << std::hex
                          << "0x" << timestamp.count() << std::dec << "  >>  payload size "
                          << payload_size);
 
-    std::unique_ptr<data_t> data((data_t *)malloc(total_size));
+    std::unique_ptr<data_t> data(static_cast<data_t *>(malloc(total_size)));
     data->header.payload_size = payload_size;
     data->header.seq_number = sequence_number;
     data->header.source_id = m_board_id;
-    data->header.timestamp = timestamp.count();
+    data->header.timestamp = static_cast<uint64_t>(timestamp.count());
     memset(data->payload, 0xFE, payload_size);
 
     // ready to be sent to EB

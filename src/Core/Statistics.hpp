@@ -126,7 +126,7 @@ public:
       metric->m_values.shrink_to_fit();
       metric->m_values.push_back(value);
       if(std::difftime(std::time(nullptr), metric->m_timestamp) != 0)
-        value = (value - last_value)/(U)std::difftime(std::time(nullptr), metric->m_timestamp);
+        value = (value - last_value)/static_cast<U>(std::difftime(std::time(nullptr), metric->m_timestamp));
       else{
         WARNING("Too short time interval to calculate RATE! Extend delta_t parameter of your metric");
         return;
@@ -141,7 +141,7 @@ public:
       zmq::message_t message(msg.str().size());
       memcpy (message.data(), msg.str().data(), msg.str().size());
       INFO(" MSG " << msg.str());
-      bool rc = m_stat_socket->send(message);
+      bool rc = m_stat_socket->send(message, zmq::send_flags::none);
       if(!rc)
         WARNING("Failed to publish metric: " << metric->m_name);
     }

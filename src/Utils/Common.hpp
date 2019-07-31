@@ -136,7 +136,7 @@ inline std::string getExecutablePath()
 {
   char exePath[PATH_MAX];
   ssize_t len = ::readlink("/proc/self/exe", exePath, sizeof(exePath));
-  if (len == -1 || len == sizeof(exePath))
+  if (len == -1 || len == static_cast<ssize_t>(sizeof(exePath)))
     len = 0;
   exePath[len] = '\0';
   return std::string(exePath);
