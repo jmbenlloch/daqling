@@ -27,7 +27,7 @@
 using namespace std::chrono_literals;
 namespace daqutils = daqling::utilities;
 
-extern "C" FileDataLogger *create_object() { return new FileDataLogger; }
+extern "C" FileDataLogger *create_object() { return new FileDataLogger(); }
 
 extern "C" void destroy_object(FileDataLogger *object) { delete object; }
 

@@ -39,14 +39,14 @@ struct data_t {
   char payload[24000];
 } __attribute__((__packed__));
 
-extern "C" BoardReader *create_object(std::string name, int num) {
-  return new BoardReader(name, num);
+extern "C" BoardReader *create_object() {
+  return new BoardReader();
 }
 
 extern "C" void destroy_object(BoardReader *object) { delete object; }
 
-BoardReader::BoardReader(std::string name, int num) {
-  INFO("Passed " << name << " " << num << " with constructor");
+BoardReader::BoardReader() {
+  /* INFO("Passed " << name << " " << num << " with constructor"); */
   INFO("With config: " << m_config.dump());
 
   m_board_id = m_config.getConfig()["settings"]["board_id"];

@@ -25,14 +25,14 @@
 using namespace std::chrono_literals;
 using namespace std::chrono;
 
-extern "C" BoardReader *create_object(std::string name, int num) {
-  return new BoardReader(name, num);
+extern "C" BoardReader *create_object() {
+  return new BoardReader();
 }
 
 extern "C" void destroy_object(BoardReader *object) { delete object; }
 
-BoardReader::BoardReader(std::string name, int num) {
-  INFO("Passed " << name << " " << num << " with constructor");
+BoardReader::BoardReader() {
+  /* INFO("Passed " << name << " " << num << " with constructor"); */
   INFO("With config: " << m_config.dump());
 }
 

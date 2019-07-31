@@ -24,7 +24,7 @@
 
 using namespace std::chrono_literals;
 
-extern "C" EventBuilder *create_object() { return new EventBuilder; }
+extern "C" EventBuilder *create_object() { return new EventBuilder(); }
 
 extern "C" void destroy_object(EventBuilder *object) { delete object; }
 
