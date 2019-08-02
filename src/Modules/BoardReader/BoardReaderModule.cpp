@@ -25,12 +25,6 @@
 using namespace std::chrono_literals;
 using namespace std::chrono;
 
-/* extern "C" BoardReader *create_object() { */
-/*   return new BoardReader(); */
-/* } */
-
-/* extern "C" void destroy_object(BoardReader *object) { delete object; } */
-
 BoardReaderModule::BoardReaderModule() {
   /* INFO("Passed " << name << " " << num << " with constructor"); */
   INFO("With config: " << m_config.dump());

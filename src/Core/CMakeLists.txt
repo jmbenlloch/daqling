@@ -1,3 +1,7 @@
+# Include the dependencies
+include_directories(SYSTEM ${DAQLING_DEPS_INCLUDE_DIRS})
+
+# Create core library
 add_library(DaqlingCore SHARED
   Core.cpp
   Command.cpp
@@ -6,14 +10,17 @@ add_library(DaqlingCore SHARED
   Statistics.cpp
 )
 
-find_package(CURL QUIET REQUIRED)
+# Link the dependencies
+target_link_libraries(DaqlingCore ${DAQLING_DEPS_LIBRARIES})
+target_link_libraries(DaqlingCore ${DAQLING_LIBRARIES})
 
-# target_link_libraries(DaqlingCore ${DAQLING_DEPS_LIBRARIES})
-# target_link_libraries(DaqlingCore ${DAQLING_LIBRARIES})
+# Define compile-time library extension
+target_compile_definitions(DaqlingCore PRIVATE SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
+# Link the DL libraries
+target_link_libraries(DaqlingCore ${CMAKE_DL_LIBS})
 
-target_link_libraries(DaqlingCore PUBLIC DaqlingUtils libzmq cpr ${CURL_LIBRARIES} dl)
-
-#executable
-# add_executable(main_core main_core.cpp)
-# target_link_libraries(main_core PUBLIC pthread rt utilities core)
-# install(TARGETS main_core EXPORT DESTINATION bin)
+# Create install target
+install(TARGETS DaqlingCore
+    COMPONENT application
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib)

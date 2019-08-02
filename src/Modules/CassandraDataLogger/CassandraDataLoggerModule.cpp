@@ -25,7 +25,6 @@
 #include "Utils/Hash.hpp"
 #include "Utils/Logging.hpp"
 
-
 using namespace std::chrono_literals;
 namespace daqutils = daqling::utilities;
 
