@@ -44,15 +44,11 @@ macro(daqling_module_sources name)
     set(_list_var "${ARGN}")
     list(REMOVE_ITEM _list_var ${name})
 
-    # Include directories for dependencies
-    # include_directories(SYSTEM ${ALLPIX_DEPS_INCLUDE_DIRS})
-
     # Add the library
     target_sources(${name} PRIVATE ${_list_var})
 
-    # Link the standard allpix libraries
-    # target_link_libraries(${name} ${ALLPIX_LIBRARIES} ${ALLPIX_DEPS_LIBRARIES})
-    # target_link_libraries(${name} DaqlingCore DaqlingUtils libzmq)
+    # Link the standard daqling libraries
+    target_link_libraries(${name} ${DAQLING_LIBRARIES} ${DAQLING_DEPS_LIBRARIES})
 endmacro()
 
 # Provide default install target for the module

@@ -7,8 +7,6 @@ if (ENABLE_CASSANDRA)
       CassandraDataLoggerModule.cpp
   )
 
-  target_link_libraries(${module_name} DaqlingCore DaqlingUtils libzmq cassandra)
-
-  # Provide standard install target
+  # Provide install target
   daqling_module_install(${module_name})
 endif (ENABLE_CASSANDRA)
