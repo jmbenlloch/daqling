@@ -76,7 +76,7 @@ void BoardReaderBinaryModule::runner() {
                          << "0x" << timestamp.count() << std::dec << "  >>  payload size "
                          << payload_size);
 
-    std::unique_ptr<data_t> data(static_cast<data_t *>(malloc(total_size)));
+    data_t *data = static_cast<data_t *>(malloc(total_size));
     data->header.payload_size = payload_size;
     data->header.seq_number = sequence_number;
     data->header.source_id = m_board_id;
@@ -84,7 +84,8 @@ void BoardReaderBinaryModule::runner() {
     memset(data->payload, 0xFE, payload_size);
 
     // ready to be sent to EB
-    auto binary = daqling::utilities::Binary(static_cast<const void *>(data.get()), total_size);
+    auto binary = daqling::utilities::Binary(static_cast<const void *>(data), total_size);
+    free(data);
 
     // print binary
     // INFO("\n" << binary);
