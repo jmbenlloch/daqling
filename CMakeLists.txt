@@ -119,8 +119,13 @@ if(CMAKE_BUILD_TYPE MATCHES Debug AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") 
 endif()
 
 # Set some release flags
-if(CMAKE_BUILD_TYPE MATCHES Release AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-prefetch -unroll-aggressive -march=native -mtune=native")
+if(CMAKE_BUILD_TYPE MATCHES Release)
+  message(STATUS "Running release build, adding optimization flags")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-prefetch -unroll-aggressive -march=native -mtune=native")
+  endif()
 endif()
 
 set(BUILD_Dummy OFF)
