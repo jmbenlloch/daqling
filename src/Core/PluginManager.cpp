@@ -40,7 +40,7 @@ PluginManager::~PluginManager() {
 
 bool PluginManager::load(std::string name) {
   // Load the shared object
-  std::string pluginName = "libDaqlingModule" + name + ".so";
+  std::string pluginName = "lib/libDaqlingModule" + name + ".so";
   m_handle = dlopen(pluginName.c_str(), RTLD_NOW);
   if (m_handle == nullptr) {
     ERROR("Unable to dlopen module " << name << "; reason: " << dlerror());
