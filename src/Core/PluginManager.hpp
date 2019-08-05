@@ -39,10 +39,10 @@ namespace core {
 class PluginManager : public daqling::utilities::Singleton<PluginManager> {
  private:
   using CreateFunc = DAQProcess*(void);
-  using DestroyFunc = void(DAQProcess *);
+  using DeleteFunc = void(DAQProcess *);
 
   CreateFunc *m_create;
-  DestroyFunc *m_destroy;
+  DeleteFunc *m_delete;
 
   daqling::core::DAQProcess *m_dp;
   void *m_handle;

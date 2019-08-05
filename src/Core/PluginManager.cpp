@@ -28,11 +28,11 @@
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
-PluginManager::PluginManager() : m_create{}, m_destroy{}, m_dp{}, m_loaded{false} {}
+PluginManager::PluginManager() : m_create{}, m_delete{}, m_dp{}, m_loaded{false} {}
 
 PluginManager::~PluginManager() {
-  if (m_handle /* && m_destroy */) {
-    /* m_destroy(m_dp); */
+  if (m_handle) {
+    m_delete(m_dp);
     dlclose(m_handle);
     m_loaded = false;
   }
@@ -49,9 +49,8 @@ bool PluginManager::load(std::string name) {
 
   // Resolve functions for module creation/destruction
   try {
-    // TODO: #define or constexpr these somewhere; c.f. dynamic_module_impl.cpp from ap²
-    m_create = resolve<CreateFunc>("daqling_module_generator");
-    /* m_destroy = resolve<DestroyFunc>("destroy_object"); */
+    m_create = resolve<CreateFunc>("daqling_module_create");
+    m_delete = resolve<DeleteFunc>("daqling_module_delete");
   } catch (const std::runtime_error&) {
     return false;
   }
