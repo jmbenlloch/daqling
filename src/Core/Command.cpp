@@ -38,7 +38,7 @@ bool daqling::core::Command::startCommandHandler() {
   m_commandFunctors.push_back([&, tid] {
     DEBUG("CommandThread  ->>> Should handle command: " << m_command);
     std::string response;
-    rv = executeCommand(response);
+    std::ignore = executeCommand(response);
     setResponse(response);
     setHandled(true);
   });
