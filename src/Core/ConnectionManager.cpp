@@ -57,7 +57,7 @@ bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr)
         DEBUG(m_className << " CMD_THREAD: Got CMD: " << cmdmsgStr);
         cmd.setCommand(cmdmsgStr);
         int more;
-        size_t more_size = sizeof(size_t);
+        size_t more_size = sizeof(int);
         m_cmd_socket->getsockopt(ZMQ_RCVMORE, &more, &more_size);
         DEBUG("getsockopt RCVMORE " << more);
         if(more) {
