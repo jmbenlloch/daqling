@@ -18,6 +18,7 @@
 /// \cond
 #include <chrono>
 #include <sstream>
+#include <ctime>
 /// \endcond
 
 #include "Modules/FileDataLogger.hpp"
@@ -31,16 +32,54 @@ extern "C" FileDataLogger *create_object() { return new FileDataLogger; }
 
 extern "C" void destroy_object(FileDataLogger *object) { delete object; }
 
-FileDataLogger::FileDataLogger() : m_payloads{10000}, m_stopWriters{false}, m_bytes_sent{0} {
+
+std::ofstream FileDataLogger::FileGenerator::next()
+{
+
+  const auto handle_arg = [this](char c) -> std::string {
+    switch (c) {
+      case 'D': // Full date in YYYY-MM-DD-HH:MM:SS (ISO 8601) format
+      {
+        std::time_t t = std::time(nullptr);
+        char tstr[32];
+        if (!std::strftime(tstr, sizeof(tstr), "%F-%T", std::localtime(&t))) {
+          throw std::runtime_error("Failed to format timestamp");
+        }
+        return std::string(tstr);
+      }
+      case 'n': // The nth generated output (equals the number of times called `next()`, minus 1)
+        return std::to_string(m_filenum++);
+      case 'c': // The channel id
+        return std::to_string(m_chid);
+      default:
+        std::stringstream ss;
+        ss << "Unknown output file argument '" << c << "'";
+        throw std::runtime_error(ss.str());
+    }
+  };
+
+  // Append every character until we hit a '%' (control character),
+  // where the next character denotes an argument.
+  std::stringstream ss;
+  for (auto c = m_pattern.cbegin(); c != m_pattern.cend(); c++) {
+    if (*c == '%' && c + 1 != m_pattern.cend()) {
+      ss << handle_arg(*(++c));
+    } else {
+      ss << *c;
+    }
+  }
+
+  return std::ofstream(ss.str(), std::ios::binary);
+}
+
+FileDataLogger::FileDataLogger()
+  : m_stopWriters{false}, m_bytes_sent{0} {
+
   INFO(__METHOD_NAME__);
 
 #warning RS -> Needs to be properly configured.
   // Set up static resources...
-  m_writeBytes = 24 * daqutils::Constant::Kilo;  // 4K buffer writes
   std::ios_base::sync_with_stdio(false);
-  m_fileNames[1] = "/tmp/test.bin";
-  m_fileStreams[1] = std::fstream(m_fileNames[1], std::ios::out | std::ios::binary);
-  m_fileBuffers[1] = daqling::utilities::Binary(0);
   setup();
 }
 
@@ -48,88 +87,149 @@ FileDataLogger::~FileDataLogger() {
   INFO(__METHOD_NAME__);
   // Tear down resources...
   m_stopWriters.store(true);
-  m_fileStreams[1].close();
 }
 
 void FileDataLogger::start() {
   DAQProcess::start();
   INFO(" getState: " << getState());
-  m_monitor_thread = std::make_unique<std::thread>(&FileDataLogger::monitor_runner, this);
+  m_monitor_thread = std::thread(&FileDataLogger::monitor_runner, this);
 }
 
 void FileDataLogger::stop() {
   DAQProcess::stop();
   INFO(" getState: " << this->getState());
-  m_monitor_thread->join();
+  m_monitor_thread.join();
   INFO("Joined successfully monitor thread");
 }
 
 void FileDataLogger::runner() {
   INFO(" Running...");
-  // auto& cm = daqling::core::ConnectionManager::instance();
-  while (m_run) {
-    daqutils::Binary pl(0);
-    while (!m_connections.get(1, std::ref(pl)) && m_run) {
-      std::this_thread::sleep_for(1ms);
-    }
-    m_payloads.write(pl);
-    // DEBUG("Wrote data from channel 1...");
+
+  // Start the producer thread of each context
+  for (auto &[chid, ctx] : m_channelContexts) {
+    std::get<ThreadContext>(ctx).producer.set_work([&]() {
+      auto &pq = std::get<PayloadQueue>(ctx);
+
+      while (m_run) {
+        daqutils::Binary pl(0);
+        while (!m_connections.get(chid, std::ref(pl)) && m_run) {
+          std::this_thread::sleep_for(1ms);
+        }
+
+        DEBUG(" Received " << pl.size() << "B payload on channel: " << chid);
+        while (!pq.write(pl) && m_run); // try until successful append
+      }
+    });
   }
+
+  while (m_run);
+
   INFO(" Runner stopped");
 }
 
-#warning RS -> File rotation implementation is missing
-#warning RS -> Hardcoded values should come from config.
-void FileDataLogger::setup() {
-  // Loop through sources from config and add a file writer for each sink.
-  int tid = 1;
-  m_fileWriters[tid] = std::make_unique<daqling::utilities::ReusableThread>(11111);
-  m_writeFunctors[tid] = [&, tid] {
-    int ftid = tid;
-    INFO(" Spawning fileWriter for link: " << ftid);
-    while (!m_stopWriters) {
-      if (m_payloads.sizeGuess() > 0) {
-        DEBUG(" SIZES: Queue pop.: " << m_payloads.sizeGuess()
-                              << " loc.buff. size: " << m_fileBuffers[ftid].size()
-                              << " payload size: " << m_payloads.frontPtr()->size());
-        long sizeSum = long(m_fileBuffers[ftid].size()) + long(m_payloads.frontPtr()->size());
-        if (sizeSum > m_writeBytes) {  // Split needed.
-          DEBUG(" Processing split.");
-          long splitSize = sizeSum - m_writeBytes;  // Calc split size
-          long splitOffset =
-              long(m_payloads.frontPtr()->size()) - long(splitSize);  // Calc split offset
-          DEBUG(" -> Sizes: | postPart: " << splitSize << " | For fillPart: " << splitOffset);
-          daqling::utilities::Binary fillPart(m_payloads.frontPtr()->startingAddress(),
-                                              splitOffset);
-          DEBUG(" -> filPart DONE.");
-          daqling::utilities::Binary postPart(
-              static_cast<char *>(m_payloads.frontPtr()->startingAddress()) + splitOffset,
-              splitSize);
-          DEBUG(" -> postPart DONE.");
-          m_fileBuffers[ftid] += fillPart;
-          DEBUG(" -> " << m_fileBuffers[ftid].size() << " [Bytes] will be written.");
-          m_fileStreams[ftid].write(static_cast<char *>(m_fileBuffers[ftid].startingAddress()),
-                                    m_fileBuffers[ftid].size());  // write
-          m_bytes_sent += m_fileBuffers[ftid].size();
-          m_fileBuffers[ftid] = postPart;  // Reset buffer to postPart.
-          m_payloads.popFront();           // Pop processed payload
-        } else {                           // We can safely extend the buffer.
+void FileDataLogger::flusher(const uint64_t chid, PayloadQueue &pq, const long max_buffer_size, FileGenerator &&fg) const
+{
+  long bytes_written = 0;
+  std::ofstream out = fg.next();
+  auto buffer = daqutils::Binary(0);
 
-          // This is fishy:
-          m_fileBuffers[ftid] +=
-              *(reinterpret_cast<daqling::utilities::Binary *>(m_payloads.frontPtr()));
-          m_payloads.popFront();
-
-          // daqling::utilities::Binary frontPayload(0);
-          // m_payloads.read( std::ref(frontPayload) );
-          // m_fileBuffers[ftid] += frontPayload;
-        }
-      } else {
-        std::this_thread::sleep_for(1ms);
-      }
+  const auto flush = [&](daqutils::Binary &data) {
+    out.write(static_cast<char *>(data.startingAddress()), data.size());
+    if (out.fail()) {
+        CRITICAL(" Write operation for channel " << chid << " of size " << data.size() << "B failed!");
+        throw std::runtime_error("std::ofstream::fail()");
     }
+    m_bytes_sent += data.size();
+    bytes_written += data.size();
+    data = daqutils::Binary(0);
   };
-  m_fileWriters[1]->set_work(m_writeFunctors[1]);
+
+  while (!m_stopWriters) {
+    while (pq.isEmpty() && !m_stopWriters); // wait until we have something to write
+    if (m_stopWriters) {
+      flush(buffer);
+      return;
+    }
+
+    if (bytes_written + buffer.size() > m_max_filesize) { // Rotate output files
+      INFO(" Rotating output files for channel " << chid);
+      flush(buffer);
+      out.flush();
+      out.close();
+      out = fg.next();
+      bytes_written = 0;
+    }
+
+    auto payload = pq.frontPtr();
+    pq.popFront();
+
+    if (payload->size() + buffer.size() <= max_buffer_size) {
+      buffer += *payload;
+    } else {
+      DEBUG("Processing buffer split.");
+      const long split_offset = max_buffer_size - buffer.size();
+      long tail_len = buffer.size() + payload->size() - max_buffer_size;
+      assert(split_offset >= 0 && tail_len > 0);
+
+      // Split the payload into a head and a tail
+      daqutils::Binary head(payload->startingAddress(), split_offset);
+      daqutils::Binary tail(static_cast<char *>(payload->startingAddress()) + split_offset, tail_len);
+      DEBUG(" -> head length: " << head.size() << "; tail length: " << tail.size());
+      assert(head.size() + tail.size() == payload->size());
+
+      buffer += head;
+      flush(buffer);
+
+      // Flush the tail until it is small enough to fit in the buffer
+      while (tail_len > max_buffer_size) {
+        daqutils::Binary body(tail.startingAddress(), max_buffer_size);
+        daqutils::Binary next_tail(static_cast<char *>(tail.startingAddress())
+                + max_buffer_size, tail_len - max_buffer_size);
+        assert(body.size() + next_tail.size() == tail.size());
+        flush(body);
+
+        tail = next_tail;
+        tail_len = next_tail.size();
+        DEBUG(" -> head of tail flushed; new tail length: " << tail_len);
+      }
+
+      buffer = tail;
+      assert(buffer.size() <= max_buffer_size);
+    }
+  }
+}
+
+void FileDataLogger::setup() {
+  // Read out required and optional configurations
+  m_max_filesize = m_config.getConfig()["settings"].value("max_filesize", 1 * daqutils::Constant::Giga);
+  const long buffer_size = m_config.getConfig()["settings"].value("buffer_size", 4 * daqutils::Constant::Kilo);
+  m_channels = m_config.getConfig()["connections"]["receivers"].size();
+  const std::string pattern = m_config.getConfig()["settings"]["filename_pattern"];
+  INFO("Configuration:");
+  INFO(" -> Maximum filesize: " << m_max_filesize << "B");
+  INFO(" -> Buffer size: " << buffer_size << "B");
+  INFO(" -> channels: " << m_channels);
+
+  int threadid = 11111; // XXX: magic
+  constexpr size_t queue_size = 10000; // XXX: magic
+
+  for (uint64_t chid = 1; chid <= m_channels; chid++) {
+    // For each channel, construct a context of a payload queue, a consumer thread, and a producer thread.
+    std::array<int, 2> tids = {threadid++, threadid++};
+    const auto& [it, success] = m_channelContexts.emplace(chid, std::forward_as_tuple(queue_size, std::move(tids)));
+    assert(success);
+
+    // Start the context's consumer thread.
+    std::get<ThreadContext>(it->second).consumer.set_work([this, it, buffer_size, pattern]() {
+      return flusher(
+          it->first,
+          std::get<PayloadQueue>(it->second),
+          buffer_size,
+          FileGenerator(pattern, it->first)
+      );
+    });
+  }
+  assert(m_channelContexts.size() == m_channels);
 }
 
 void FileDataLogger::write() { INFO(" Should write..."); }
@@ -147,7 +247,6 @@ void FileDataLogger::monitor_runner() {
   while (m_run) {
     std::this_thread::sleep_for(1s);
     INFO("Write throughput: " << (double)m_bytes_sent / double(1000000) << " MBytes/s");
-    INFO("Size guess " << m_payloads.sizeGuess());
     m_bytes_sent = 0;
   }
 }
