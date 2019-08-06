@@ -155,7 +155,6 @@ void FileDataLoggerModule::flusher(const uint64_t chid, PayloadQueue &pq, const 
     }
 
     auto payload = pq.frontPtr();
-    pq.popFront();
 
     if (payload->size() + buffer.size() <= max_buffer_size) {
       buffer += *payload;
@@ -190,6 +189,9 @@ void FileDataLoggerModule::flusher(const uint64_t chid, PayloadQueue &pq, const 
       buffer = tail;
       assert(buffer.size() <= max_buffer_size);
     }
+
+    // We are done with the payload; destruct it.
+    pq.popFront();
   }
 }
 
