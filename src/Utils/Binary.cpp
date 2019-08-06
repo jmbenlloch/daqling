@@ -168,7 +168,10 @@ Binary::operator+=( const Binary& rhs )
 {
   size_t initialSize = m_size;
   this->extend( rhs.size() );
-  ::memcpy( static_cast<char*>(m_data) + initialSize, rhs.m_data, rhs.size() );
+  if (rhs.size() > 0) {
+    // Is size is zero `rhs.m_data` is NULL
+    ::memcpy( static_cast<char*>(m_data) + initialSize, rhs.m_data, rhs.size() );
+  }
   return *this;
 }
 
