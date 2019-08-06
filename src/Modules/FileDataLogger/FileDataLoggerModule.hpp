@@ -21,6 +21,9 @@
 #include <fstream>
 #include <map>
 #include <queue>
+#include <memory>
+#include <tuple>
+#include <condition_variable>
 /// \endcond
 
 #include "Core/DAQProcess.hpp"
@@ -52,21 +55,39 @@ class FileDataLoggerModule : public daqling::core::DAQProcess, public daqling::c
   void shutdown();
 
  private:
+  struct ThreadContext {
+    ThreadContext(std::array<unsigned int, 2> tids) : consumer(tids[0]), producer(tids[1]) {}
+    daqling::utilities::ReusableThread consumer;
+    daqling::utilities::ReusableThread producer;
+  };
+  using PayloadQueue = folly::ProducerConsumerQueue<daqling::utilities::Binary>;
+  using Context = std::tuple<PayloadQueue, ThreadContext>;
+
+  /*
+   * A wrapper around a printf-like output file generator.
+   */
+  class FileGenerator {
+  public:
+    FileGenerator(const std::string pattern, const uint64_t chid) : m_pattern(pattern), m_chid(chid) {}
+    std::ofstream next();
+
+  private:
+    const std::string m_pattern;
+    const uint64_t m_chid;
+    unsigned m_filenum = 0;
+  };
+
   // Configs
-  unsigned long m_writeBytes;
+  size_t m_max_filesize;
+  uint64_t m_channels = 0;
 
-  // Internals
-  folly::ProducerConsumerQueue<daqling::utilities::Binary> m_payloads;
-  daqling::utilities::Binary m_buffer;
-  std::map<uint64_t, std::unique_ptr<daqling::utilities::ReusableThread>> m_fileWriters;
-  std::map<uint64_t, std::function<void()>> m_writeFunctors;
-  std::map<uint64_t, std::string> m_fileNames;
-  std::map<uint64_t, std::fstream> m_fileStreams;
-  std::map<uint64_t, daqling::utilities::Binary> m_fileBuffers;
-  std::map<uint64_t, uint32_t> m_fileRotationCounters;
-
-  std::atomic<int> m_bytes_sent;
-  std::unique_ptr<std::thread> m_monitor_thread;
   // Thread control
   std::atomic<bool> m_stopWriters;
+
+  // Internals
+  void flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size, FileGenerator &&fg) const;
+  std::map<uint64_t, Context> m_channelContexts;
+  mutable std::atomic<int> m_bytes_sent;
+  std::thread m_monitor_thread;
+
 };

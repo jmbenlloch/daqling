@@ -123,6 +123,9 @@ if(CMAKE_BUILD_TYPE MATCHES Release)
   message(STATUS "Running release build, adding optimization flags")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 
+  # Ignore unused variables for where they are used for debug-only assertions.
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable")
+
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-prefetch -unroll-aggressive -march=native -mtune=native")
   endif()
