@@ -56,7 +56,7 @@ class FileDataLoggerModule : public daqling::core::DAQProcess, public daqling::c
 
  private:
   struct ThreadContext {
-    ThreadContext(std::array<int, 2> tids) : consumer(tids[0]), producer(tids[1]) {}
+    ThreadContext(std::array<unsigned int, 2> tids) : consumer(tids[0]), producer(tids[1]) {}
     daqling::utilities::ReusableThread consumer;
     daqling::utilities::ReusableThread producer;
   };
@@ -78,14 +78,14 @@ class FileDataLoggerModule : public daqling::core::DAQProcess, public daqling::c
   };
 
   // Configs
-  long m_max_filesize;
+  size_t m_max_filesize;
   uint64_t m_channels = 0;
 
   // Thread control
   std::atomic<bool> m_stopWriters;
 
   // Internals
-  void flusher(const uint64_t chid, PayloadQueue &pq, const long max_buffer_size, FileGenerator &&fg) const;
+  void flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size, FileGenerator &&fg) const;
   std::map<uint64_t, Context> m_channelContexts;
   mutable std::atomic<int> m_bytes_sent;
   std::thread m_monitor_thread;

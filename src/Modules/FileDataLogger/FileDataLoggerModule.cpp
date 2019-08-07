@@ -24,16 +24,10 @@
 #include "FileDataLoggerModule.hpp"
 #include "Utils/Logging.hpp"
 
-
 using namespace std::chrono_literals;
 namespace daqutils = daqling::utilities;
 
-extern "C" FileDataLogger *create_object() { return new FileDataLogger; }
-
-extern "C" void destroy_object(FileDataLogger *object) { delete object; }
-
-
-std::ofstream FileDataLogger::FileGenerator::next()
+std::ofstream FileDataLoggerModule::FileGenerator::next()
 {
 
   const auto handle_arg = [this](char c) -> std::string {
@@ -72,7 +66,7 @@ std::ofstream FileDataLogger::FileGenerator::next()
   return std::ofstream(ss.str(), std::ios::binary);
 }
 
-FileDataLogger::FileDataLogger()
+FileDataLoggerModule::FileDataLoggerModule()
   : m_stopWriters{false}, m_bytes_sent{0} {
 
   INFO(__METHOD_NAME__);
@@ -92,7 +86,7 @@ FileDataLoggerModule::~FileDataLoggerModule() {
 void FileDataLoggerModule::start() {
   DAQProcess::start();
   INFO(" getState: " << getState());
-  m_monitor_thread = std::thread(&FileDataLogger::monitor_runner, this);
+  m_monitor_thread = std::thread(&FileDataLoggerModule::monitor_runner, this);
 }
 
 void FileDataLoggerModule::stop() {
@@ -127,14 +121,14 @@ void FileDataLoggerModule::runner() {
   INFO(" Runner stopped");
 }
 
-void FileDataLogger::flusher(const uint64_t chid, PayloadQueue &pq, const long max_buffer_size, FileGenerator &&fg) const
+void FileDataLoggerModule::flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size, FileGenerator &&fg) const
 {
-  long bytes_written = 0;
+  size_t bytes_written = 0;
   std::ofstream out = fg.next();
   auto buffer = daqutils::Binary(0);
 
   const auto flush = [&](daqutils::Binary &data) {
-    out.write(static_cast<char *>(data.startingAddress()), data.size());
+    out.write(static_cast<char *>(data.startingAddress()), static_cast<std::streamsize>(data.size()));
     if (out.fail()) {
         CRITICAL(" Write operation for channel " << chid << " of size " << data.size() << "B failed!");
         throw std::runtime_error("std::ofstream::fail()");
@@ -166,9 +160,9 @@ void FileDataLogger::flusher(const uint64_t chid, PayloadQueue &pq, const long m
       buffer += *payload;
     } else {
       DEBUG("Processing buffer split.");
-      const long split_offset = max_buffer_size - buffer.size();
-      long tail_len = buffer.size() + payload->size() - max_buffer_size;
-      assert(split_offset >= 0 && tail_len > 0);
+      const size_t split_offset = max_buffer_size - buffer.size();
+      size_t tail_len = buffer.size() + payload->size() - max_buffer_size;
+      assert(tail_len > 0);
 
       // Split the payload into a head and a tail
       daqutils::Binary head(payload->startingAddress(), split_offset);
@@ -201,10 +195,10 @@ void FileDataLogger::flusher(const uint64_t chid, PayloadQueue &pq, const long m
   }
 }
 
-void FileDataLogger::setup() {
+void FileDataLoggerModule::setup() {
   // Read out required and optional configurations
   m_max_filesize = m_config.getConfig()["settings"].value("max_filesize", 1 * daqutils::Constant::Giga);
-  const long buffer_size = m_config.getConfig()["settings"].value("buffer_size", 4 * daqutils::Constant::Kilo);
+  const size_t buffer_size = m_config.getConfig()["settings"].value("buffer_size", 4 * daqutils::Constant::Kilo);
   m_channels = m_config.getConfig()["connections"]["receivers"].size();
   const std::string pattern = m_config.getConfig()["settings"]["filename_pattern"];
   INFO("Configuration:");
@@ -212,12 +206,12 @@ void FileDataLogger::setup() {
   INFO(" -> Buffer size: " << buffer_size << "B");
   INFO(" -> channels: " << m_channels);
 
-  int threadid = 11111; // XXX: magic
+  unsigned int threadid = 11111; // XXX: magic
   constexpr size_t queue_size = 10000; // XXX: magic
 
   for (uint64_t chid = 1; chid <= m_channels; chid++) {
     // For each channel, construct a context of a payload queue, a consumer thread, and a producer thread.
-    std::array<int, 2> tids = {threadid++, threadid++};
+    std::array<unsigned int, 2> tids = {threadid++, threadid++};
     const auto& [it, success] = m_channelContexts.emplace(chid, std::forward_as_tuple(queue_size, std::move(tids)));
     assert(success);
 
@@ -248,7 +242,7 @@ void FileDataLoggerModule::shutdown() {}
 void FileDataLoggerModule::monitor_runner() {
   while (m_run) {
     std::this_thread::sleep_for(1s);
-    INFO("Write throughput: " << (double)m_bytes_sent / double(1000000) << " MBytes/s");
+    INFO("Write throughput: " << static_cast<double>(m_bytes_sent) / 1000000 << " MBytes/s");
     m_bytes_sent = 0;
   }
 }
