@@ -141,7 +141,7 @@ public:
       zmq::message_t message(msg.str().size());
       memcpy (message.data(), msg.str().data(), msg.str().size());
       INFO(" MSG " << msg.str());
-      bool rc = m_stat_socket->send(message, zmq::send_flags::none);
+      bool rc = m_stat_socket->send(message);
       if(!rc)
         WARNING("Failed to publish metric: " << metric->m_name);
     }

@@ -46,6 +46,9 @@ ENDIF()
 
 include(cmake/daqling.cmake)
 
+option(CERN_ENVIRONMENT "Whether or not ${PACKAGE} is to be built in a CERN computer environment. If so, looks for some extra libraries in /opt/ instead of ${CMAKE_SOURCE_DIR}/3rdparty/" ON)
+message(STATUS "Configuring for CERN computer environments?  ${CERN_ENVIRONMENT}")
+
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
   message(FATAL_ERROR "GCC version must be at least 4.8!")
 endif()
@@ -92,19 +95,31 @@ set(BUILD_SHARED_LIBS ON)
 ########################
 
 set(DAQLING_LIBRARIES "")
+set(DAQLING_DEPS_LIBRARIES Threads::Threads cpr)
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/zmq)
-add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/cpr)
+if(CERN_ENVIRONMENT)
+  include_directories(SYSTEM /opt/spdlog/include)
+  include_directories(SYSTEM /opt/json/single_include)
+  include_directories(SYSTEM /opt/cpr/include)
 
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/spdlog/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/json/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cpr/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/zmq/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cppzmq)
+  link_directories(/opt/cpr/build/lib)
+  # zmq, cppzmq are expected system-wide
+  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} zmq)
+else()
+  add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/zmq)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/cpr)
+
+  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/spdlog/include)
+  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/json/single_include)
+  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cpr/include)
+  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/zmq/include)
+  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cppzmq)
+
+  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} libzmq)
+endif()
 
 find_package(CURL QUIET REQUIRED)
 
-set(DAQLING_DEPS_LIBRARIES libzmq Threads::Threads cpr)
 
 # Set standard build flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wzero-as-null-pointer-constant -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Wredundant-decls -Wsign-conversion -Wstrict-null-sentinel -Wstrict-overflow=5 -Wundef -Werror -Wformat-security -fdiagnostics-color=auto -Wno-overloaded-virtual")

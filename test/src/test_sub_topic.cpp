@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 
   while (1) {
     zmq::message_t msg;
-    std::cout << "-----------\nReceived " << subscriber.recv(msg).value_or(0) << std::endl;
+    std::cout << "-----------\nReceived " << subscriber.recv(&msg) << std::endl;
     std::cout << "-> size " << msg.size() << std::endl;
 
     data_t d = {0, 0, 0};
