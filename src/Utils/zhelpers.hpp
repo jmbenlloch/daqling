@@ -80,7 +80,7 @@ static std::string
 s_recv (zmq::socket_t & socket) {
 
     zmq::message_t message;
-    socket.recv(message);
+    socket.recv(&message);
 
     return std::string(static_cast<char*>(message.data()), message.size());
 }
@@ -92,7 +92,8 @@ s_send (zmq::socket_t & socket, const std::string & string) {
     zmq::message_t message(string.size());
     memcpy (message.data(), string.data(), string.size());
 
-    return socket.send(message, zmq::send_flags::none).has_value();
+    bool rc = socket.send (message);
+    return (rc);
 }
 
 //  Sends string as 0MQ string, as multipart non-terminal
@@ -102,7 +103,8 @@ s_sendmore (zmq::socket_t & socket, const std::string & string) {
     zmq::message_t message(string.size());
     memcpy (message.data(), string.data(), string.size());
 
-    return socket.send(message, zmq::send_flags::sndmore).has_value();
+    bool rc = socket.send (message, ZMQ_SNDMORE);
+    return (rc);
 }
 
 //  Receives all message parts from socket, prints neatly
@@ -115,15 +117,15 @@ s_dump (zmq::socket_t & socket)
     while (1) {
         //  Process all parts of the message
         zmq::message_t message;
-        socket.recv(message);
+        socket.recv(&message);
 
         //  Dump the message as text or binary
-        size_t size = message.size();
+        unsigned int size = message.size();
         std::string data(static_cast<char*>(message.data()), size);
 
         bool is_text = true;
 
-        size_t char_nbr;
+        unsigned int char_nbr;
         unsigned char byte;
         for (char_nbr = 0; char_nbr < size; char_nbr++) {
             byte = static_cast<unsigned char>(data [char_nbr]);
