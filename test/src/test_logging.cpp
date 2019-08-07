@@ -15,21 +15,20 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Utilities/Logging.hpp"
+#include "Utils/Logging.hpp"
 #include "Core/ConnectionManager.hpp"
 
 using namespace daqling;
 
 int
-main(int argc, char** argv)
+main(int, char**)
 {
 
   INFO("WOOF WOOF");
   WARNING("Ugh!" << 12345 << "bof bof" << '\n');
 
   INFO("Testing ConnectionManager.hpp");
-  daqling::core::ConnectionManager& cm = daqling::core::ConnectionManager::instance();
-  
+  std::ignore = daqling::core::ConnectionManager::instance();
 
   ERROR("About to die...");
   return 0;

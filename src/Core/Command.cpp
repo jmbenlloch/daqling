@@ -22,10 +22,10 @@
 #include <thread>
 /// \endcond
 
-#include "Core/Command.hpp"
-#include "Core/Configuration.hpp"
-#include "Core/ConnectionManager.hpp"
-#include "Core/PluginManager.hpp"
+#include "Command.hpp"
+#include "Configuration.hpp"
+#include "ConnectionManager.hpp"
+#include "PluginManager.hpp"
 
 
 using namespace daqling::core;
@@ -38,7 +38,7 @@ bool daqling::core::Command::startCommandHandler() {
   m_commandFunctors.push_back([&, tid] {
     DEBUG("CommandThread  ->>> Should handle command: " << m_command);
     std::string response;
-    rv = executeCommand(response);
+    [[maybe_unused]] bool ret = executeCommand(response);
     setResponse(response);
     setHandled(true);
   });
@@ -105,6 +105,7 @@ bool daqling::core::Command::executeCommand(std::string& response) {
       response = "Failure";
       ERROR("Shutting down...");
       stop_and_notify();
+      return false;
     }
     m_plugin.configure();
 

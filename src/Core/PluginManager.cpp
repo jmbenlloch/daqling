@@ -22,34 +22,40 @@
 #include <thread>
 /// \endcond
 
-#include "Core/Command.hpp"
-#include "Core/PluginManager.hpp"
-
+#include "Command.hpp"
+#include "PluginManager.hpp"
 
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
-PluginManager::PluginManager() : m_create{}, m_destroy{}, m_dp{}, m_loaded{false} {}
+PluginManager::PluginManager() : m_create{}, m_delete{}, m_dp{}, m_loaded{false} {}
 
 PluginManager::~PluginManager() {
-  if (m_handle != 0) {
-    m_destroy(m_dp);
+  if (m_handle) {
+    m_delete(m_dp);
+    dlclose(m_handle);
     m_loaded = false;
   }
 }
 
 bool PluginManager::load(std::string name) {
-  std::string pluginName = "lib" + name + ".so";
-  m_handle = dlopen(pluginName.c_str(), RTLD_LAZY);
-  if (m_handle == 0) {
-    ERROR("Plugin not loaded!");
+  // Load the shared object
+  std::string pluginName = "lib/libDaqlingModule" + name + ".so";
+  m_handle = dlopen(pluginName.c_str(), RTLD_NOW);
+  if (m_handle == nullptr) {
+    ERROR("Unable to dlopen module " << name << "; reason: " << dlerror());
     return false;
   }
 
-  m_create = (DAQProcess * (*)(...)) dlsym(m_handle, "create_object");
-  m_destroy = (void (*)(DAQProcess *))dlsym(m_handle, "destroy_object");
+  // Resolve functions for module creation/destruction
+  try {
+    m_create = resolve<CreateFunc>("daqling_module_create");
+    m_delete = resolve<DeleteFunc>("daqling_module_delete");
+  } catch (const std::runtime_error&) {
+    return false;
+  }
 
-  m_dp = (DAQProcess *)m_create();
+  m_dp = m_create();
   m_loaded = true;
   return true;
 }

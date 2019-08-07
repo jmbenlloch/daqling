@@ -17,7 +17,7 @@
 
 #include <chrono>
 #include <thread>
-#include "Utilities/zhelpers.hpp"
+#include "Utils/zhelpers.hpp"
 
 struct data_t {
   uint8_t tag;
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     subscriber.connect("tcp://localhost:5556");
 
   uint8_t tag = 126;
-  subscriber.setsockopt(ZMQ_SUBSCRIBE, (void *)&tag, sizeof(tag));
+  subscriber.setsockopt(ZMQ_SUBSCRIBE, &tag, sizeof(tag));
   //   subscriber.setsockopt(ZMQ_SUBSCRIBE, "", 0);
   std::cout << "sock opt" << std::endl;
 
@@ -44,11 +44,11 @@ int main(int argc, char *argv[]) {
     std::cout << "-----------\nReceived " << subscriber.recv(&msg) << std::endl;
     std::cout << "-> size " << msg.size() << std::endl;
 
-    data_t d = {0, 0};
+    data_t d = {0, 0, 0};
     // memcpy(&d, msg.data(), msg.size());
     d = *static_cast<data_t *>(msg.data());
 
-    std::cout << (int)d.tag << std::endl;
+    std::cout << static_cast<int>(d.tag) << std::endl;
     std::cout << d.whatever << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(1));
   }
