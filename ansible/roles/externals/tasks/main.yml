@@ -20,10 +20,14 @@
   git:
     repo: https://github.com/zeromq/libzmq.git
     dest: /opt/libzmq
-    version: 4.1.4
+    version: v4.3.2
 
 - file:
     path: /opt/cpr/build
+    state: directory
+
+- file:
+    path: /opt/libzmq/build
     state: directory
 
 - name: Run cmake3 in cpr

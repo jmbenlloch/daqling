@@ -17,3 +17,4 @@
     - libuv-devel
     - openssl-devel
     - curl-devel
+    - libsodium-devel
