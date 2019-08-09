@@ -95,7 +95,7 @@ set(BUILD_SHARED_LIBS ON)
 ########################
 
 set(DAQLING_LIBRARIES "")
-set(DAQLING_DEPS_LIBRARIES Threads::Threads cpr)
+set(DAQLING_DEPS_LIBRARIES Threads::Threads cpr curl)
 
 if(CERN_ENVIRONMENT)
   include_directories(SYSTEM /opt/spdlog/include)
@@ -105,6 +105,8 @@ if(CERN_ENVIRONMENT)
 
   link_directories(/opt/cpr/build/lib)
   link_directories(/opt/libzmq/build/lib)
+
+  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} zmq)
 else()
   # Build libzmq with libsodium instead of the built-in tweetnacl.
   # Fixed zmq::context_t dtor on daqinterface `down` command when libzmq curve security is enabled.
@@ -118,9 +120,10 @@ else()
   include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cpr/include)
   include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/zmq/include)
   include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cppzmq)
+
+  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} libzmq)
 endif()
 
-set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} libzmq)
 
 find_package(CURL QUIET REQUIRED)
 
