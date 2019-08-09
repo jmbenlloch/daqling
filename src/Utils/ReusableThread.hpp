@@ -74,11 +74,11 @@ private:
   std::atomic<bool> m_thread_pause;
   std::atomic<bool> m_thread_quit;
   std::atomic<bool> m_function_ready;
-  std::thread m_thread;
   std::function<void()> m_work_func;
 
   std::mutex m_mtx;
   std::condition_variable m_cv;
+  std::thread m_thread;
 
   void thread_worker()
   {
