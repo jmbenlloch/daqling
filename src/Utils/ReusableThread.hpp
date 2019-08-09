@@ -55,10 +55,11 @@ public:
 
   bool get_readiness() const { return m_task_executed; }
 
-  bool set_work(const std::function<void()>& task)
+  template<typename Function, typename... Args>
+  bool set_work(Function &&f, Args&&... args)
   {
     if (!m_task_assigned && m_task_executed.exchange(false)) {
-      m_task = task;
+      m_task = std::bind(f, args...);
       m_task_assigned = true;
       m_cv.notify_all();
       return true;
