@@ -51,8 +51,6 @@ public:
     m_thread.join();
   }
 
-  std::thread& get_thread() { return std::ref(m_thread); }
-
   unsigned int get_thread_id() const { return m_thread_id; }
 
   bool get_readiness() const { return m_task_executed; }
