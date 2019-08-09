@@ -121,7 +121,7 @@ void FileDataLoggerModule::runner() {
   INFO(" Runner stopped");
 }
 
-void FileDataLoggerModule::flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size, FileGenerator &&fg) const
+void FileDataLoggerModule::flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size, FileGenerator fg) const
 {
   size_t bytes_written = 0;
   std::ofstream out = fg.next();
@@ -216,14 +216,11 @@ void FileDataLoggerModule::setup() {
     assert(success);
 
     // Start the context's consumer thread.
-    std::get<ThreadContext>(it->second).consumer.set_work([this, it, buffer_size, pattern]() {
-      return flusher(
-          it->first,
-          std::get<PayloadQueue>(it->second),
-          buffer_size,
-          FileGenerator(pattern, it->first)
-      );
-    });
+    std::get<ThreadContext>(it->second).consumer.set_work(&FileDataLoggerModule::flusher, this,
+        it->first,
+        std::ref(std::get<PayloadQueue>(it->second)),
+        buffer_size,
+        FileGenerator(pattern, it->first));
   }
   assert(m_channelContexts.size() == m_channels);
 }

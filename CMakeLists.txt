@@ -101,11 +101,15 @@ if(CERN_ENVIRONMENT)
   include_directories(SYSTEM /opt/spdlog/include)
   include_directories(SYSTEM /opt/json/single_include)
   include_directories(SYSTEM /opt/cpr/include)
+  include_directories(SYSTEM /opt/libzmq/include)
 
   link_directories(/opt/cpr/build/lib)
-  # zmq, cppzmq are expected system-wide
-  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} zmq)
+  link_directories(/opt/libzmq/build/lib)
 else()
+  # Build libzmq with libsodium instead of the built-in tweetnacl.
+  # Fixed zmq::context_t dtor on daqinterface `down` command when libzmq curve security is enabled.
+  set(WITH_LIBSODIUM ON)
+
   add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/zmq)
   add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/cpr)
 
@@ -114,12 +118,11 @@ else()
   include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cpr/include)
   include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/zmq/include)
   include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cppzmq)
-
-  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} libzmq)
 endif()
 
-find_package(CURL QUIET REQUIRED)
+set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} libzmq)
 
+find_package(CURL QUIET REQUIRED)
 
 # Set standard build flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wzero-as-null-pointer-constant -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Wredundant-decls -Wsign-conversion -Wstrict-null-sentinel -Wstrict-overflow=5 -Wundef -Werror -Wformat-security -fdiagnostics-color=auto -Wno-overloaded-virtual")

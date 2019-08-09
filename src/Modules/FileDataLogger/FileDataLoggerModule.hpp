@@ -85,7 +85,7 @@ class FileDataLoggerModule : public daqling::core::DAQProcess, public daqling::c
   std::atomic<bool> m_stopWriters;
 
   // Internals
-  void flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size, FileGenerator &&fg) const;
+  void flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size, FileGenerator fg) const;
   std::map<uint64_t, Context> m_channelContexts;
   mutable std::atomic<int> m_bytes_sent;
   std::thread m_monitor_thread;
