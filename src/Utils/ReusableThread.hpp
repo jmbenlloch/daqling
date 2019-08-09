@@ -27,7 +27,7 @@
 
 /********************************
  * ReusableThread
- * Copied from: 
+ * Adapted from:
  *   // https://codereview.stackexchange.com/questions/134214/reuseable-c11-thread
  * Description: Pausable thread
  * Date: November 2017
