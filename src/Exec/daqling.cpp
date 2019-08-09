@@ -30,16 +30,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (argc == 3 && std::string(argv[2]) == "debug") {
-    daqling::utilities::set_log_level("debug");
-    INFO("Log level DEBUG");
-  } else {
-    daqling::utilities::set_log_level("info");
-    INFO("Log level INFO");
-  }
-
   int port = atoi(argv[1]);
-  DEBUG("Port " << port);
   daqling::core::Core c(port, "tcp", "*");
 
   c.setupCommandPath();

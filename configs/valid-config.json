@@ -8,7 +8,8 @@
       "port": 5555,
       "type": "BoardReaderBinary",
       "settings": {
-        "board_id": 0
+        "board_id": 0,
+        "log_level": "error"
       },
       "connections": {
         "senders": [
@@ -27,7 +28,8 @@
       "port": 5556,
       "type": "BoardReaderBinary",
       "settings": {
-        "board_id": 1
+        "board_id": 1,
+        "log_level": "error"
       },
       "connections": {
         "senders": [
@@ -46,6 +48,7 @@
       "port": 5557,
       "type": "EventBuilderBinary",
       "settings": {
+        "log_level": "error"
       },
       "connections": {
         "receivers": [
@@ -79,7 +82,8 @@
       "type": "FileDataLogger",
       "settings": {
         "ring": "127.0.0.1",
-        "filename_pattern": "/tmp/test-%D.%n.%c.bin"
+        "filename_pattern": "/tmp/test-%D.%n.%c.bin",
+        "log_level": "debug"
       },
       "connections": {
         "receivers": [

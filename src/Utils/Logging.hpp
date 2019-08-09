@@ -33,6 +33,19 @@
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "Common.hpp"
 
+#undef INFO
+
+#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
+#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
+
+#define DEBUG(MSG)    do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->debug(writer.str()); } while (0)
+#define INFO(MSG)     do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->info(writer.str()); } while (0)
+#define NOTICE(MSG)   do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->notice(writer.str()); } while (0)
+#define WARNING(MSG)  do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->warn(writer.str()); } while (0)
+#define ERROR(MSG)    do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->error(writer.str()); } while (0)
+#define CRITICAL(MSG) do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->critical(writer.str()); } while (0)
+#define ALERT(MSG)    do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->alert(writer.str()); } while (0)
+
 namespace daqling {
 namespace utilities
 {
@@ -80,32 +93,18 @@ namespace utilities
 			Logger::instance()->set_level(spdlog::level::info);
 		} else if(level == "notice") {
 			Logger::instance()->set_level(spdlog::level::info);
-		} else if(level == "warn") {
+		} else if(level == "warn" || level == "alert") {
 			Logger::instance()->set_level(spdlog::level::warn);
-		} else if(level == "err") {
+		} else if(level == "err" || level == "error" || level == "critical") {
 			Logger::instance()->set_level(spdlog::level::err);
-		} else if(level == "critical") {
-			Logger::instance()->set_level(spdlog::level::critical);
-		} else if(level == "alert") {
-			Logger::instance()->set_level(spdlog::level::warn);
+		} else {
+			Logger::instance()->set_level(spdlog::level::info);
+			WARNING("'" << level << "' is not a known log level. Defaulting to 'info'.");
 		}
 	}
 
 typedef spdlog::level::level_enum level;
 } // namespace utilities
 } // namespace daqling
-
-#undef INFO
-
-#define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
-#define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
-
-#define DEBUG(MSG)    do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->debug(writer.str()); } while (0)
-#define INFO(MSG)     do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->info(writer.str()); } while (0)
-#define NOTICE(MSG)   do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->notice(writer.str()); } while (0)
-#define WARNING(MSG)  do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->warn(writer.str()); } while (0)
-#define ERROR(MSG)    do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->error(writer.str()); } while (0)
-#define CRITICAL(MSG) do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->critical(writer.str()); } while (0)
-#define ALERT(MSG)    do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->alert(writer.str()); } while (0)
 
 #endif // DAQLING_UTILITIES_LOGGING_HPP

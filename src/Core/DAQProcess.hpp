@@ -40,6 +40,9 @@ class DAQProcess {
 
   /* use virtual otherwise linker will try to perform static linkage */
   virtual void configure() {
+    // Configure logging severity level
+    daqling::utilities::set_log_level(m_config.getConfig()["settings"].value("log_level", "info"));
+
     setupStatistics();
     if (m_stats_on) {
       m_statistics->start();
