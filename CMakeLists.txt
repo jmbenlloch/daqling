@@ -135,6 +135,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function")
 
 # Set some debug flags
 if(CMAKE_BUILD_TYPE MATCHES Debug AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -U_FORTIFY_SOURCE")
+
     message(STATUS "Running debug build, adding extra sanitizer flags")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined")
 endif()
