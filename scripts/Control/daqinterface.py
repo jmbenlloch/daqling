@@ -87,7 +87,7 @@ if validation:
 
 group = data['group']
 dir = env['DAQ_BUILD_DIR']
-exe = "bin/main_core"
+exe = "bin/daqling"
 lib_path = 'LD_LIBRARY_PATH='+env['LD_LIBRARY_PATH']
 
 if arg == "configure":
