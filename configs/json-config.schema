@@ -39,7 +39,15 @@
           },
           "settings": {
             "type": "object",
-            "title": "Settings"
+            "properties": {
+              "loglevel": {
+                "type": "object",
+                "properties": {
+                  "core": {"type": "string"},
+                  "module": {"type": "string"}
+                }
+              }
+            }
           },
           "connections": {
             "type": "object",
