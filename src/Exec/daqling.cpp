@@ -24,9 +24,6 @@
 
 using namespace std::chrono_literals;
 
-std::shared_ptr<spdlog::logger> daqling::utilities::Logger::m_logger;
-std::shared_ptr<spdlog::logger> daqling::utilities::Logger::m_module_logger;
-
 int main(int argc, char **argv) {
   auto root_logger = spdlog::stdout_logger_mt("root");
   root_logger->set_pattern("[%Y-%m-%d %T.%e] [%n] [%l] [%t] [%@] %v");

@@ -1,3 +1,7 @@
-add_executable(daqling daqling.cpp)
-target_link_libraries(daqling ${DAQLING_DEPS_LIBRARIES} rt DaqlingUtils DaqlingCore)
-install(TARGETS daqling EXPORT DESTINATION bin)
+daqling_executable(daqling)
+daqling_target_sources(daqling
+    daqling.cpp
+)
+daqling_target_install(daqling)
+
+target_link_libraries(daqling rt)
