@@ -24,7 +24,22 @@
 
 using namespace std::chrono_literals;
 
+std::shared_ptr<spdlog::logger> daqling::utilities::Logger::m_logger;
+std::shared_ptr<spdlog::logger> daqling::utilities::Logger::m_module_logger;
+
 int main(int argc, char **argv) {
+  auto root_logger = spdlog::stdout_logger_mt("root");
+  root_logger->set_pattern("[%Y-%m-%d %T.%e] [%n] [%l] [%t] [%@] %v");
+
+  auto core_logger = root_logger->clone("core");
+  auto module_logger = root_logger->clone("module");
+
+  core_logger->set_level(spdlog::level::level_enum::critical);
+  module_logger->set_level(spdlog::level::level_enum::debug);
+
+  daqling::utilities::Logger::set_instance(core_logger);
+  daqling::utilities::Logger::m_module_logger = module_logger;
+
   if (argc == 1) {
     ERROR("No command port provided!");
     return 1;

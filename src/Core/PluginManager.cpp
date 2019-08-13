@@ -55,7 +55,7 @@ bool PluginManager::load(std::string name) {
     return false;
   }
 
-  m_dp = m_create();
+  m_dp = m_create(daqling::utilities::Logger::m_module_logger);
   m_loaded = true;
   return true;
 }

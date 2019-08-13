@@ -26,6 +26,7 @@
 /// \cond
 #include <memory>
 #include <sstream>
+#include <cassert>
 /// \endcond
 
 #include "spdlog/spdlog.h"
@@ -33,74 +34,60 @@
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "Common.hpp"
 
+#undef SPDLOG_FUNCTION
+#define SPDLOG_FUNCTION __PRETTY_FUNCTION__
+
 #undef INFO
 
 #define __METHOD_NAME__ daqling::utilities::methodName(__PRETTY_FUNCTION__)
 #define __CLASS_NAME__ daqling::utilities::className(__PRETTY_FUNCTION__)
 
-#define DEBUG(MSG)    do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->debug(writer.str()); } while (0)
-#define INFO(MSG)     do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->info(writer.str()); } while (0)
-#define NOTICE(MSG)   do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->notice(writer.str()); } while (0)
-#define WARNING(MSG)  do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->warn(writer.str()); } while (0)
-#define ERROR(MSG)    do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->error(writer.str()); } while (0)
-#define CRITICAL(MSG) do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->critical(writer.str()); } while (0)
-#define ALERT(MSG)    do { std::ostringstream writer; writer << "[" << __METHOD_NAME__ << "] " << MSG; daqling::utilities::Logger::instance()->alert(writer.str()); } while (0)
+#define LOG(LEVEL, MSG) \
+    do \
+    { \
+        std::ostringstream writer; \
+        writer << MSG; \
+        SPDLOG_LOGGER_CALL(daqling::utilities::Logger::m_logger, LEVEL, writer.str()); \
+    } while (0)
+
+#define TRACE(MSG) LOG(spdlog::level::trace, MSG)
+#define DEBUG(MSG) LOG(spdlog::level::debug, MSG)
+#define INFO(MSG) LOG(spdlog::level::info, MSG)
+#define WARNING(MSG) LOG(spdlog::level::warn, MSG)
+#define ERROR(MSG) LOG(spdlog::level::err, MSG)
+#define CRITICAL(MSG) LOG(spdlog::level::critical, MSG)
+
+// Level aliases
+#define NOTICE(MSG) LOG(spdlog::level::info, MSG)
+#define ALERT(MSG) LOG(spdlog::level::warn, MSG)
 
 namespace daqling {
 namespace utilities
 {
 	class Logger
 	{
-		static std::shared_ptr<spdlog::logger> logger;
-
 	public:
-		static void init_console()
-		{
-		  logger = spdlog::stdout_logger_mt("console");
-		  setup();
-		}
+		static std::shared_ptr<spdlog::logger> m_logger;
 
-		static void init_file(std::string filename)
-		{
-			logger = spdlog::rotating_logger_mt("file_logger", filename, 1048576 * 5, 5);
-		}
+	/* public: */
+		static std::shared_ptr<spdlog::logger> m_module_logger;
 
-		static void setup()
+		static void set_instance(std::shared_ptr<spdlog::logger> logger)
 		{
-			logger->set_pattern("[%Y-%m-%d %T.%e] [%l] [%t] %v");
+			assert(!m_logger);
+			m_logger = logger;
 		}
 
 		static std::shared_ptr<spdlog::logger> instance()
 		{
-				if(!logger)
-				init_console(); // log to console by default
-			return logger;
+			assert(m_logger);
+			return m_logger;
 		}
 	};
 
 	inline void set_log_level(spdlog::level::level_enum level)
 	{
 		Logger::instance()->set_level(level);
-	}
-
-	inline void set_log_level(std::string level)
-	{
-		if(level == "off") {
-			Logger::instance()->set_level(spdlog::level::off);
-		} else if(level == "debug") {
-			Logger::instance()->set_level(spdlog::level::debug);
-		} else if(level == "info") {
-			Logger::instance()->set_level(spdlog::level::info);
-		} else if(level == "notice") {
-			Logger::instance()->set_level(spdlog::level::info);
-		} else if(level == "warn" || level == "alert") {
-			Logger::instance()->set_level(spdlog::level::warn);
-		} else if(level == "err" || level == "error" || level == "critical") {
-			Logger::instance()->set_level(spdlog::level::err);
-		} else {
-			Logger::instance()->set_level(spdlog::level::info);
-			WARNING("'" << level << "' is not a known log level. Defaulting to 'info'.");
-		}
 	}
 
 typedef spdlog::level::level_enum level;
