@@ -26,6 +26,7 @@
       "host": "localhost",
       "port": 5556,
       "type": "BoardReaderBinary",
+      "loglevel": {"core": "DEBUG", "module": "INFO"},
       "settings": {
         "board_id": 1
       },
