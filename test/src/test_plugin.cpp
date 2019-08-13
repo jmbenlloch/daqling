@@ -23,14 +23,12 @@
 #include <thread>
 /// \endcond
 
-#include "Modules/BoardReader/BoardReaderModule.hpp"
-#include "Modules/EventBuilder/EventBuilderModule.hpp"
+#include "Core/DAQProcess.hpp"
 #include "Utils/Logging.hpp"
-#include "Core/ConnectionManager.hpp"
 
 using namespace std::chrono_literals;
 
-using CreateFunc = daqling::core::DAQProcess*(...);
+using CreateFunc = daqling::core::DAQProcess*(void);
 using DestroyFunc = void(daqling::core::DAQProcess*);
 
 int main(int argc, char **argv)
@@ -41,27 +39,18 @@ int main(int argc, char **argv)
         return 1;
     }
     INFO("Loading " << argv[1]);
-    std::string pluginName = "lib" + std::string(argv[1]) + ".so";
-    void *handle = dlopen(pluginName.c_str(), RTLD_LAZY);
+    std::string pluginName = "lib/lib" + std::string(argv[1]) + ".so";
+    void *handle = dlopen(pluginName.c_str(), RTLD_NOW);
     if (handle == nullptr)
     {
         ERROR("Plugin name not valid");
         return 1;
     }
 
-    /* daqling::core::DAQProcess *(*create)(...); */
-    /* void (*destroy)(daqling::core::DAQProcess *); */
+    auto create = reinterpret_cast<CreateFunc*>(dlsym(handle, "daqling_module_create"));
+    auto destroy = reinterpret_cast<DestroyFunc*>(dlsym(handle, "daqling_module_create"));
 
-    auto create = reinterpret_cast<CreateFunc*>(dlsym(handle, "create_object"));
-    auto destroy = reinterpret_cast<DestroyFunc*>(dlsym(handle, "destroy_object"));
+    auto *dp = create();
 
-    std::string name = "hello";
-    int num = 42;
-    
-    auto *dp = create(name, num);
-
-    dp->start();
-    std::this_thread::sleep_for(2s);
-    dp->stop();
     destroy(dp);
 }

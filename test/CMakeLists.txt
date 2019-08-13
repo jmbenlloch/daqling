@@ -1,5 +1,5 @@
 add_executable(test_plugin src/test_plugin.cpp)
-target_link_libraries(test_plugin PUBLIC ${DAQLING_DEPS_LIBRARIES} ${DAQLING_LIBRARIES} DaqlingModuleBoardReader DaqlingModuleEventBuilder)
+target_link_libraries(test_plugin PUBLIC ${DAQLING_DEPS_LIBRARIES} ${DAQLING_LIBRARIES})
 install(TARGETS test_plugin EXPORT DESTINATION bin)
 
 add_executable(test_logging src/test_logging.cpp)
