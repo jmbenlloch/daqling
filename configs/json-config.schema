@@ -49,7 +49,8 @@
                 "type": "string",
                 "enum": ["DEBUG", "INFO"]
               }
-            }
+            },
+            "required": ["core", "module"]
           },
           "settings": {
             "type": "object",
@@ -100,7 +101,7 @@
             }
           }
         },
-        "required": ["name", "host", "port", "type"]
+        "required": ["name", "host", "port", "type", "loglevel"]
       }
     }
   }

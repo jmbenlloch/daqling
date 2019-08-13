@@ -7,6 +7,7 @@
       "host": "localhost",
       "port": 5555,
       "type": "BoardReaderBinary",
+      "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
         "board_id": 0
       },
@@ -26,7 +27,7 @@
       "host": "localhost",
       "port": 5556,
       "type": "BoardReaderBinary",
-      "loglevel": {"core": "DEBUG", "module": "INFO"},
+      "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
         "board_id": 1
       },
@@ -46,6 +47,7 @@
       "host": "localhost",
       "port": 5557,
       "type": "EventBuilderBinary",
+      "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
       },
       "connections": {
@@ -78,6 +80,7 @@
       "host": "localhost",
       "port": 5558,
       "type": "FileDataLogger",
+      "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
         "ring": "127.0.0.1",
         "filename_pattern": "/tmp/test-%D.%n.%c.bin"
