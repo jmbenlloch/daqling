@@ -37,6 +37,21 @@
           "type": {
             "type": "string"
           },
+          "loglevel": {
+            "type": "object",
+            "title": "Log Levels",
+            "properties": {
+              "core": {
+                "type": "string",
+                "enum": ["DEBUG", "INFO"]
+              },
+              "module": {
+                "type": "string",
+                "enum": ["DEBUG", "INFO"]
+              }
+            },
+            "required": ["core", "module"]
+          },
           "settings": {
             "type": "object",
             "properties": {
@@ -94,7 +109,7 @@
             }
           }
         },
-        "required": ["name", "host", "port", "type"]
+        "required": ["name", "host", "port", "type", "loglevel"]
       }
     }
   }
