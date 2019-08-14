@@ -83,8 +83,7 @@
       "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
         "ring": "127.0.0.1",
-        "filename_pattern": "/tmp/test-%D.%n.%c.bin",
-        "loglevel": {"core": "CRITICAL", "module": "DEBUG"}
+        "filename_pattern": "/tmp/test-%D.%n.%c.bin"
       },
       "connections": {
         "receivers": [
