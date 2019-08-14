@@ -24,7 +24,7 @@ option(BUILD_DOCS_ONLY "Build documentation only" OFF)
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
-  configure_file(${CMAKE_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_BINARY_DIR}/doc/Doxyfile @ONLY)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_BINARY_DIR}/doc/Doxyfile @ONLY)
   add_custom_target(doc
     ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doc/Doxyfile
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/doc
@@ -149,9 +149,28 @@ if(CMAKE_BUILD_TYPE MATCHES Release)
   endif()
 endif()
 
-set(BUILD_Dummy OFF)
+set(daqling_dir ${CMAKE_CURRENT_SOURCE_DIR})
 
-include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${daqling_dir}/src)
+
+# pass include directories to parent
+get_directory_property(hasParent PARENT_DIRECTORY)
+if (hasParent)
+  get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+  set(daqling_include_dirs ${dirs} PARENT_SCOPE)
+endif (hasParent)
+
+# pass link directories to parent
+if (hasParent)
+  get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY LINK_DIRECTORIES)
+  set(daqling_link_dirs ${dirs} PARENT_SCOPE)
+endif (hasParent)
+
+# pass daqling_dir and CMAKE_CXX_FLAGS to parent
+if (hasParent)
+  set(daqling_dir ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
+  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} PARENT_SCOPE)
+endif (hasParent)
 
 # Build utils library
 add_subdirectory(src/Utils)
