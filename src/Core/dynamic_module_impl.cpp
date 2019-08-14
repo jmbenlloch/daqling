@@ -8,7 +8,7 @@
 namespace daqutils = daqling::utilities;
 
 // TODO: explain
-__attribute__((visibility("hidden")))
+HEDLEY_PRIVATE
 daqutils::LoggerType daqutils::Logger::m_logger;
 
 namespace daqling::core {

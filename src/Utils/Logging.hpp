@@ -31,9 +31,8 @@
 /// \endcond
 
 #include "spdlog/spdlog.h"
-#include "spdlog/sinks/stdout_sinks.h"
-#include "spdlog/sinks/rotating_file_sink.h"
 #include "Common.hpp"
+#include "hedley.h"
 
 #undef SPDLOG_FUNCTION
 #define SPDLOG_FUNCTION __PRETTY_FUNCTION__
@@ -74,14 +73,14 @@ namespace daqling::utilities {
 
 	public:
 
-		__attribute__((visibility("hidden")))
+		HEDLEY_PRIVATE
 		static void set_instance(LoggerType logger)
 		{
 			assert(!m_logger);
 			m_logger = logger;
 		}
 
-		__attribute__((visibility("hidden")))
+		HEDLEY_PRIVATE
 		static LoggerType instance()
 		{
 			assert(m_logger);

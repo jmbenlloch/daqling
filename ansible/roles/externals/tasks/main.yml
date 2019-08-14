@@ -22,6 +22,12 @@
     dest: /opt/libzmq
     version: v4.3.2
 
+- name: nemequ/hedley
+  git:
+    repo: https://github.com/nemequ/hedley.git
+    dest: /opt/hedley
+    version: v9
+
 - file:
     path: /opt/cpr/build
     state: directory
