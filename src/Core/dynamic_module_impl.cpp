@@ -5,24 +5,26 @@
 #include "Utils/Logging.hpp"
 #include DAQLING_MODULE_HEADER
 
+namespace daqutils = daqling::utilities;
+
 // TODO: explain
 __attribute__((visibility("hidden")))
-std::shared_ptr<spdlog::logger> daqling::utilities::Logger::m_logger;
+daqutils::LoggerType daqutils::Logger::m_logger;
 
 namespace daqling::core {
     extern "C" {
         // declare to satisfy -Werror=missing-declarations
-        DAQProcess* daqling_module_create(std::shared_ptr<spdlog::logger>);
+        DAQProcess* daqling_module_create(daqutils::LoggerType);
         void daqling_module_delete(DAQProcess*);
     }
 
     // and then define
-    DAQProcess* daqling_module_create(std::shared_ptr<spdlog::logger> logger)
+    DAQProcess* daqling_module_create(daqutils::LoggerType logger)
     {
+        assert(logger);
         // must be set first so that we get "[module]" during setup
         // TODO: improve docs
-        const std::string logger_name = logger->name();
-        daqling::utilities::Logger::set_instance(logger);
+        daqutils::Logger::set_instance(logger);
 
         auto module = new DAQLING_MODULE_NAME();
         return static_cast<DAQProcess*>(module);

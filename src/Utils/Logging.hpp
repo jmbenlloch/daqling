@@ -27,6 +27,7 @@
 #include <memory>
 #include <sstream>
 #include <cassert>
+#include <memory>
 /// \endcond
 
 #include "spdlog/spdlog.h"
@@ -61,27 +62,39 @@
 #define NOTICE(MSG) LOG(spdlog::level::info, MSG)
 #define ALERT(MSG) LOG(spdlog::level::warn, MSG)
 
-namespace daqling {
-namespace utilities
-{
+namespace daqling::utilities {
+	using LoggerType = std::shared_ptr<spdlog::logger>;
+
 	class Logger
 	{
+	private:
+		static bool m_module_logger_set;
+		static LoggerType m_module_logger;
 	public:
-		static std::shared_ptr<spdlog::logger> m_logger;
+		static LoggerType m_logger;
 
-	/* public: */
-		static std::shared_ptr<spdlog::logger> m_module_logger;
-
-		static void set_instance(std::shared_ptr<spdlog::logger> logger)
+		static void set_instance(LoggerType logger)
 		{
 			assert(!m_logger);
 			m_logger = logger;
 		}
 
-		static std::shared_ptr<spdlog::logger> instance()
+		static spdlog::logger* instance()
 		{
 			assert(m_logger);
-			return m_logger;
+			return m_logger.get();
+		}
+
+        static void set_module_instance(LoggerType logger)
+		{
+			assert(!std::exchange(m_module_logger_set, true));
+			m_module_logger = logger;
+		}
+
+		static LoggerType get_module_instance()
+		{
+			assert(m_module_logger);
+			return m_module_logger;
 		}
 	};
 
@@ -91,7 +104,6 @@ namespace utilities
 	}
 
 typedef spdlog::level::level_enum level;
-} // namespace utilities
-} // namespace daqling
+} // namespace daqling::utilities
 
 #endif // DAQLING_UTILITIES_LOGGING_HPP

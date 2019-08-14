@@ -4,5 +4,6 @@
 
 #include "Utils/Logging.hpp"
 
-std::shared_ptr<spdlog::logger> daqling::utilities::Logger::m_logger;
-std::shared_ptr<spdlog::logger> daqling::utilities::Logger::m_module_logger;
+daqling::utilities::LoggerType daqling::utilities::Logger::m_logger;
+daqling::utilities::LoggerType daqling::utilities::Logger::m_module_logger;
+bool daqling::utilities::Logger::m_module_logger_set;

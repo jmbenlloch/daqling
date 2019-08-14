@@ -38,7 +38,7 @@ namespace core {
 
 class PluginManager : public daqling::utilities::Singleton<PluginManager> {
  private:
-  using CreateFunc = DAQProcess*(std::shared_ptr<spdlog::logger>);
+  using CreateFunc = DAQProcess*(daqling::utilities::LoggerType);
   using DeleteFunc = void(DAQProcess *);
 
   CreateFunc *m_create;

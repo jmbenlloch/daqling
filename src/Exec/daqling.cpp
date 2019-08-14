@@ -21,21 +21,25 @@
 
 #include "Core/Core.hpp"
 #include "Utils/Logging.hpp"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 using namespace std::chrono_literals;
+using logger = daqling::utilities::Logger;
 
 int main(int argc, char **argv) {
-  auto root_logger = spdlog::stdout_logger_mt("root");
-  root_logger->set_pattern("[%Y-%m-%d %T.%e] [%n] [%l] [%t] [%@] %v");
+  auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+  auto core_logger = std::make_shared<spdlog::logger>("core", stdout_sink);
+  auto module_logger = std::make_shared<spdlog::logger>("module", stdout_sink);
 
-  auto core_logger = root_logger->clone("core");
-  auto module_logger = root_logger->clone("module");
+  for (auto &logger : {&*core_logger, &*module_logger}) {
+    logger->set_pattern("[%Y-%m-%d %T.%e] [%n] [%l] [%t] [%@] %v");
+  }
 
-  core_logger->set_level(spdlog::level::level_enum::critical);
-  module_logger->set_level(spdlog::level::level_enum::debug);
+  core_logger->set_level(spdlog::level::info);
+  module_logger->set_level(spdlog::level::debug);
 
-  daqling::utilities::Logger::set_instance(core_logger);
-  daqling::utilities::Logger::m_module_logger = module_logger;
+  logger::set_instance(std::move(core_logger));
+  logger::set_module_instance(std::move(module_logger));
 
   if (argc == 1) {
     ERROR("No command port provided!");
