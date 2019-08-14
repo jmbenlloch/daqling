@@ -153,28 +153,18 @@ set(daqling_dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(${daqling_dir}/src)
 
-# pass include directories to parent
+# pass properties and variables to parent
 get_directory_property(hasParent PARENT_DIRECTORY)
 if (hasParent)
-  get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-  set(daqling_include_dirs ${dirs} PARENT_SCOPE)
-endif (hasParent)
+  get_property(inc_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+  set(daqling_include_dirs ${inc_dirs} PARENT_SCOPE)
 
-# pass link directories to parent
-if (hasParent)
-  get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY LINK_DIRECTORIES)
-  set(daqling_link_dirs ${dirs} PARENT_SCOPE)
-endif (hasParent)
-
-# pass daqling_dir and various variables to parent
-if (hasParent)
+  get_property(link_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY LINK_DIRECTORIES)
+  set(daqling_link_dirs ${link_dirs} PARENT_SCOPE)
+  
   set(daqling_dir ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
 
   set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} PARENT_SCOPE)
-  set(CMAKE_CXX_STANDARD ${CMAKE_CXX_STANDARD} PARENT_SCOPE)
-  set(CMAKE_CXX_STANDARD_REQUIRED ${CMAKE_CXX_STANDARD_REQUIRED} PARENT_SCOPE)
-  set(CMAKE_CXX_EXTENSIONS ${CMAKE_CXX_EXTENSIONS} PARENT_SCOPE)
-  set(THREADS_PREFER_PTHREAD_FLAG ${THREADS_PREFER_PTHREAD_FLAG} PARENT_SCOPE)
 endif (hasParent)
 
 # Build utils library
