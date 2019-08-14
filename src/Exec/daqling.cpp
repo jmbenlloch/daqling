@@ -26,6 +26,13 @@
 using namespace std::chrono_literals;
 using logger = daqling::utilities::Logger;
 
+static std::string sink_pattern(const bool debug)
+{
+  std::ostringstream pattern;
+  pattern << "[%Y-%m-%d %T.%e] [%n] [%l] [%t]" << (debug ? " [%@]" : "") << " %v";
+  return pattern.str();
+}
+
 int main(int argc, char **argv) {
   if (argc < 4) {
     std::cerr << "Usage: " << argv[0] << " <command-port> <core-log-level> <module-log-level>\n";
@@ -36,17 +43,19 @@ int main(int argc, char **argv) {
   auto core_logger = std::make_shared<spdlog::logger>("core", stdout_sink);
   auto module_logger = std::make_shared<spdlog::logger>("module", stdout_sink);
 
+  // Set default sink pattern
+  stdout_sink->set_pattern(sink_pattern(false));
+
   // Assign the logger globals, allowing us to use logging macros.
   logger::set_instance(core_logger);
   logger::set_module_instance(module_logger);
 
-  // Set logging pattern and log level for both loggers
+  // Parse and set log level for both logers
   auto core_ctx = std::make_tuple(core_logger, std::string(argv[2]), spdlog::level::info);
   auto module_ctx = std::make_tuple(module_logger, std::string(argv[3]), spdlog::level::debug);
   for (auto [logger, supplied_lvl, default_lvl] : {core_ctx, module_ctx}) {
-    logger->set_pattern("[%Y-%m-%d %T.%e] [%n] [%l] [%t] [%@] %v");
-
     std::transform(supplied_lvl.begin(), supplied_lvl.end(), supplied_lvl.begin(), ::tolower);
+
     if (auto lvl = spdlog::level::from_str(supplied_lvl); lvl == spdlog::level::off && supplied_lvl != "off") {
       // Supplied log level does not exist so spdlog returned the default level::off. Use our own default instead.
       WARNING("Unknown loglevel '" << supplied_lvl << "', defaulting to level '" <<
@@ -57,6 +66,10 @@ int main(int argc, char **argv) {
       logger->set_level(lvl);
     }
   }
+
+  // Update sink pattern if we are debug logging
+  stdout_sink->set_pattern(sink_pattern(core_logger->level() <= spdlog::level::debug ||
+        module_logger->level() <= spdlog::level::debug));
 
   int port = atoi(argv[1]);
   daqling::core::Core c(port, "tcp", "*");

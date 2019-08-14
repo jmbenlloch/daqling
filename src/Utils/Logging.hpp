@@ -46,7 +46,7 @@
     do \
     { \
         std::ostringstream writer; \
-        writer << MSG; \
+        writer << "[" << __METHOD_NAME__ << "] " << MSG; \
         SPDLOG_LOGGER_CALL(daqling::utilities::Logger::instance(), LEVEL, writer.str()); \
     } while (0)
 
