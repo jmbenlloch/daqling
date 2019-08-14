@@ -166,10 +166,15 @@ if (hasParent)
   set(daqling_link_dirs ${dirs} PARENT_SCOPE)
 endif (hasParent)
 
-# pass daqling_dir and CMAKE_CXX_FLAGS to parent
+# pass daqling_dir and various variables to parent
 if (hasParent)
   set(daqling_dir ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
+
   set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} PARENT_SCOPE)
+  set(CMAKE_CXX_STANDARD ${CMAKE_CXX_STANDARD} PARENT_SCOPE)
+  set(CMAKE_CXX_STANDARD_REQUIRED ${CMAKE_CXX_STANDARD_REQUIRED} PARENT_SCOPE)
+  set(CMAKE_CXX_EXTENSIONS ${CMAKE_CXX_EXTENSIONS} PARENT_SCOPE)
+  set(THREADS_PREFER_PTHREAD_FLAG ${THREADS_PREFER_PTHREAD_FLAG} PARENT_SCOPE)
 endif (hasParent)
 
 # Build utils library
