@@ -48,7 +48,7 @@
     { \
         std::ostringstream writer; \
         writer << MSG; \
-        SPDLOG_LOGGER_CALL(daqling::utilities::Logger::m_logger, LEVEL, writer.str()); \
+        SPDLOG_LOGGER_CALL(daqling::utilities::Logger::instance(), LEVEL, writer.str()); \
     } while (0)
 
 #define TRACE(MSG) LOG(spdlog::level::trace, MSG)
@@ -70,19 +70,22 @@ namespace daqling::utilities {
 	private:
 		static bool m_module_logger_set;
 		static LoggerType m_module_logger;
-	public:
 		static LoggerType m_logger;
 
+	public:
+
+		__attribute__((visibility("hidden")))
 		static void set_instance(LoggerType logger)
 		{
 			assert(!m_logger);
 			m_logger = logger;
 		}
 
-		static spdlog::logger* instance()
+		__attribute__((visibility("hidden")))
+		static LoggerType instance()
 		{
 			assert(m_logger);
-			return m_logger.get();
+			return m_logger;
 		}
 
         static void set_module_instance(LoggerType logger)
