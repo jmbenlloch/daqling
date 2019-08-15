@@ -91,7 +91,7 @@ void FileDataWriterModule::start() {
 
   m_monitor_thread = std::thread(&FileDataWriterModule::monitor_runner, this);
 
-  m_statistics->registerVariable<std::atomic<int>, int>(&m_bytes_written, "DL_BytesWritten", daqling::core::metrics::RATE, daqling::core::metrics::INT);
+  m_statistics->registerVariable<std::atomic<size_t>, size_t>(&m_bytes_written, "DL_BytesWritten", daqling::core::metrics::RATE, daqling::core::metrics::SIZE);
   m_statistics->registerVariable<std::atomic<size_t>, size_t>(&m_payload_queue_size, "DL_PayloadQueueSize", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
   m_statistics->registerVariable<std::atomic<size_t>, size_t>(&m_payload_queue_bytes, "DL_PayloadQueueBytes", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
 }
