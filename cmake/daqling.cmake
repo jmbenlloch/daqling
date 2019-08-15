@@ -33,9 +33,8 @@ macro(daqling_module name)
     # Set the special header flags and add the special dynamic implementation file
     target_compile_definitions(${${name}} PRIVATE DAQLING_MODULE_NAME=${_daqling_module_class})
     target_compile_definitions(${${name}} PRIVATE DAQLING_MODULE_HEADER="${_daqling_module_class}.hpp")
-
-    target_sources(${${name}} PRIVATE "${PROJECT_SOURCE_DIR}/src/Core/dynamic_module_impl.cpp")
-    set_property(SOURCE "${PROJECT_SOURCE_DIR}/src/Core/dynamic_module_impl.cpp" APPEND PROPERTY OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_daqling_module_class}.hpp")
+    target_sources(${${name}} PRIVATE "${daqling_dir}/src/Core/dynamic_module_impl.cpp")
+    set_property(SOURCE "${daqling_dir}/src/Core/dynamic_module_impl.cpp" APPEND PROPERTY OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_daqling_module_class}.hpp")
 endmacro()
 
 macro(daqling_executable name)
