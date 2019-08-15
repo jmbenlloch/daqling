@@ -69,7 +69,7 @@ std::ofstream FileDataWriterModule::FileGenerator::next()
 }
 
 FileDataWriterModule::FileDataWriterModule()
-  : m_stopWriters{false}, m_bytes_sent{0}, m_payload_queue_size{0} {
+  : m_stopWriters{false}, m_bytes_written{0}, m_payload_queue_size{0} {
 
   INFO(__METHOD_NAME__);
 
@@ -91,7 +91,7 @@ void FileDataWriterModule::start() {
 
   m_monitor_thread = std::thread(&FileDataWriterModule::monitor_runner, this);
 
-  m_statistics->registerVariable<std::atomic<int>, int>(&m_bytes_sent, "DL_BytesSent", daqling::core::metrics::RATE, daqling::core::metrics::INT);
+  m_statistics->registerVariable<std::atomic<int>, int>(&m_bytes_written, "DL_BytesWritten", daqling::core::metrics::RATE, daqling::core::metrics::INT);
   m_statistics->registerVariable<std::atomic<size_t>, size_t>(&m_payload_queue_size, "DL_PayloadQueueSize", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
 }
 
@@ -142,7 +142,7 @@ void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const 
         throw std::runtime_error("std::ofstream::fail()");
     }
     if (chid == 1) {
-        m_bytes_sent += data.size();
+        m_bytes_written += data.size();
     }
     bytes_written += data.size();
     data = daqutils::Binary(0);
@@ -251,6 +251,7 @@ void FileDataWriterModule::shutdown() {}
 void FileDataWriterModule::monitor_runner() {
   while (m_run) {
     std::this_thread::sleep_for(1s);
-    INFO("Write throughput (channel 1): " << static_cast<double>(m_bytes_sent) / 1000000 << " MBytes/s");
+    // XXX: is this really "throughput"?
+    INFO("Write throughput (channel 1): " << static_cast<double>(m_bytes_written) / 1000000 << " MBytes/s");
   }
 }

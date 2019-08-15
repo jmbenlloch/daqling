@@ -85,7 +85,7 @@ class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::c
   std::atomic<bool> m_stopWriters;
 
   // Metrics
-  mutable std::atomic<int> m_bytes_sent;
+  mutable std::atomic<int> m_bytes_written;
   mutable std::atomic<size_t> m_payload_queue_size;
 
   // Internals
