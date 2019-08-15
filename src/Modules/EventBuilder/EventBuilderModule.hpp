@@ -17,21 +17,15 @@
 
 #pragma once
 
-/// \cond
-#include <string>
-/// \endcond
-
 #include "Core/DAQProcess.hpp"
 
-class BoardReaderBinaryModule : public daqling::core::DAQProcess {
+class EventBuilderModule : public daqling::core::DAQProcess {
  public:
-  BoardReaderBinaryModule();
-  ~BoardReaderBinaryModule();
+  EventBuilderModule();
+  ~EventBuilderModule();
+
   void start();
   void stop();
 
   void runner();
-
- private:
-  unsigned m_board_id;
 };

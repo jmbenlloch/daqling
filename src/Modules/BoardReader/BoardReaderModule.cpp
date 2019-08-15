@@ -21,7 +21,7 @@
 #include <random>
 /// \endcond
 
-#include "BoardReaderBinaryModule.hpp"
+#include "BoardReaderModule.hpp"
 
 
 using namespace std::chrono_literals;
@@ -39,26 +39,26 @@ struct data_t {
   char payload[24000];
 } __attribute__((__packed__));
 
-BoardReaderBinaryModule::BoardReaderBinaryModule() {
+BoardReaderModule::BoardReaderModule() {
   /* INFO("Passed " << name << " " << num << " with constructor"); */
   INFO("With config: " << m_config.dump());
 
   m_board_id = m_config.getConfig()["settings"]["board_id"];
 }
 
-BoardReaderBinaryModule::~BoardReaderBinaryModule() {}
+BoardReaderModule::~BoardReaderModule() {}
 
-void BoardReaderBinaryModule::start() {
+void BoardReaderModule::start() {
   DAQProcess::start();
   INFO("getState: " << this->getState());
 }
 
-void BoardReaderBinaryModule::stop() {
+void BoardReaderModule::stop() {
   DAQProcess::stop();
   INFO("getState: " << this->getState());
 }
 
-void BoardReaderBinaryModule::runner() {
+void BoardReaderModule::runner() {
   unsigned sequence_number = 0;
   microseconds timestamp;
 

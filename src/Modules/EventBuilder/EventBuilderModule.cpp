@@ -19,28 +19,28 @@
 #include <chrono>
 /// \endcond
 
-#include "EventBuilderBinaryModule.hpp"
+#include "EventBuilderModule.hpp"
 
 
 using namespace std::chrono_literals;
 
-EventBuilderBinaryModule::EventBuilderBinaryModule() {
+EventBuilderModule::EventBuilderModule() {
   INFO("With config: " << m_config.dump() << " getState: " << this->getState());
 }
 
-EventBuilderBinaryModule::~EventBuilderBinaryModule() {}
+EventBuilderModule::~EventBuilderModule() {}
 
-void EventBuilderBinaryModule::start() {
+void EventBuilderModule::start() {
   DAQProcess::start();
   INFO("getState: " << getState());
 }
 
-void EventBuilderBinaryModule::stop() {
+void EventBuilderModule::stop() {
   DAQProcess::stop();
   INFO("getState: " << this->getState());
 }
 
-void EventBuilderBinaryModule::runner() {
+void EventBuilderModule::runner() {
   INFO("Running...");
   while (m_run) {
     daqling::utilities::Binary b1, b2;
