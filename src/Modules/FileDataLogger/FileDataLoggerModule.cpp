@@ -63,6 +63,8 @@ std::ofstream FileDataLoggerModule::FileGenerator::next()
     }
   }
 
+  DEBUG("Next generated filename is: " << ss.str());
+
   return std::ofstream(ss.str(), std::ios::binary);
 }
 
@@ -93,11 +95,10 @@ void FileDataLoggerModule::stop() {
   DAQProcess::stop();
   INFO(" getState: " << this->getState());
   m_monitor_thread.join();
-  INFO("Joined successfully monitor thread");
 }
 
 void FileDataLoggerModule::runner() {
-  INFO(" Running...");
+  DEBUG(" Running...");
 
   // Start the producer thread of each context
   for (auto &[chid, ctx] : m_channelContexts) {
@@ -118,7 +119,7 @@ void FileDataLoggerModule::runner() {
 
   while (m_run);
 
-  INFO(" Runner stopped");
+  DEBUG(" Runner stopped");
 }
 
 void FileDataLoggerModule::flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size, FileGenerator fg) const
@@ -223,6 +224,8 @@ void FileDataLoggerModule::setup() {
         FileGenerator(pattern, it->first));
   }
   assert(m_channelContexts.size() == m_channels);
+
+  DEBUG("setup finished");
 }
 
 void FileDataLoggerModule::write() { INFO(" Should write..."); }

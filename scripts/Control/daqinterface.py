@@ -54,24 +54,19 @@ def stop_check_threads():
 
 ########## main ########
 
-validation = True
 debug = False
 
 arg = "complete"
 if len(sys.argv) <= 2:
   print_help()
   quit()
-elif sys.argv[2] != 'dev':
+else:
   arg = sys.argv[2]
 
 for o in sys.argv:
   if o == '-h':
     print_help()
     quit()
-  elif o == 'dev':
-    print("Developer mode")
-    validation = False
-    debug = True
 
 with open(sys.argv[1]) as f:
   data = json.load(f)
@@ -81,9 +76,8 @@ with open(env['DAQ_CONFIG_DIR']+'json-config.schema') as f:
   schema = json.load(f)
 f.close()
 
-if validation:
-  print("Configuration Version:", data['version'])
-  validate(instance=data, schema=schema)
+print("Configuration Version:", data['version'])
+validate(instance=data, schema=schema)
 
 group = data['group']
 dir = env['DAQ_BUILD_DIR']
@@ -101,7 +95,7 @@ if arg == "remove":
   quit()
 
 if arg == 'add' or arg == 'complete':
-  log_files = dc.addProcesses(data['components'], debug)
+  log_files = dc.addProcesses(data['components'])
   # print(log_files)
   if arg == 'add':
     quit()

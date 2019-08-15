@@ -19,11 +19,12 @@
 
 #include "Core/DAQProcess.hpp"
 
-class EventBuilderModule : public daqling::core::DAQProcess {
+class DummyModule : public daqling::core::DAQProcess {
  public:
-  EventBuilderModule();
-  ~EventBuilderModule();
+  DummyModule();
+  ~DummyModule();
 
+  void configure(); // optional (configuration can be handled in the constructor)
   void start();
   void stop();
 

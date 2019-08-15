@@ -4,7 +4,6 @@ include_directories(SYSTEM ${DAQLING_DEPS_INCLUDE_DIRS})
 # Create Utils library
 add_library(DaqlingUtils SHARED
   Binary.cpp
-  Logging.cpp
 )
 
 # Link the dependencies

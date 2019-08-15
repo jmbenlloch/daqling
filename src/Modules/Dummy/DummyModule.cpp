@@ -15,7 +15,31 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Logging.hpp"
+#include "DummyModule.hpp"
 
-std::shared_ptr<spdlog::logger> daqling::utilities::Logger::logger;
+DummyModule::DummyModule() { INFO(""); }
 
+DummyModule::~DummyModule() { INFO(""); }
+
+// optional (configuration can be handled in the constructor)
+void DummyModule::configure() {
+  daqling::core::DAQProcess::configure();
+  INFO("");
+}
+
+void DummyModule::start() {
+  daqling::core::DAQProcess::start();
+  INFO("");
+}
+
+void DummyModule::stop() {
+  daqling::core::DAQProcess::stop();
+  INFO("");
+}
+
+void DummyModule::runner() {
+  INFO("Running...");
+  while (m_run) {
+  }
+  INFO("Runner stopped");
+}

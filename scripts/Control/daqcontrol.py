@@ -45,21 +45,15 @@ class daqcontrol:
       except:
         print("Exception: Couldn't get process state")
 
-  def addProcesses(self, components, debug):
+  def addProcesses(self, components):
     log_files = []
     for p in components:
       sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
       try:
-        if debug is True:
-          rv, log_file = sd.addProgramToGroup(
-              p['name'], self.exe+" "+str(p['port'])+" debug", self.dir, self.lib_path)
-          print("Add", rv)
-          log_files.append(log_file)
-        else:
-          rv, log_file = sd.addProgramToGroup(
-              p['name'], self.exe+" "+str(p['port']), self.dir, self.lib_path)
-          print("Add", rv)
-          log_files.append(log_file)
+        rv, log_file = sd.addProgramToGroup(
+            p['name'], self.exe+" "+str(p['port'])+" "+p['loglevel']['core']+" "+p['loglevel']['module'], self.dir, self.lib_path)
+        print("Add", rv)
+        log_files.append(log_file)
       except:
         print("Exception:\n  cannot add program", p['name'], "(probably already added)")
     return log_files
