@@ -21,13 +21,13 @@
 #include <ctime>
 /// \endcond
 
-#include "FileDataLoggerModule.hpp"
+#include "FileDataWriterModule.hpp"
 #include "Utils/Logging.hpp"
 
 using namespace std::chrono_literals;
 namespace daqutils = daqling::utilities;
 
-std::ofstream FileDataLoggerModule::FileGenerator::next()
+std::ofstream FileDataWriterModule::FileGenerator::next()
 {
 
   const auto handle_arg = [this](char c) -> std::string {
@@ -68,7 +68,7 @@ std::ofstream FileDataLoggerModule::FileGenerator::next()
   return std::ofstream(ss.str(), std::ios::binary);
 }
 
-FileDataLoggerModule::FileDataLoggerModule()
+FileDataWriterModule::FileDataWriterModule()
   : m_stopWriters{false}, m_bytes_sent{0} {
 
   INFO(__METHOD_NAME__);
@@ -79,25 +79,25 @@ FileDataLoggerModule::FileDataLoggerModule()
   setup();
 }
 
-FileDataLoggerModule::~FileDataLoggerModule() {
+FileDataWriterModule::~FileDataWriterModule() {
   INFO(__METHOD_NAME__);
   // Tear down resources...
   m_stopWriters.store(true);
 }
 
-void FileDataLoggerModule::start() {
+void FileDataWriterModule::start() {
   DAQProcess::start();
   INFO(" getState: " << getState());
-  m_monitor_thread = std::thread(&FileDataLoggerModule::monitor_runner, this);
+  m_monitor_thread = std::thread(&FileDataWriterModule::monitor_runner, this);
 }
 
-void FileDataLoggerModule::stop() {
+void FileDataWriterModule::stop() {
   DAQProcess::stop();
   INFO(" getState: " << this->getState());
   m_monitor_thread.join();
 }
 
-void FileDataLoggerModule::runner() {
+void FileDataWriterModule::runner() {
   DEBUG(" Running...");
 
   // Start the producer thread of each context
@@ -122,7 +122,7 @@ void FileDataLoggerModule::runner() {
   DEBUG(" Runner stopped");
 }
 
-void FileDataLoggerModule::flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size, FileGenerator fg) const
+void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size, FileGenerator fg) const
 {
   size_t bytes_written = 0;
   std::ofstream out = fg.next();
@@ -196,7 +196,7 @@ void FileDataLoggerModule::flusher(const uint64_t chid, PayloadQueue &pq, const 
   }
 }
 
-void FileDataLoggerModule::setup() {
+void FileDataWriterModule::setup() {
   // Read out required and optional configurations
   m_max_filesize = m_config.getConfig()["settings"].value("max_filesize", 1 * daqutils::Constant::Giga);
   const size_t buffer_size = m_config.getConfig()["settings"].value("buffer_size", 4 * daqutils::Constant::Kilo);
@@ -217,7 +217,7 @@ void FileDataLoggerModule::setup() {
     assert(success);
 
     // Start the context's consumer thread.
-    std::get<ThreadContext>(it->second).consumer.set_work(&FileDataLoggerModule::flusher, this,
+    std::get<ThreadContext>(it->second).consumer.set_work(&FileDataWriterModule::flusher, this,
         it->first,
         std::ref(std::get<PayloadQueue>(it->second)),
         buffer_size,
@@ -228,18 +228,18 @@ void FileDataLoggerModule::setup() {
   DEBUG("setup finished");
 }
 
-void FileDataLoggerModule::write() { INFO(" Should write..."); }
+void FileDataWriterModule::write() { INFO(" Should write..."); }
 
-bool FileDataLoggerModule::write(uint64_t, daqling::utilities::Binary&) {
+bool FileDataWriterModule::write(uint64_t, daqling::utilities::Binary&) {
   INFO(" Should write...");
   return false;
 }
 
-void FileDataLoggerModule::read() {}
+void FileDataWriterModule::read() {}
 
-void FileDataLoggerModule::shutdown() {}
+void FileDataWriterModule::shutdown() {}
 
-void FileDataLoggerModule::monitor_runner() {
+void FileDataWriterModule::monitor_runner() {
   while (m_run) {
     std::this_thread::sleep_for(1s);
     INFO("Write throughput: " << static_cast<double>(m_bytes_sent) / 1000000 << " MBytes/s");

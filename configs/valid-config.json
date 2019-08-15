@@ -76,10 +76,10 @@
       }
     },
     {
-      "name": "filedatalogger01",
+      "name": "filedatawriter01",
       "host": "localhost",
       "port": 5558,
-      "type": "FileDataLogger",
+      "type": "FileDataWriter",
       "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
         "ring": "127.0.0.1",

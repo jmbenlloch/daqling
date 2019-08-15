@@ -32,15 +32,15 @@
 #include "Utils/ProducerConsumerQueue.hpp"
 
 /*
- * FileDataLoggerModule
+ * FileDataWriterModule
  * Description: Data logger for binary files with fstream.
  *   Relies on fixed size file IO with Binary splitting and concatenation.
  * Date: April 2019
  */
-class FileDataLoggerModule : public daqling::core::DAQProcess, public daqling::core::DataLogger {
+class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::core::DataLogger {
  public:
-  FileDataLoggerModule();
-  ~FileDataLoggerModule();
+  FileDataWriterModule();
+  ~FileDataWriterModule();
 
   void start();
   void stop();
