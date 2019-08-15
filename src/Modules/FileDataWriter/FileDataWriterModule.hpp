@@ -87,6 +87,7 @@ class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::c
   // Metrics
   mutable std::atomic<int> m_bytes_written;
   mutable std::atomic<size_t> m_payload_queue_size;
+  mutable std::atomic<size_t> m_payload_queue_bytes;
 
   // Internals
   void flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size, FileGenerator fg) const;

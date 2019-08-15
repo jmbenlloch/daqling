@@ -69,7 +69,7 @@ std::ofstream FileDataWriterModule::FileGenerator::next()
 }
 
 FileDataWriterModule::FileDataWriterModule()
-  : m_stopWriters{false}, m_bytes_written{0}, m_payload_queue_size{0} {
+  : m_stopWriters{false}, m_bytes_written{0}, m_payload_queue_size{0}, m_payload_queue_bytes{0} {
 
   INFO(__METHOD_NAME__);
 
@@ -93,6 +93,7 @@ void FileDataWriterModule::start() {
 
   m_statistics->registerVariable<std::atomic<int>, int>(&m_bytes_written, "DL_BytesWritten", daqling::core::metrics::RATE, daqling::core::metrics::INT);
   m_statistics->registerVariable<std::atomic<size_t>, size_t>(&m_payload_queue_size, "DL_PayloadQueueSize", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
+  m_statistics->registerVariable<std::atomic<size_t>, size_t>(&m_payload_queue_bytes, "DL_PayloadQueueBytes", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
 }
 
 void FileDataWriterModule::stop() {
@@ -120,6 +121,7 @@ void FileDataWriterModule::runner() {
 
         DEBUG(" Received " << pl.size() << "B payload on channel: " << chid);
         while (!pq.write(pl) && m_run); // try until successful append
+        m_payload_queue_bytes += pl.size();
       }
     });
   }
