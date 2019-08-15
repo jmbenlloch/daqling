@@ -69,7 +69,7 @@ std::ofstream FileDataWriterModule::FileGenerator::next()
 }
 
 FileDataWriterModule::FileDataWriterModule()
-  : m_stopWriters{false}, m_bytes_sent{0} {
+  : m_stopWriters{false}, m_bytes_sent{0}, m_payload_queue_size{0} {
 
   INFO(__METHOD_NAME__);
 
@@ -88,7 +88,11 @@ FileDataWriterModule::~FileDataWriterModule() {
 void FileDataWriterModule::start() {
   DAQProcess::start();
   INFO(" getState: " << getState());
+
   m_monitor_thread = std::thread(&FileDataWriterModule::monitor_runner, this);
+
+  m_statistics->registerVariable<std::atomic<int>, int>(&m_bytes_sent, "DL_BytesSent", daqling::core::metrics::RATE, daqling::core::metrics::INT);
+  m_statistics->registerVariable<std::atomic<size_t>, size_t>(&m_payload_queue_size, "DL_PayloadQueueSize", daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
 }
 
 void FileDataWriterModule::stop() {
@@ -108,6 +112,9 @@ void FileDataWriterModule::runner() {
       while (m_run) {
         daqutils::Binary pl(0);
         while (!m_connections.get(chid, std::ref(pl)) && m_run) {
+          if (chid == 1) {
+            m_payload_queue_size += pq.sizeGuess();
+          }
           std::this_thread::sleep_for(1ms);
         }
 
@@ -134,7 +141,9 @@ void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const 
         CRITICAL(" Write operation for channel " << chid << " of size " << data.size() << "B failed!");
         throw std::runtime_error("std::ofstream::fail()");
     }
-    m_bytes_sent += data.size();
+    if (chid == 1) {
+        m_bytes_sent += data.size();
+    }
     bytes_written += data.size();
     data = daqutils::Binary(0);
   };
@@ -242,7 +251,6 @@ void FileDataWriterModule::shutdown() {}
 void FileDataWriterModule::monitor_runner() {
   while (m_run) {
     std::this_thread::sleep_for(1s);
-    INFO("Write throughput: " << static_cast<double>(m_bytes_sent) / 1000000 << " MBytes/s");
-    m_bytes_sent = 0;
+    INFO("Write throughput (channel 1): " << static_cast<double>(m_bytes_sent) / 1000000 << " MBytes/s");
   }
 }

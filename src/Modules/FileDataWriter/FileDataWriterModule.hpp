@@ -84,10 +84,13 @@ class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::c
   // Thread control
   std::atomic<bool> m_stopWriters;
 
+  // Metrics
+  mutable std::atomic<int> m_bytes_sent;
+  mutable std::atomic<size_t> m_payload_queue_size;
+
   // Internals
   void flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size, FileGenerator fg) const;
   std::map<uint64_t, Context> m_channelContexts;
-  mutable std::atomic<int> m_bytes_sent;
   std::thread m_monitor_thread;
 
 };
