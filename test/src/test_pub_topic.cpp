@@ -18,6 +18,7 @@
 #include <chrono>
 #include <thread>
 #include "Utils/zhelpers.hpp"
+#include "Utils/Logging.hpp"
 
 struct data_t {
   uint8_t tag;

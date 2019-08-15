@@ -38,8 +38,17 @@ macro(daqling_module name)
     set_property(SOURCE "${PROJECT_SOURCE_DIR}/src/Core/dynamic_module_impl.cpp" APPEND PROPERTY OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_daqling_module_class}.hpp")
 endmacro()
 
+macro(daqling_executable name)
+    # Define the executable
+    add_executable(${name} "")
+
+    # Add the required logging symbols
+    target_compile_definitions(${name} PRIVATE DAQLING_EXECUTABLE_NAME=${name})
+    target_sources(${name} PRIVATE "${PROJECT_SOURCE_DIR}/src/Core/logging_instance_impl.cpp")
+endmacro()
+
 # Add sources to the module
-macro(daqling_module_sources name)
+macro(daqling_target_sources name)
     # Get the list of sources
     set(_list_var "${ARGN}")
     list(REMOVE_ITEM _list_var ${name})
@@ -52,9 +61,8 @@ macro(daqling_module_sources name)
 endmacro()
 
 # Provide default install target for the module
-macro(daqling_module_install name)
+macro(daqling_target_install name)
     install(TARGETS ${name}
-        COMPONENT modules
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)

@@ -53,7 +53,9 @@ public:
   ~ConnectionManager() {
     m_stop_handlers = true;
     m_stop_cmd_handler = true;
-    m_cmd_handler.join();
+    if (m_cmd_handler.joinable()) {
+        m_cmd_handler.join();
+    }
   }
 
 

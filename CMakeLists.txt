@@ -102,6 +102,7 @@ if(CERN_ENVIRONMENT)
   include_directories(SYSTEM /opt/json/single_include)
   include_directories(SYSTEM /opt/cpr/include)
   include_directories(SYSTEM /opt/libzmq/include)
+  include_directories(SYSTEM /opt/hedley)
 
   link_directories(/opt/cpr/build/lib)
   link_directories(/opt/libzmq/build/lib)
@@ -120,6 +121,7 @@ else()
   include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cpr/include)
   include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/zmq/include)
   include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cppzmq)
+  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/hedley)
 
   set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} libzmq)
 endif()
@@ -135,6 +137,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function")
 
 # Set some debug flags
 if(CMAKE_BUILD_TYPE MATCHES Debug AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -U_FORTIFY_SOURCE")
+
     message(STATUS "Running debug build, adding extra sanitizer flags")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined")
 endif()
