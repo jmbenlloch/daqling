@@ -9,8 +9,12 @@ project(${PACKAGE} VERSION ${PACKAGE_VERSION}
 
 # Set default build type
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build. Options are: Debug RelWithDebInfo" FORCE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build. Options are: Debug Release" FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
+
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug" AND NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+  message(FATAL_ERROR "Build type not recognized. Options are: Debug Release")
+endif()
 
 # Print version
 message(STATUS "Building ${PACKAGE} version ${PACKAGE_VERSION}")
