@@ -115,6 +115,20 @@ Binary::~Binary() noexcept
   }
 }
 
+Binary& Binary::operator=(Binary&& rhs) noexcept
+{
+  if (this == &rhs) {
+    return *this;
+  }
+
+  std::free(m_data);
+  m_data = std::exchange(rhs.m_data, nullptr);
+  m_size = std::exchange(rhs.m_size, 0);
+  m_error = std::exchange(rhs.m_error, false);
+
+  return *this;
+}
+
 Binary& Binary::operator=(const Binary& rhs) noexcept
 {
   assert(!m_error);

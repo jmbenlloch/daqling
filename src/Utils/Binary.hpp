@@ -56,6 +56,9 @@ namespace daqling::utilities {
     /// Assignment operator
     Binary& operator=(const Binary& rhs) noexcept;
 
+    /// Assignment operator
+    Binary& operator=(Binary&& rhs) noexcept;
+
     /// Appends the data of another blob
     Binary& operator+=(const Binary& rhs) noexcept;
 

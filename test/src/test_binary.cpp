@@ -36,5 +36,9 @@ int main(int, char*[])
         bc += bb;
         bc += bb;
         assert(std::strncmp("some stringsome string", bc.data<char*>(), std::strlen(str) * 2) == 0);
+
+        ba = std::move(bc);
+        assert(std::strncmp("some stringsome string", ba.data<char*>(), std::strlen(str) * 2) == 0);
+        assert(bc.data() == nullptr);
     }
 }
