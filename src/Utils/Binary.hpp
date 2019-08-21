@@ -26,6 +26,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <type_traits>
 
 namespace daqling::utilities {
 
@@ -64,17 +65,20 @@ namespace daqling::utilities {
         return !this->operator==(rhs);
     }
 
-    // TODO: make template
     /// Returns the internally stored data
-    const void* data() const noexcept
+    template<typename T = void*>
+    const T data() const noexcept
     {
-        return m_data;
+        static_assert(std::is_pointer<T>(), "Type parameter must be a pointer type");
+        return static_cast<T>(m_data);
     }
 
     /// Returns the internally stored data
-    void* data() noexcept
+    template<typename T = void*>
+    T data() noexcept
     {
-        return m_data;
+        static_assert(std::is_pointer<T>(), "Type parameter must be a pointer type");
+        return static_cast<T>(m_data);
     }
 
     /// Current size of the blob
@@ -117,7 +121,7 @@ inline std::ostream& operator<<(std::ostream& out, const daqling::utilities::Bin
 {
   for (size_t i = 0; i < rhs.size(); i++) {
     std::cout << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(*(static_cast<const unsigned char*>(rhs.data()) + i)) << std::dec;
+              << static_cast<int>(*(rhs.data<const unsigned char*>() + i)) << std::dec;
     if (i % 4 == 3)
     {
       if (i % 16 == 15)
