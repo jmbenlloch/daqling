@@ -27,6 +27,9 @@
 #include <iostream>
 #include <iomanip>
 #include <type_traits>
+#include <cctype>
+#include <functional>
+#include <algorithm>
 
 namespace daqling::utilities {
 
@@ -117,26 +120,47 @@ namespace daqling::utilities {
 
 } // namespace daqling::utilities
 
-inline std::ostream& operator<<(std::ostream& out, const daqling::utilities::Binary& rhs)
+/// xxd(1)-like output representation of a `Binary`
+inline std::ostream& operator<<(std::ostream &out, const daqling::utilities::Binary &rhs)
 {
-  for (size_t i = 0; i < rhs.size(); i++) {
-    std::cout << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(*(rhs.data<const unsigned char*>() + i)) << std::dec;
-    if (i % 4 == 3)
-    {
-      if (i % 16 == 15)
-      {
-        std::cout << "\n";
-      }
-      else
-      {
-        std::cout << " ";
-      }
+    for (size_t i = 0; i < rhs.size(); i++) {
+        const bool newline_prefix = i % 16 == 0;
+        const bool newline = (i + 1) % 16 == 0;
+        const bool seperate = (i + 1) % 2 == 0;
+        const bool last_byte = i == rhs.size() - 1;
+
+        auto c = rhs.data<uint8_t*>() + i;
+
+        if (newline_prefix) {
+            // Print offset
+            out << std::hex << std::setw(8) << std::setfill('0') << i << ": ";
+        }
+
+        // Print a line of byte pairs
+        out << std::hex << std::setw(2) << std::setfill('0')
+            << static_cast<int>(*c)
+            << (seperate ? " " : "");
+
+        if (newline || last_byte) {
+            const auto str = std::invoke([c, i]() {
+                std::locale loc("C");
+                std::string str(c - i % 16, c);
+
+                // Replace unprintable characters with a '.'
+                std::replace_if(str.begin(), str.end(), [&loc](auto c) { return !std::isprint(c, loc); }, '.');
+
+                return std::move(str);
+            });
+
+            // Print the character string representation of the byte line
+            const size_t blanks = 40 // byte line length
+                - (i % 16 + 1) * 2 // space taken up by byte pairs
+                - (i % 16) / 2; // space taken up by spacing between byte pairs
+            out << std::string(blanks, ' ') << str << '\n';
+        }
     }
-  }
-  std::cout << "\n";
-  return out;
+
+    return out;
 }
 
 #endif // DAQ_UTILITIES_BINARY_HPP
-
