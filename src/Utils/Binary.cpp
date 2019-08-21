@@ -65,12 +65,7 @@ void* Binary::memcpy(void *dest, const void *src, const size_t n) noexcept
 }
 
 Binary::Binary() noexcept
-  : Binary(0)
-{
-}
-
-Binary::Binary(const size_t size) noexcept
-  : m_size{size}
+  : m_size{0}
 {
   this->malloc(m_size);
 }

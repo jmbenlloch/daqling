@@ -106,7 +106,7 @@ void FileDataWriterModule::runner() {
       auto &pq = std::get<PayloadQueue>(ctx);
 
       while (m_run) {
-        daqutils::Binary pl(0);
+        daqutils::Binary pl;
         while (!m_connections.get(chid, std::ref(pl)) && m_run) {
           std::this_thread::sleep_for(1ms);
         }
@@ -126,7 +126,7 @@ void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const 
 {
   size_t bytes_written = 0;
   std::ofstream out = fg.next();
-  auto buffer = daqutils::Binary(0);
+  auto buffer = daqutils::Binary();
 
   const auto flush = [&](daqutils::Binary &data) {
     out.write(static_cast<char *>(data.data()), static_cast<std::streamsize>(data.size()));
@@ -136,7 +136,7 @@ void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const 
     }
     m_bytes_sent += data.size();
     bytes_written += data.size();
-    data = daqutils::Binary(0);
+    data = daqutils::Binary();
   };
 
   while (!m_stopWriters) {

@@ -37,9 +37,6 @@ namespace daqling::utilities {
     /// Default Constructor. Creates an empty BLOB
     Binary() noexcept;
 
-    /// Constructor initializing a BLOB with `size` bytes
-    explicit Binary(const size_t size) noexcept;
-
     // Constructor initializing a BLOB with `size` bytes from `data`
     explicit Binary(const void* data, const size_t size) noexcept;
 
@@ -94,7 +91,6 @@ namespace daqling::utilities {
     }
 
   private:
-
     /// Extends the BLOB by `size` additional bytes
     void extend(const size_t size) noexcept;
 
