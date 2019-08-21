@@ -132,7 +132,7 @@ Binary& Binary::operator=(const Binary& rhs) noexcept
       this->memcpy(m_data, rhs.m_data, rhs.m_size);
     } else {
       // No data in rhs; free this.
-      std::free(m_data);
+      std::free(std::exchange(m_data, nullptr));
     }
   } else {
     // No memory allocated; allocate.
