@@ -63,6 +63,12 @@ class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::c
   using PayloadQueue = folly::ProducerConsumerQueue<daqling::utilities::Binary>;
   using Context = std::tuple<PayloadQueue, ThreadContext>;
 
+  struct Metrics {
+    std::atomic<size_t> bytes_written = 0;
+    std::atomic<size_t> payload_queue_size = 0;
+    std::atomic<size_t> payload_queue_bytes = 0;
+  };
+
   /*
    * A wrapper around a printf-like output file generator.
    */
@@ -85,9 +91,7 @@ class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::c
   std::atomic<bool> m_stopWriters;
 
   // Metrics
-  mutable std::atomic<size_t> m_bytes_written;
-  mutable std::atomic<size_t> m_payload_queue_size;
-  mutable std::atomic<size_t> m_payload_queue_bytes;
+  mutable std::map<uint64_t, Metrics> m_channelMetrics;
 
   // Internals
   void flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size, FileGenerator fg) const;
