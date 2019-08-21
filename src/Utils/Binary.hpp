@@ -21,16 +21,13 @@
 /*
  * Binary
  * Description:
- *   A really nice void* wrapper from CORAL
- *   https://twiki.cern.ch/twiki/bin/view/Persistency/Coral 
- * Date: May 2018
-*/
+ *   A convenient void* wrapper, representing dynamically sized, continous memory area.
+ */
 
 #include <iostream>
 #include <iomanip>
 
-namespace daqling {
-namespace utilities {
+namespace daqling::utilities {
 
   class Binary
   {
@@ -38,49 +35,75 @@ namespace utilities {
   public:
 
     /// Default Constructor. Creates an empty BLOB
-    Binary();
+    Binary() noexcept;
 
-    /// Constructor initializing a BLOB with initialSize bytes
-    explicit Binary( size_t initialSizeInBytes );
+    /// Constructor initializing a BLOB with `size` bytes
+    explicit Binary(const size_t size) noexcept;
 
-    explicit Binary( const void* data, size_t size );
+    // Constructor initializing a BLOB with `size` bytes from `data`
+    explicit Binary(const void* data, const size_t size) noexcept;
 
-    /// Destructor. Frees internally allocated memory
-    ~Binary();
+    /// Destructor. Frees internally allocated memory, if any
+    ~Binary() noexcept;
 
     /// Copy constructor
-    Binary( const Binary& rhs );
+    explicit Binary(const Binary& rhs) noexcept;
+
+    /// Move constructor
+    explicit Binary(Binary&& rhs) noexcept;
 
     /// Assignment operator
-    Binary& operator=( const Binary& rhs );
+    Binary& operator=(const Binary& rhs) noexcept;
 
     /// Appends the data of another blob
-    Binary& operator+=( const Binary& rhs );
+    Binary& operator+=(const Binary& rhs) noexcept;
 
     /// Equal operator. Compares the contents of the binary blocks
-    bool operator==( const Binary& rhs ) const;
+    bool operator==(const Binary& rhs) const noexcept;
 
     /// Comparison operator
-    bool operator!=( const Binary& rhs ) const;
+    inline bool operator!=(const Binary& rhs) const noexcept
+    {
+        return !this->operator==(rhs);
+    }
 
-    /// Returns the starting address of the BLOB
-    const void* startingAddress() const;
+    // TODO: make template
+    /// Returns the internally stored data
+    const void* data() const noexcept
+    {
+        return m_data;
+    }
 
-    /// Returns the starting address of the BLOB
-    void* startingAddress();
-
-    const void* data() const;
+    /// Returns the internally stored data
+    void* data() noexcept
+    {
+        return m_data;
+    }
 
     /// Current size of the blob
-    size_t size() const;
+    size_t size() const noexcept
+    {
+        return m_size;
+    }
 
-    /// Extends the BLOB by additionalSizeInBytes
-    void extend( size_t additionalSizeInBytes );
-
-    /// Resizes a BLOB to sizeInBytes
-    void resize( size_t sizeInBytes );
+    /// Returns whether or not the Binary is in a usable state or if an error occured
+    [[nodiscard]]
+    bool good() const noexcept
+    {
+        return !m_error;
+    }
 
   private:
+
+    /// Extends the BLOB by `size` additional bytes
+    void extend(const size_t size) noexcept;
+
+    /// Resizes a BLOB to `size` total bytes
+    void resize(const size_t size) noexcept;
+
+    bool malloc(const size_t size) noexcept;
+    bool realloc(const size_t size) noexcept;
+    void* memcpy(void *dest, const void *src, const size_t n) noexcept;
 
     /// The current size of the BLOB
     size_t m_size;
@@ -88,17 +111,11 @@ namespace utilities {
     /// The BLOB data buffer
     void* m_data;
 
+    /// Allocation error flag
+    bool m_error;
   };
 
-} // namespace utilities
-} // namespace daqling
-
-// Inline methods
-inline bool
-daqling::utilities::Binary::operator!=( const Binary& rhs ) const
-{
-  return ( ! ( this->operator==( rhs ) ) );
-}
+} // namespace daqling::utilities
 
 inline std::ostream& operator<<(std::ostream& out, const daqling::utilities::Binary& rhs)
 {

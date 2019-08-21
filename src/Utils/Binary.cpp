@@ -17,175 +17,194 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <cassert>
+#include <cstdint>
+#include <functional>
 #include "Binary.hpp"
-#include "Logging.hpp"
-
 
 using namespace daqling::utilities;
 
-Binary::Binary()
-  : m_size( 0 )
-  , m_data( nullptr )
+bool Binary::malloc(const size_t size) noexcept
+{
+  m_data = std::malloc(size);
+  m_error = !m_data && size > 0;
+  if (!m_error) {
+      m_size = size;
+  }
+  return !m_error;
+}
+
+bool Binary::realloc(const size_t size) noexcept
+{
+  void* new_data = std::realloc(m_data, size);
+
+  if (!new_data && size > 0) {
+    m_error = true;
+    return m_error;
+  }
+
+  m_data = new_data;
+  m_size = size;
+
+  return !m_error;
+}
+
+void* Binary::memcpy(void *dest, const void *src, const size_t n) noexcept
+{
+  assert(dest && src);
+
+  // Ensure that memory areas do not overlap (undefined behavior; memmove(3) should be used instead)
+  assert(std::invoke([src = reinterpret_cast<uintptr_t>(src), dest = reinterpret_cast<uintptr_t>(dest), n]() {
+    const auto minimum_area = 2 * n,
+      utilized_area = std::max(src, dest) + n - std::min(src, dest);
+
+    return utilized_area >= minimum_area;
+  }));
+
+  return std::memcpy(dest, src, n);
+}
+
+Binary::Binary() noexcept
+  : Binary(0)
 {
 }
 
-
-Binary::Binary( size_t initialSizeInBytes )
-  : m_size( initialSizeInBytes )
+Binary::Binary(const size_t size) noexcept
+  : m_size{size}
 {
-  m_data = ::malloc( m_size ); // Fix Coverity NEGATIVE_RETURNS
-  if ( (!m_data) && m_size>0 )
-    ERROR("::malloc failed!");
+  this->malloc(m_size);
 }
 
-Binary::Binary( const void* data, size_t size )
-  : m_size( size )
+Binary::Binary(const void* data, const size_t size) noexcept
+  : m_size{size}
 {
-  m_data = ::malloc( m_size ); // Fix Coverity NEGATIVE_RETURNS
-  ::memcpy( startingAddress(), data, size );
+  if (!data) {
+    // XXX: not an allocation error (invalid argument)
+    m_error = true;
+    return;
+  }
+
+  if(!this->malloc(m_size) || m_size == 0) {
+    return;
+  }
+
+  this->memcpy(m_data, data, size);
 }
 
-
-Binary::~Binary()
+Binary::Binary(const Binary& rhs) noexcept
+  : m_size{rhs.m_size}, m_data{nullptr}
 {
-  if ( m_data ) ::free( m_data );
+  if (!rhs.m_data) {
+    m_error = true;
+    return;
+  }
+
+  if (!this->malloc(m_size) || m_size == 0) {
+    return;
+  }
+
+  this->memcpy(m_data, rhs.m_data, m_size);
 }
 
-
-const void*
-Binary::startingAddress() const
+Binary::Binary(Binary&& rhs) noexcept
+  : m_size{std::exchange(rhs.m_size, 0)},
+  m_data{std::exchange(rhs.m_data, nullptr)},
+  m_error{std::exchange(rhs.m_error, false)}
 {
-  return m_data;
 }
 
-
-void*
-Binary::startingAddress()
+Binary::~Binary() noexcept
 {
-  return m_data;
-}
-
-
-const void* 
-Binary::data() const
-{
-  if(!m_data)
-    ERROR("Binary data can't be accessed.");
-  return startingAddress();
-}
-
-size_t
-Binary::size() const
-{
-  return m_size;
-}
-
-
-void
-Binary::extend( size_t additionalSizeInBytes )
-{
-  m_data = ::realloc( m_data, m_size + additionalSizeInBytes );
-  m_size += additionalSizeInBytes;
-  if ( (!m_data) && m_size>0 )
-    ERROR("::realloc failed!");
-}
-
-
-void
-Binary::resize( size_t sizeInBytes )
-{
-  if ( sizeInBytes != m_size )
-  {
-    m_data = ::realloc( m_data, sizeInBytes );
-    m_size = sizeInBytes;
-    if ( (!m_data) && m_size>0 )
-      ERROR("::realloc failed");
-
+  if (m_data) {
+    std::free(m_data);
   }
 }
 
-
-Binary::Binary( const Binary& rhs )
-  : m_size( rhs.m_size )
-  , m_data( nullptr )
+Binary& Binary::operator=(const Binary& rhs) noexcept
 {
-  if ( m_size > 0 )
-  {
-    m_data = ::malloc( m_size );
-    if ( (!m_data) && m_size>0 )
-      ERROR("::malloc failed");
-
-    m_data = ::memcpy( m_data, rhs.m_data, m_size );
+  assert(!m_error);
+  if (this == &rhs) {
+    return *this;
   }
-}
 
+  if (m_data) {
+    // Memory already allocated; reallocate.
+    if (rhs.m_size > 0) {
+      if (!this->realloc(rhs.m_size)) {
+        return *this;
+      }
 
-Binary&
-Binary::operator=( const Binary& rhs )
-{
-  if ( this == &rhs ) return *this;  // Fix Coverity SELF_ASSIGN
-
-  if ( m_data ) // check that old data is non-0 (instead of old m_size != 0)
-  {
-    if ( ( rhs.m_size > 0 )
-         && rhs.m_data ) // unnecessary: try to silence Coverity MISSING_ASSIGN
-    {
-      m_data = ::realloc( m_data, rhs.m_size ); // realloc old (non-0) data
-      if ( (!m_data) )
-        ERROR("::realloc failed");
-
-      ::memcpy( m_data, rhs.m_data, rhs.m_size );
+      this->memcpy(m_data, rhs.m_data, rhs.m_size);
+    } else {
+      // No data in rhs; free this.
+      std::free(m_data);
     }
-    else
-    {
-      ::free( m_data ); // free and zero old (non-0) data
-      m_data = nullptr;
+  } else {
+    // No memory allocated; allocate.
+    if (rhs.m_size > 0) {
+      if (!this->malloc(rhs.m_size)) {
+        return *this;
+      }
+
+      this->memcpy(m_data, rhs.m_data, rhs.m_size);
     }
   }
-  else // old data was 0
-  {
-    if ( ( rhs.m_size > 0 ) // Fix Coverity FORWARD_NULL (no memcpy if size<=0)
-         && rhs.m_data ) // unnecessary: try to silence Coverity MISSING_ASSIGN
-    {
-      m_data = ::malloc( rhs.m_size ); // malloc new data (old was 0)
-      if ( (!m_data) )
-        ERROR("::malloc failed");
 
-      ::memcpy( m_data, rhs.m_data, rhs.m_size );
-    }
-    else
-    {
-      // nothing to do, old data was 0 and new data is still 0
-    }
-  }
-  m_size = rhs.m_size; // finally set the size here
+  m_size = rhs.m_size;
   return *this;
 }
 
-
-Binary&
-Binary::operator+=( const Binary& rhs )
+Binary& Binary::operator+=(const Binary& rhs) noexcept
 {
-  size_t initialSize = m_size;
-  this->extend( rhs.size() );
-  if (rhs.size() > 0) {
-    // Is size is zero `rhs.m_data` is NULL
-    ::memcpy( static_cast<char*>(m_data) + initialSize, rhs.m_data, rhs.size() );
+  assert(!m_error);
+
+  if (rhs.m_size > 0) {
+    const size_t old_size = m_size;
+    this->extend(rhs.m_size);
+    if (m_error) {
+      return *this;
+    }
+
+    this->memcpy(static_cast<char*>(m_data) + old_size, rhs.m_data, rhs.size());
   }
+
   return *this;
 }
 
-
-bool
-Binary::operator==( const Binary& rhs ) const
+bool Binary::operator==(const Binary& rhs) const noexcept
 {
-  if ( m_size != rhs.m_size ) return false;
-  if ( m_size == 0 ) return true;
-  const unsigned char* thisData = static_cast<const unsigned char*>(m_data);
-  const unsigned char* rhsData = static_cast<const unsigned char*>(rhs.m_data);
-  for ( size_t i = 0; i < m_size; ++i, ++thisData, ++rhsData )
-    if ( *thisData != *rhsData )
+  if (m_size != rhs.m_size) return false;
+  if (m_size == 0) return true; // both are empty
+
+  auto a = static_cast<char*>(m_data);
+  auto b = static_cast<char*>(rhs.m_data);
+
+  for (size_t i = 0; i < m_size; i++, a++, b++) {
+    if (*a != *b) {
       return false;
+    }
+  }
+
   return true;
 }
 
+void Binary::extend(const size_t size) noexcept
+{
+  assert(!m_error);
+  if (!m_data) {
+    m_error = true;
+    return;
+  }
+
+  this->realloc(m_size + size);
+}
+
+void Binary::resize(const size_t size) noexcept
+{
+  assert(!m_error);
+  if (!m_data || size == m_size) {
+    return;
+  }
+
+  this->realloc(size);
+}

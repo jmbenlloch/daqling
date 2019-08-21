@@ -129,7 +129,7 @@ void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const 
   auto buffer = daqutils::Binary(0);
 
   const auto flush = [&](daqutils::Binary &data) {
-    out.write(static_cast<char *>(data.startingAddress()), static_cast<std::streamsize>(data.size()));
+    out.write(static_cast<char *>(data.data()), static_cast<std::streamsize>(data.size()));
     if (out.fail()) {
         CRITICAL(" Write operation for channel " << chid << " of size " << data.size() << "B failed!");
         throw std::runtime_error("std::ofstream::fail()");
@@ -166,8 +166,8 @@ void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const 
       assert(tail_len > 0);
 
       // Split the payload into a head and a tail
-      daqutils::Binary head(payload->startingAddress(), split_offset);
-      daqutils::Binary tail(static_cast<char *>(payload->startingAddress()) + split_offset, tail_len);
+      daqutils::Binary head(payload->data(), split_offset);
+      daqutils::Binary tail(static_cast<char *>(payload->data()) + split_offset, tail_len);
       DEBUG(" -> head length: " << head.size() << "; tail length: " << tail.size());
       assert(head.size() + tail.size() == payload->size());
 
@@ -176,8 +176,8 @@ void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const 
 
       // Flush the tail until it is small enough to fit in the buffer
       while (tail_len > max_buffer_size) {
-        daqutils::Binary body(tail.startingAddress(), max_buffer_size);
-        daqutils::Binary next_tail(static_cast<char *>(tail.startingAddress())
+        daqutils::Binary body(tail.data(), max_buffer_size);
+        daqutils::Binary next_tail(static_cast<char *>(tail.data())
                 + max_buffer_size, tail_len - max_buffer_size);
         assert(body.size() + next_tail.size() == tail.size());
         flush(body);
