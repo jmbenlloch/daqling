@@ -66,6 +66,7 @@ class Command : public daqling::utilities::Singleton<Command> {
   std::vector<std::function<void()>> m_commandFunctors;
 
   void stop_and_notify() {
+    WARNING("Shutting down...");
     std::lock_guard<std::mutex> lk(m_mtx);
     m_should_stop = true;
     m_cv.notify_one();
