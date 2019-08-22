@@ -16,7 +16,7 @@
           {
             "type": "pubsub",
             "chid": 1,
-            "transport": "tpc",
+            "transport": "tcp",
             "host": "*",
             "port": 8101
           }
@@ -37,7 +37,7 @@
           {
             "type": "pair",
             "chid": 1,
-            "transport": "tpc",
+            "transport": "tcp",
             "host": "*",
             "port": 8102
           }
@@ -57,14 +57,14 @@
           {
             "type": "pubsub",
             "chid": 1,
-            "transport": "tpc",
+            "transport": "tcp",
             "host": "localhost",
             "port": 8101
           },
           {
             "type": "pair",
             "chid": 2,
-            "transport": "tpc",
+            "transport": "tcp",
             "host": "localhost",
             "port": 8102
           }
