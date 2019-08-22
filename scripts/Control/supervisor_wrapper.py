@@ -46,6 +46,7 @@ class supervisor_wrapper:
         'command': dir+exe,
         'directory': dir,
         'autorestart': 'false',
+        'startretries': '0',
         'environment': env,
         'user': user,
         'stdout_logfile': log_file,

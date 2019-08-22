@@ -98,13 +98,6 @@ bool ConnectionManager::setupStatsConnection(uint8_t ioT, std::string connStr) {
   return true;
 }
 
-bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, uint16_t, std::string host,
-                                   uint16_t port, size_t queueSize, bool) {
-  std::ostringstream connStr;
-  connStr << "tcp://" << host << ":" << port;
-  return addChannel(chn, dir, connStr.str(), queueSize);
-}
-
 bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, const std::string& connStr,
                                    size_t queueSize) {
   // subscriber socket is an exception, as it can be connected to multiple endpoints

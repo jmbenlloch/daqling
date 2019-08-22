@@ -74,8 +74,6 @@ public:
   bool setupStatsConnection(uint8_t ioT, std::string connStr);
 
   // Add a channel (sockets and queues)
-  bool addChannel(uint64_t chn, EDirection dir, uint16_t tag, std::string host, uint16_t port,
-                  size_t queueSize, bool zerocopy);
   bool addChannel(uint64_t chn, EDirection dir, const std::string& connStr, size_t queueSize);
 
   // Getter/Putter for channels:
