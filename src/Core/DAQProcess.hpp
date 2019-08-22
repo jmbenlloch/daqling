@@ -49,13 +49,13 @@ class DAQProcess {
 
   virtual void start() {
     m_run = true;
-    m_runner_thread = std::make_unique<std::thread>(&DAQProcess::runner, this);
+    m_runner_thread = std::thread(&DAQProcess::runner, this);
     m_state = "running";
   };
 
   virtual void stop() {
     m_run = false;
-    m_runner_thread->join();
+    m_runner_thread.join();
     m_state = "ready";
   };
 
@@ -97,7 +97,12 @@ class DAQProcess {
       }
     }
     return true;
-  } 
+  }
+
+  bool running() const
+  {
+    return m_runner_thread.joinable();
+  }
 
  protected:
   // ZMQ ConnectionManager
@@ -111,7 +116,7 @@ class DAQProcess {
 
   std::string m_state;
   std::atomic<bool> m_run;
-  std::unique_ptr<std::thread> m_runner_thread;
+  std::thread m_runner_thread;
 };
 
 } // namespace core
