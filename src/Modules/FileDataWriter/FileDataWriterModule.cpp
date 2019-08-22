@@ -117,7 +117,9 @@ void FileDataWriterModule::runner() {
     });
   }
 
-  while (m_run);
+  while (m_run) {
+    std::this_thread::sleep_for(1ms);
+  };
 
   DEBUG(" Runner stopped");
 }
@@ -140,7 +142,9 @@ void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const 
   };
 
   while (!m_stopWriters) {
-    while (pq.isEmpty() && !m_stopWriters); // wait until we have something to write
+    while (pq.isEmpty() && !m_stopWriters) { // wait until we have something to write
+      std::this_thread::sleep_for(1ms);
+    };
     if (m_stopWriters) {
       flush(buffer);
       return;
