@@ -31,6 +31,8 @@
 #include <functional>
 #include <algorithm>
 
+#include "hedley.h"
+
 namespace daqling::utilities {
 
   class Binary
@@ -109,6 +111,9 @@ namespace daqling::utilities {
 
     bool malloc(const size_t size) noexcept;
     bool realloc(const size_t size) noexcept;
+
+    HEDLEY_RETURNS_NON_NULL
+    HEDLEY_NON_NULL(1, 2)
     void* memcpy(void *dest, const void *src, const size_t n) noexcept;
 
     /// The current size of the BLOB
