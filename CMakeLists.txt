@@ -177,10 +177,6 @@ if (hasParent)
   set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} PARENT_SCOPE)
 endif (hasParent)
 
-# Build utils library
-add_subdirectory(src/Utils)
-set(DAQLING_LIBRARIES ${DAQLING_LIBRARIES} DaqlingUtils)
-
 # Build core daqling library
 add_subdirectory(src/Core)
 set(DAQLING_LIBRARIES ${DAQLING_LIBRARIES} DaqlingCore)
