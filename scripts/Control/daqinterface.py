@@ -36,8 +36,7 @@ def spawnJoin(list, func):
 
 def print_help():
   print("First argument must be a .json configuration file.\n"
-        "Available second arguments: 'remove' 'add' 'configure' 'complete'.\n"
-        "Add 'dev' in order to suppress production feature.")
+        "Available second arguments: 'remove' 'add' 'configure' 'complete'.")
 
 def signal_handler(sig, frame):
   print("Ctrl+C: shutting down")
