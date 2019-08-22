@@ -1,16 +1,16 @@
 /**
  * Copyright (C) 2019 CERN
- * 
+ *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * DAQling is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,44 +20,40 @@
 
 /*
  * Types
- * Description: 
+ * Description:
  *   Singleton template from CodeReviews
  *   https://codereview.stackexchange.com/questions/173929/modern-c-singleton-template
  * Date: March 2019
-*/
+ */
 
 /// \cond
 #include <memory>
 /// \endcond
 
 namespace daqling {
-namespace utilities {
+  namespace utilities {
 
-template<typename T>
-class Singleton {
-public:
-    static T& instance();
+    template <typename T> class Singleton {
+  public:
+      static T &instance();
 
-    // Prevent copying and moving.
-    Singleton(Singleton const&) = delete;             // Copy construct
-    Singleton(Singleton&&) = delete;                  // Move construct
-    Singleton& operator=(Singleton const&) = delete;  // Copy assign
-    Singleton& operator=(Singleton &&) = delete;      // Move assign
+      // Prevent copying and moving.
+      Singleton(Singleton const &) = delete;            // Copy construct
+      Singleton(Singleton &&) = delete;                 // Move construct
+      Singleton &operator=(Singleton const &) = delete; // Copy assign
+      Singleton &operator=(Singleton &&) = delete;      // Move assign
 
+  protected:
+      Singleton() {}
+    };
 
-protected:
-    Singleton() {}
-};
+    template <typename T> T &Singleton<T>::instance()
+    {
+      static const std::unique_ptr<T> instance{new T{}};
+      return *instance;
+    }
 
-template<typename T>
-T& Singleton<T>::instance()
-{
-    static const std::unique_ptr<T> instance{ new T{} };
-    return *instance;
-}
-
-} // namespace utilities
+  } // namespace utilities
 } // namespace daqling
 
 #endif // DAQLING_UTILITIES_SINGLETON_HPP
-

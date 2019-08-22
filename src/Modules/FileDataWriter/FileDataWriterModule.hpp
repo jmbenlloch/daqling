@@ -18,12 +18,12 @@
 #pragma once
 
 /// \cond
+#include <condition_variable>
 #include <fstream>
 #include <map>
-#include <queue>
 #include <memory>
+#include <queue>
 #include <tuple>
-#include <condition_variable>
 /// \endcond
 
 #include "Core/DAQProcess.hpp"
@@ -38,7 +38,7 @@
  * Date: April 2019
  */
 class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::core::DataLogger {
- public:
+  public:
   FileDataWriterModule();
   ~FileDataWriterModule();
 
@@ -51,10 +51,10 @@ class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::c
   void setup();
   void write();
   void read();
-  bool write(uint64_t keyId, daqling::utilities::Binary& payload);
+  bool write(uint64_t keyId, daqling::utilities::Binary &payload);
   void shutdown();
 
- private:
+  private:
   struct ThreadContext {
     ThreadContext(std::array<unsigned int, 2> tids) : consumer(tids[0]), producer(tids[1]) {}
     daqling::utilities::ReusableThread consumer;
@@ -73,11 +73,13 @@ class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::c
    * A wrapper around a printf-like output file generator.
    */
   class FileGenerator {
-  public:
-    FileGenerator(const std::string pattern, const uint64_t chid) : m_pattern(pattern), m_chid(chid) {}
+public:
+    FileGenerator(const std::string pattern, const uint64_t chid) : m_pattern(pattern), m_chid(chid)
+    {
+    }
     std::ofstream next();
 
-  private:
+private:
     const std::string m_pattern;
     const uint64_t m_chid;
     unsigned m_filenum = 0;
@@ -94,8 +96,10 @@ class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::c
   mutable std::map<uint64_t, Metrics> m_channelMetrics;
 
   // Internals
-  void flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size, FileGenerator fg) const;
+  void flusher(const uint64_t chid,
+               PayloadQueue &pq,
+               const size_t max_buffer_size,
+               FileGenerator fg) const;
   std::map<uint64_t, Context> m_channelContexts;
   std::thread m_monitor_thread;
-
 };

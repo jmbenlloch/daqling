@@ -1,24 +1,24 @@
 /**
  * Copyright (C) 2019 CERN
- * 
+ *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * DAQling is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <chrono>
 #include <thread>
-#include "Utils/zhelpers.hpp"
 #include "Utils/Logging.hpp"
+#include "Utils/zhelpers.hpp"
 
 struct data_t {
   uint8_t tag;
@@ -26,7 +26,8 @@ struct data_t {
   uint32_t whatever;
 } __attribute__((__packed__));
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   zmq::context_t context(1);
   zmq::socket_t subscriber(context, ZMQ_SUB);
 
