@@ -1,16 +1,16 @@
 /**
  * Copyright (C) 2019 CERN
- * 
+ *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * DAQling is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,7 +22,6 @@
 /// \endcond
 
 #include "BoardReaderModule.hpp"
-
 
 using namespace std::chrono_literals;
 using namespace std::chrono;
@@ -39,7 +38,8 @@ struct data_t {
   char payload[24000];
 } __attribute__((__packed__));
 
-BoardReaderModule::BoardReaderModule() {
+BoardReaderModule::BoardReaderModule()
+{
   /* INFO("Passed " << name << " " << num << " with constructor"); */
   INFO("With config: " << m_config.dump());
 
@@ -48,17 +48,20 @@ BoardReaderModule::BoardReaderModule() {
 
 BoardReaderModule::~BoardReaderModule() {}
 
-void BoardReaderModule::start() {
+void BoardReaderModule::start()
+{
   DAQProcess::start();
   INFO("getState: " << this->getState());
 }
 
-void BoardReaderModule::stop() {
+void BoardReaderModule::stop()
+{
   DAQProcess::stop();
   INFO("getState: " << this->getState());
 }
 
-void BoardReaderModule::runner() {
+void BoardReaderModule::runner()
+{
   unsigned sequence_number = 0;
   microseconds timestamp;
 
@@ -72,9 +75,9 @@ void BoardReaderModule::runner() {
     const unsigned payload_size = static_cast<unsigned>(dis(gen));
     const unsigned total_size = sizeof(header_t) + sizeof(char) * payload_size;
 
-    INFO("sequence number " << sequence_number << "  >>  timestamp " << std::hex
-                         << "0x" << timestamp.count() << std::dec << "  >>  payload size "
-                         << payload_size);
+    INFO("sequence number " << sequence_number << "  >>  timestamp " << std::hex << "0x"
+                            << timestamp.count() << std::dec << "  >>  payload size "
+                            << payload_size);
 
     data_t *data = static_cast<data_t *>(malloc(total_size));
     data->header.payload_size = payload_size;

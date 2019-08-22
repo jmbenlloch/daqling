@@ -1,5 +1,5 @@
 #ifndef DAQLING_EXECUTABLE_NAME
-    #error "This header should only be automatically included during the build with CMake"
+#error "This header should only be automatically included during the build with CMake"
 #endif
 
 #include "Utils/Logging.hpp"

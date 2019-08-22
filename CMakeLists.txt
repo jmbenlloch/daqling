@@ -193,3 +193,7 @@ add_subdirectory(src/Exec)
 
 # Build tests
 add_subdirectory(test)
+
+# Add formatting targets
+file(GLOB_RECURSE FORMAT_CXX_SOURCE_FILES src/*.[ch]pp test/*.[ch]pp)
+include(cmake/clang-format.cmake)

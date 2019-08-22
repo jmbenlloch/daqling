@@ -1,16 +1,16 @@
 /**
  * Copyright (C) 2019 CERN
- * 
+ *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * DAQling is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -33,7 +33,8 @@ static std::string sink_pattern(const bool debug)
   return pattern.str();
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   if (argc < 4) {
     std::cerr << "Usage: " << argv[0] << " <command-port> <core-log-level> <module-log-level>\n";
     return EXIT_FAILURE;
@@ -56,10 +57,13 @@ int main(int argc, char **argv) {
   for (auto [logger, supplied_lvl, default_lvl] : {core_ctx, module_ctx}) {
     std::transform(supplied_lvl.begin(), supplied_lvl.end(), supplied_lvl.begin(), ::tolower);
 
-    if (auto lvl = spdlog::level::from_str(supplied_lvl); lvl == spdlog::level::off && supplied_lvl != "off") {
-      // Supplied log level does not exist so spdlog returned the default level::off. Use our own default instead.
-      WARNING("Unknown loglevel '" << supplied_lvl << "', defaulting to level '" <<
-          spdlog::level::to_string_view(default_lvl).data() << "' for '" << logger->name() << "' logger");
+    if (auto lvl = spdlog::level::from_str(supplied_lvl);
+        lvl == spdlog::level::off && supplied_lvl != "off") {
+      // Supplied log level does not exist so spdlog returned the default level::off. Use our own
+      // default instead.
+      WARNING("Unknown loglevel '" << supplied_lvl << "', defaulting to level '"
+                                   << spdlog::level::to_string_view(default_lvl).data() << "' for '"
+                                   << logger->name() << "' logger");
       logger->set_level(default_lvl);
     } else {
       // Log level exists, set it.
@@ -69,7 +73,7 @@ int main(int argc, char **argv) {
 
   // Update sink pattern if we are debug logging
   stdout_sink->set_pattern(sink_pattern(core_logger->level() <= spdlog::level::debug ||
-        module_logger->level() <= spdlog::level::debug));
+                                        module_logger->level() <= spdlog::level::debug));
 
   int port = atoi(argv[1]);
   daqling::core::Core c(port, "tcp", "*");
@@ -84,7 +88,7 @@ int main(int argc, char **argv) {
 
   cv->wait(lk, [&] { return c.getShouldStop(); });
   lk.unlock();
-  std::this_thread::sleep_for(100ms);  // allow time for command handler to stop
+  std::this_thread::sleep_for(100ms); // allow time for command handler to stop
 
   return EXIT_SUCCESS;
 }

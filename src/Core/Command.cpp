@@ -30,7 +30,8 @@
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
-bool daqling::core::Command::startCommandHandler() {
+bool daqling::core::Command::startCommandHandler()
+{
   // m_commandHandler = std::make_unique<daqling::utilities::ReusableThread>(10);
   unsigned tid = 1;
   bool rv = false;
@@ -44,17 +45,18 @@ bool daqling::core::Command::startCommandHandler() {
   return rv;
 }
 
-bool daqling::core::Command::executeCommand(std::string& response) {
+bool daqling::core::Command::executeCommand(std::string &response)
+{
   // INFO("Loaded configuration");
   // auto command = cfg.get<std::string>("command");
   auto command = nlohmann::json::parse(m_command)["command"];
   DEBUG("Get command: " << command);
-  auto& m_plugin = daqling::core::PluginManager::instance();
-  auto& cm = daqling::core::ConnectionManager::instance();
+  auto &m_plugin = daqling::core::PluginManager::instance();
+  auto &cm = daqling::core::ConnectionManager::instance();
 
   if (command == "configure") {
     int failures = 0;
-    auto& cfg = Configuration::instance();
+    auto &cfg = Configuration::instance();
     cfg.load(m_config);
     DEBUG("Get config: " << m_config);
 
@@ -64,7 +66,7 @@ bool daqling::core::Command::executeCommand(std::string& response) {
     auto j = cfg.getConfig();
     auto rcvs = j["connections"]["receivers"];
     DEBUG("receivers empty " << rcvs.empty());
-    for (auto& it : rcvs) {
+    for (auto &it : rcvs) {
       DEBUG("key" << it);
       std::ostringstream connStr;
       ConnectionManager::EDirection dir;
@@ -86,7 +88,7 @@ bool daqling::core::Command::executeCommand(std::string& response) {
         ERROR("Unrecognized transport type");
         ++failures;
       }
-      if(!cm.addChannel(it["chid"], dir, connStr.str(), 10000)) {
+      if (!cm.addChannel(it["chid"], dir, connStr.str(), 10000)) {
         ERROR("addChannel failure!");
         ++failures;
       }
@@ -94,7 +96,7 @@ bool daqling::core::Command::executeCommand(std::string& response) {
 
     auto sndrs = j["connections"]["senders"];
     DEBUG("senders empty " << sndrs.empty());
-    for (auto& it : sndrs) {
+    for (auto &it : sndrs) {
       DEBUG("key" << it);
       std::ostringstream connStr;
       ConnectionManager::EDirection dir;
@@ -116,7 +118,7 @@ bool daqling::core::Command::executeCommand(std::string& response) {
         ERROR("Unrecognized transport type");
         ++failures;
       }
-      if(!cm.addChannel(it["chid"], dir, connStr.str(), 10000)) {
+      if (!cm.addChannel(it["chid"], dir, connStr.str(), 10000)) {
         ERROR("addChannel failure!");
         ++failures;
       }
@@ -158,10 +160,11 @@ bool daqling::core::Command::executeCommand(std::string& response) {
       response = "booted";
     }
   }
-  return true;  // TODO put some meaning or return void
+  return true; // TODO put some meaning or return void
 }
 
-bool daqling::core::Command::handleCommand() {
+bool daqling::core::Command::handleCommand()
+{
   m_commandHandler->set_work(m_commandFunctors[0]);
   while (busy()) {
     std::this_thread::sleep_for(1ms);
@@ -169,7 +172,8 @@ bool daqling::core::Command::handleCommand() {
   return true;
 }
 
-bool daqling::core::Command::busy() {
+bool daqling::core::Command::busy()
+{
   bool busy = (m_commandHandler->get_readiness() == false) ? true : false;
   return busy;
 }
