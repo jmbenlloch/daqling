@@ -42,6 +42,7 @@ def print_help():
 def signal_handler(sig, frame):
   print("Ctrl+C: shutting down")
   stop_check_threads()
+  spawnJoin(data['components'], dc.stopProcess)
   spawnJoin(data['components'], dc.shutdownProcess)
   if arg != 'configure':
     dc.removeProcesses(data['components'])
@@ -130,6 +131,7 @@ while(not dc.stop_check):
     spawnJoin(data['components'], dc.stopProcess)
   elif text == "down":
     stop_check_threads()
+    spawnJoin(data['components'], dc.stopProcess)
     spawnJoin(data['components'], dc.shutdownProcess)
     if arg != 'configure':
       dc.removeProcesses(data['components'])
