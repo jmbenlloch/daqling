@@ -26,13 +26,12 @@
 
 #include <iostream>
 #include <iomanip>
-#include <type_traits>
 #include <cctype>
-#include <functional>
 #include <algorithm>
 #include <optional>
-
-#include "hedley.h"
+#include <functional>
+#include <vector>
+#include <cassert>
 
 namespace daqling::utilities {
 
@@ -40,38 +39,91 @@ namespace daqling::utilities {
   {
 
   public:
-
+    using byte = uint8_t;
     enum class error_code {
         alloc,
         invalid_arg,
     };
 
     /// Default Constructor. Creates an empty BLOB
-    Binary() noexcept;
-
-    // Constructor initializing a BLOB with `size` bytes from `data`
-    explicit Binary(const void* data, const size_t size) noexcept;
+    Binary() noexcept = default;
 
     /// Destructor. Frees internally allocated memory, if any
-    ~Binary() noexcept;
+    ~Binary() noexcept = default;
+
+    /// Constructor initializing a BLOB with `size` bytes from `data`
+    explicit Binary(const void* data, const size_t size) noexcept
+    {
+      if (!data) {
+        m_error = error_code::invalid_arg;
+        return;
+      }
+
+      try {
+        m_data = std::vector<byte>(static_cast<const byte*>(data), static_cast<const byte*>(data) + size);
+      } catch (const std::bad_alloc&) {
+        m_error = error_code::alloc;
+      }
+    }
 
     /// Copy constructor
-    explicit Binary(const Binary& rhs) noexcept;
+    explicit Binary(const Binary& rhs) noexcept
+    {
+      try {
+        m_data = rhs.m_data;
+      } catch (const std::bad_alloc&) {
+        m_error = error_code::alloc;
+      }
+    }
 
     /// Move constructor
-    explicit Binary(Binary&& rhs) noexcept;
+    explicit Binary(Binary&& rhs) noexcept
+        : m_data{std::move(rhs.m_data)}, m_error{std::move(rhs.m_error)} {}
 
     /// Assignment operator
-    Binary& operator=(const Binary& rhs) noexcept;
+    Binary& operator=(const Binary& rhs) noexcept
+    {
+      try {
+        m_data = rhs.m_data;
+      } catch (const std::bad_alloc&) {
+        m_error = error_code::alloc;
+      }
 
-    /// Assignment operator
-    Binary& operator=(Binary&& rhs) noexcept;
+      return *this;
+    }
+
+    /// Move Assignment operator
+    Binary& operator=(Binary&& rhs) noexcept
+    {
+      if (this == &rhs) {
+        return *this;
+      }
+
+      m_data = std::move(rhs.m_data);
+      m_error = std::move(rhs.m_error);
+
+      return *this;
+    }
+
 
     /// Appends the data of another blob
-    Binary& operator+=(const Binary& rhs) noexcept;
+    Binary& operator+=(const Binary& rhs) noexcept
+    {
+      assert(!m_error);
+
+      try {
+        m_data.insert(m_data.end(), rhs.m_data.begin(), rhs.m_data.end());
+      } catch (const std::bad_alloc&) {
+        m_error = error_code::alloc;
+      }
+      return *this;
+    }
 
     /// Equal operator. Compares the contents of the binary blocks
-    bool operator==(const Binary& rhs) const noexcept;
+    bool operator==(const Binary& rhs) const noexcept
+    {
+        return (m_data == rhs.m_data) && (m_error == rhs.m_error);
+    }
 
     /// Comparison operator
     inline bool operator!=(const Binary& rhs) const noexcept
@@ -84,7 +136,7 @@ namespace daqling::utilities {
     const T data() const noexcept
     {
         static_assert(std::is_pointer<T>(), "Type parameter must be a pointer type");
-        return static_cast<T>(m_data);
+        return reinterpret_cast<T>(const_cast<byte*>(m_data.data()));
     }
 
     /// Returns the internally stored data
@@ -92,13 +144,13 @@ namespace daqling::utilities {
     T data() noexcept
     {
         static_assert(std::is_pointer<T>(), "Type parameter must be a pointer type");
-        return static_cast<T>(m_data);
+        return reinterpret_cast<T>(m_data.data());
     }
 
     /// Current size of the blob
     size_t size() const noexcept
     {
-        return m_size;
+        return m_data.size();
     }
 
     /// Returns whether or not the Binary is in a usable state or if an error occured
@@ -109,24 +161,8 @@ namespace daqling::utilities {
     }
 
   private:
-    /// Extends the BLOB by `size` additional bytes
-    void extend(const size_t size) noexcept;
-
-    /// Resizes a BLOB to `size` total bytes
-    void resize(const size_t size) noexcept;
-
-    bool malloc(const size_t size) noexcept;
-    bool realloc(const size_t size) noexcept;
-
-    HEDLEY_RETURNS_NON_NULL
-    HEDLEY_NON_NULL(1, 2)
-    void* memcpy(void *dest, const void *src, const size_t n) noexcept;
-
-    /// The current size of the BLOB
-    size_t m_size;
-
     /// The BLOB data buffer
-    void* m_data;
+    std::vector<byte> m_data;
 
     /// Error flag
     std::optional<error_code> m_error;
