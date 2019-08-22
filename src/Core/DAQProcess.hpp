@@ -97,7 +97,12 @@ class DAQProcess {
       }
     }
     return true;
-  } 
+  }
+
+  bool running() const
+  {
+    return m_runner_thread.joinable();
+  }
 
  protected:
   // ZMQ ConnectionManager
