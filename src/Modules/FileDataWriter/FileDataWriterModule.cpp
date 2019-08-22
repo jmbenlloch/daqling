@@ -186,7 +186,7 @@ void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const 
         DEBUG(" -> head of tail flushed; new tail length: " << tail_len);
       }
 
-      buffer = tail;
+      buffer = std::move(tail);
       assert(buffer.size() <= max_buffer_size);
     }
 
