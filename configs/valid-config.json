@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "group": "daq",
   "components": [
     {
@@ -16,6 +16,7 @@
           {
             "type": "pubsub",
             "chid": 1,
+            "transport": "tpc",
             "host": "*",
             "port": 8101
           }
@@ -36,6 +37,7 @@
           {
             "type": "pair",
             "chid": 1,
+            "transport": "tpc",
             "host": "*",
             "port": 8102
           }
@@ -55,12 +57,14 @@
           {
             "type": "pubsub",
             "chid": 1,
+            "transport": "tpc",
             "host": "localhost",
             "port": 8101
           },
           {
             "type": "pair",
             "chid": 2,
+            "transport": "tpc",
             "host": "localhost",
             "port": 8102
           }
@@ -69,8 +73,8 @@
           {
             "type": "pair",
             "chid": 3,
-            "host": "*",
-            "port": 8103
+            "transport": "ipc",
+            "path": "/tmp/feed3"
           }
         ]
       }
@@ -90,8 +94,8 @@
           {
             "type": "pair",
             "chid": 1,
-            "host": "localhost",
-            "port": 8103
+            "transport": "ipc",
+            "path": "/tmp/feed3"
           }
         ]
       }
