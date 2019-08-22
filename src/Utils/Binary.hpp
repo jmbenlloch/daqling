@@ -186,15 +186,15 @@ inline std::ostream& operator<<(std::ostream &out, const daqling::utilities::Bin
             out << std::hex << std::setw(8) << std::setfill('0') << i << ": ";
         }
 
-        // Print a line of byte pairs
+        // Print the byte in the byte line
         out << std::hex << std::setw(2) << std::setfill('0')
             << static_cast<int>(*c)
-            << (seperate ? " " : "");
+            << (seperate && !newline ? " " : "");
 
         if (newline || last_byte) {
             const auto str = std::invoke([c, i]() {
                 std::locale loc("C");
-                std::string str(c - i % 16, c);
+                std::string str(c - i % 16, c + 1);
 
                 // Replace unprintable characters with a '.'
                 std::replace_if(str.begin(), str.end(), [&loc](auto c) { return !std::isprint(c, loc); }, '.');
@@ -206,7 +206,7 @@ inline std::ostream& operator<<(std::ostream &out, const daqling::utilities::Bin
             const size_t blanks = 40 // byte line length
                 - (i % 16 + 1) * 2 // space taken up by byte pairs
                 - (i % 16) / 2; // space taken up by spacing between byte pairs
-            out << std::string(blanks, ' ') << str << '\n';
+            out << std::string(blanks + 1, ' ') << str << '\n';
         }
     }
 
