@@ -35,6 +35,7 @@ int main(int, char*[])
         Binary bc;
         bc += bb;
         bc += bb;
+        assert(!bc.error());
         assert(std::strncmp("some stringsome string", bc.data<char*>(), std::strlen(str) * 2) == 0);
 
         ba = std::move(bc);

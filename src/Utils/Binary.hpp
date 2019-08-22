@@ -30,6 +30,7 @@
 #include <cctype>
 #include <functional>
 #include <algorithm>
+#include <optional>
 
 #include "hedley.h"
 
@@ -39,6 +40,11 @@ namespace daqling::utilities {
   {
 
   public:
+
+    enum class error_code {
+        alloc,
+        invalid_arg,
+    };
 
     /// Default Constructor. Creates an empty BLOB
     Binary() noexcept;
@@ -97,9 +103,9 @@ namespace daqling::utilities {
 
     /// Returns whether or not the Binary is in a usable state or if an error occured
     [[nodiscard]]
-    bool good() const noexcept
+    std::optional<error_code> error() const noexcept
     {
-        return !m_error;
+        return m_error;
     }
 
   private:
@@ -122,8 +128,8 @@ namespace daqling::utilities {
     /// The BLOB data buffer
     void* m_data;
 
-    /// Allocation error flag
-    bool m_error;
+    /// Error flag
+    std::optional<error_code> m_error;
   };
 
 } // namespace daqling::utilities

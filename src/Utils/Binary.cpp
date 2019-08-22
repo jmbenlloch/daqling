@@ -27,7 +27,9 @@ using namespace daqling::utilities;
 bool Binary::malloc(const size_t size) noexcept
 {
   m_data = std::malloc(size);
-  m_error = !m_data && size > 0;
+  if (!m_data && size > 0) {
+    m_error = error_code::alloc;
+  }
   if (!m_error) {
       m_size = size;
   }
@@ -39,8 +41,8 @@ bool Binary::realloc(const size_t size) noexcept
   void* new_data = std::realloc(m_data, size);
 
   if (!new_data && size > 0) {
-    m_error = true;
-    return m_error;
+    m_error = error_code::alloc;
+    return m_error.has_value();
   }
 
   m_data = new_data;
@@ -75,7 +77,7 @@ Binary::Binary(const void* data, const size_t size) noexcept
 {
   if (!data) {
     // XXX: not an allocation error (invalid argument)
-    m_error = true;
+    m_error = error_code::invalid_arg;
     return;
   }
 
@@ -90,7 +92,7 @@ Binary::Binary(const Binary& rhs) noexcept
   : m_size{rhs.m_size}, m_data{nullptr}
 {
   if (!rhs.m_data) {
-    m_error = true;
+    m_error = error_code::invalid_arg;
     return;
   }
 
@@ -104,7 +106,7 @@ Binary::Binary(const Binary& rhs) noexcept
 Binary::Binary(Binary&& rhs) noexcept
   : m_size{std::exchange(rhs.m_size, 0)},
   m_data{std::exchange(rhs.m_data, nullptr)},
-  m_error{std::exchange(rhs.m_error, false)}
+  m_error{std::exchange(rhs.m_error, {})}
 {
 }
 
@@ -124,7 +126,7 @@ Binary& Binary::operator=(Binary&& rhs) noexcept
   std::free(m_data);
   m_data = std::exchange(rhs.m_data, nullptr);
   m_size = std::exchange(rhs.m_size, 0);
-  m_error = std::exchange(rhs.m_error, false);
+  m_error = std::exchange(rhs.m_error, {});
 
   return *this;
 }
@@ -199,19 +201,14 @@ bool Binary::operator==(const Binary& rhs) const noexcept
 
 void Binary::extend(const size_t size) noexcept
 {
-  assert(!m_error);
-  if (!m_data) {
-    m_error = true;
-    return;
-  }
-
+  assert(!m_error && m_data);
   this->realloc(m_size + size);
 }
 
 void Binary::resize(const size_t size) noexcept
 {
-  assert(!m_error);
-  if (!m_data || size == m_size) {
+  assert(!m_error && m_data);
+  if (size == m_size) {
     return;
   }
 
