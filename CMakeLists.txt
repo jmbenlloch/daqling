@@ -145,6 +145,9 @@ if(CMAKE_BUILD_TYPE MATCHES Debug AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") 
 
     message(STATUS "Running debug build, adding extra sanitizer flags")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined")
+
+    message(STATUS "Running debug build, tests enabled")
+    enable_testing()
 endif()
 
 # Set some release flags
@@ -177,10 +180,6 @@ if (hasParent)
 
   set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} PARENT_SCOPE)
 endif (hasParent)
-
-# Build utils library
-add_subdirectory(src/Utils)
-set(DAQLING_LIBRARIES ${DAQLING_LIBRARIES} DaqlingUtils)
 
 # Build core daqling library
 add_subdirectory(src/Core)

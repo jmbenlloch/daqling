@@ -21,105 +21,196 @@
 /*
  * Binary
  * Description:
- *   A really nice void* wrapper from CORAL
- *   https://twiki.cern.ch/twiki/bin/view/Persistency/Coral 
- * Date: May 2018
-*/
+ *   A convenient void* wrapper, representing dynamically sized, continous memory area.
+ */
 
 #include <iostream>
 #include <iomanip>
+#include <cctype>
+#include <algorithm>
+#include <optional>
+#include <functional>
+#include <vector>
+#include <cassert>
 
-namespace daqling {
-namespace utilities {
+namespace daqling::utilities {
 
   class Binary
   {
 
   public:
+    using byte = uint8_t;
+    enum class error_code {
+        alloc,
+        invalid_arg,
+    };
 
     /// Default Constructor. Creates an empty BLOB
-    Binary();
+    Binary() noexcept = default;
 
-    /// Constructor initializing a BLOB with initialSize bytes
-    explicit Binary( size_t initialSizeInBytes );
+    /// Destructor. Frees internally allocated memory, if any
+    ~Binary() noexcept = default;
 
-    explicit Binary( const void* data, size_t size );
-
-    /// Destructor. Frees internally allocated memory
-    ~Binary();
-
-    /// Copy constructor
-    Binary( const Binary& rhs );
-
-    /// Assignment operator
-    Binary& operator=( const Binary& rhs );
-
-    /// Appends the data of another blob
-    Binary& operator+=( const Binary& rhs );
-
-    /// Equal operator. Compares the contents of the binary blocks
-    bool operator==( const Binary& rhs ) const;
-
-    /// Comparison operator
-    bool operator!=( const Binary& rhs ) const;
-
-    /// Returns the starting address of the BLOB
-    const void* startingAddress() const;
-
-    /// Returns the starting address of the BLOB
-    void* startingAddress();
-
-    const void* data() const;
-
-    /// Current size of the blob
-    size_t size() const;
-
-    /// Extends the BLOB by additionalSizeInBytes
-    void extend( size_t additionalSizeInBytes );
-
-    /// Resizes a BLOB to sizeInBytes
-    void resize( size_t sizeInBytes );
-
-  private:
-
-    /// The current size of the BLOB
-    size_t m_size;
-
-    /// The BLOB data buffer
-    void* m_data;
-
-  };
-
-} // namespace utilities
-} // namespace daqling
-
-// Inline methods
-inline bool
-daqling::utilities::Binary::operator!=( const Binary& rhs ) const
-{
-  return ( ! ( this->operator==( rhs ) ) );
-}
-
-inline std::ostream& operator<<(std::ostream& out, const daqling::utilities::Binary& rhs)
-{
-  for (size_t i = 0; i < rhs.size(); i++) {
-    std::cout << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(*(static_cast<const unsigned char*>(rhs.data()) + i)) << std::dec;
-    if (i % 4 == 3)
+    /// Constructor initializing a BLOB with `size` bytes from `data`
+    explicit Binary(const void* data, const size_t size) noexcept
     {
-      if (i % 16 == 15)
-      {
-        std::cout << "\n";
+      if (!data) {
+        m_error = error_code::invalid_arg;
+        return;
       }
-      else
-      {
-        std::cout << " ";
+
+      try {
+        m_data = std::vector<byte>(static_cast<const byte*>(data), static_cast<const byte*>(data) + size);
+      } catch (const std::bad_alloc&) {
+        m_error = error_code::alloc;
       }
     }
-  }
-  std::cout << "\n";
-  return out;
+
+    /// Copy constructor
+    explicit Binary(const Binary& rhs) noexcept
+    {
+      try {
+        m_data = rhs.m_data;
+      } catch (const std::bad_alloc&) {
+        m_error = error_code::alloc;
+      }
+    }
+
+    /// Move constructor
+    explicit Binary(Binary&& rhs) noexcept
+        : m_data{std::move(rhs.m_data)}, m_error{std::move(rhs.m_error)} {}
+
+    /// Assignment operator
+    Binary& operator=(const Binary& rhs) noexcept
+    {
+      try {
+        m_data = rhs.m_data;
+      } catch (const std::bad_alloc&) {
+        m_error = error_code::alloc;
+      }
+
+      return *this;
+    }
+
+    /// Move Assignment operator
+    Binary& operator=(Binary&& rhs) noexcept
+    {
+      if (this == &rhs) {
+        return *this;
+      }
+
+      m_data = std::move(rhs.m_data);
+      m_error = std::move(rhs.m_error);
+
+      return *this;
+    }
+
+
+    /// Appends the data of another blob
+    Binary& operator+=(const Binary& rhs) noexcept
+    {
+      assert(!m_error);
+
+      try {
+        m_data.insert(m_data.end(), rhs.m_data.begin(), rhs.m_data.end());
+      } catch (const std::bad_alloc&) {
+        m_error = error_code::alloc;
+      }
+      return *this;
+    }
+
+    /// Equal operator. Compares the contents of the binary blocks
+    bool operator==(const Binary& rhs) const noexcept
+    {
+        return (m_data == rhs.m_data) && (m_error == rhs.m_error);
+    }
+
+    /// Comparison operator
+    inline bool operator!=(const Binary& rhs) const noexcept
+    {
+        return !this->operator==(rhs);
+    }
+
+    /// Returns the internally stored data
+    template<typename T = void*>
+    const T data() const noexcept
+    {
+        static_assert(std::is_pointer<T>(), "Type parameter must be a pointer type");
+        return reinterpret_cast<T>(const_cast<byte*>(m_data.data()));
+    }
+
+    /// Returns the internally stored data
+    template<typename T = void*>
+    T data() noexcept
+    {
+        static_assert(std::is_pointer<T>(), "Type parameter must be a pointer type");
+        return reinterpret_cast<T>(m_data.data());
+    }
+
+    /// Current size of the blob
+    size_t size() const noexcept
+    {
+        return m_data.size();
+    }
+
+    /// Returns whether or not the Binary is in a usable state or if an error occured
+    [[nodiscard]]
+    std::optional<error_code> error() const noexcept
+    {
+        return m_error;
+    }
+
+  private:
+    /// The BLOB data buffer
+    std::vector<byte> m_data;
+
+    /// Error flag
+    std::optional<error_code> m_error;
+  };
+
+} // namespace daqling::utilities
+
+/// xxd(1)-like output representation of a `Binary`
+inline std::ostream& operator<<(std::ostream &out, const daqling::utilities::Binary &rhs)
+{
+    for (size_t i = 0; i < rhs.size(); i++) {
+        const bool newline_prefix = i % 16 == 0;
+        const bool newline = (i + 1) % 16 == 0;
+        const bool seperate = (i + 1) % 2 == 0;
+        const bool last_byte = i == rhs.size() - 1;
+
+        auto c = rhs.data<uint8_t*>() + i;
+
+        if (newline_prefix) {
+            // Print offset
+            out << std::hex << std::setw(8) << std::setfill('0') << i << ": ";
+        }
+
+        // Print the byte in the byte line
+        out << std::hex << std::setw(2) << std::setfill('0')
+            << static_cast<int>(*c)
+            << (seperate && !newline ? " " : "");
+
+        if (newline || last_byte) {
+            const auto str = std::invoke([c, i]() {
+                std::locale loc("C");
+                std::string str(c - i % 16, c + 1);
+
+                // Replace unprintable characters with a '.'
+                std::replace_if(str.begin(), str.end(), [&loc](auto c) { return !std::isprint(c, loc); }, '.');
+
+                return std::move(str);
+            });
+
+            // Print the character string representation of the byte line
+            const size_t blanks = 40 // byte line length
+                - (i % 16 + 1) * 2 // space taken up by byte pairs
+                - (i % 16) / 2; // space taken up by spacing between byte pairs
+            out << std::string(blanks + 1, ' ') << str << '\n';
+        }
+    }
+
+    return out;
 }
 
 #endif // DAQ_UTILITIES_BINARY_HPP
-

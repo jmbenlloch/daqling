@@ -12,7 +12,10 @@ daqling_test(json)
 daqling_test(metrics)
 daqling_test(pub_topic)
 daqling_test(sub_topic)
+daqling_test(binary)
 
 if (ENABLE_TBB)
     daqling_test(flowgraph)
 endif (ENABLE_TBB)
+
+add_test(utils/binary ${CMAKE_BINARY_DIR}/bin/test_binary)
