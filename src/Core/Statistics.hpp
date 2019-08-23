@@ -28,6 +28,7 @@
 #include <map>
 #include <numeric>
 #include <sstream>
+#include <string>
 #include <thread>
 #include <vector>
 #include "zmq.hpp"

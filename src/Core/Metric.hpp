@@ -18,6 +18,8 @@
 #ifndef METRIC_HPP
 #define METRIC_HPP
 
+#include <ctime>
+#include <string>
 #include <vector>
 #include "Statistics.hpp"
 
