@@ -93,23 +93,25 @@ void FileDataWriterModule::start()
 
   m_monitor_thread = std::thread(&FileDataWriterModule::monitor_runner, this);
 
-  // Register statistical variables
-  for (auto &[chid, metrics] : m_channelMetrics) {
-    m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-      &metrics.bytes_written,
-      fmt::format("DL_BytesWritten_chid{}", chid),
-      daqling::core::metrics::RATE,
-      daqling::core::metrics::SIZE);
-    m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-      &metrics.payload_queue_size,
-      fmt::format("DL_PayloadQueueSize_chid{}", chid),
-      daqling::core::metrics::LAST_VALUE,
-      daqling::core::metrics::SIZE);
-    m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-      &metrics.payload_queue_bytes,
-      fmt::format("DL_PayloadQueueBytes_chid{}", chid),
-      daqling::core::metrics::LAST_VALUE,
-      daqling::core::metrics::SIZE);
+  if (m_statistics) {
+    // Register statistical variables
+    for (auto &[chid, metrics] : m_channelMetrics) {
+      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
+        &metrics.bytes_written,
+        fmt::format("DL_BytesWritten_chid{}", chid),
+        daqling::core::metrics::RATE,
+        daqling::core::metrics::SIZE);
+      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
+        &metrics.payload_queue_size,
+        fmt::format("DL_PayloadQueueSize_chid{}", chid),
+        daqling::core::metrics::LAST_VALUE,
+        daqling::core::metrics::SIZE);
+      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
+        &metrics.payload_queue_bytes,
+        fmt::format("DL_PayloadQueueBytes_chid{}", chid),
+        daqling::core::metrics::LAST_VALUE,
+        daqling::core::metrics::SIZE);
+    }
   }
 }
 
@@ -132,14 +134,18 @@ void FileDataWriterModule::runner()
       while (m_run) {
         daqutils::Binary pl;
         while (!m_connections.get(chid, std::ref(pl)) && m_run) {
-          m_channelMetrics.at(chid).payload_queue_size += pq.sizeGuess();
+          if (m_statistics) {
+            m_channelMetrics.at(chid).payload_queue_size += pq.sizeGuess();
+          }
           std::this_thread::sleep_for(1ms);
         }
 
         DEBUG(" Received " << pl.size() << "B payload on channel: " << chid);
         while (!pq.write(pl) && m_run)
           ; // try until successful append
-        m_channelMetrics.at(chid).payload_queue_bytes += pl.size();
+        if (m_statistics) {
+          m_channelMetrics.at(chid).payload_queue_bytes += pl.size();
+        }
       }
     });
   }
@@ -293,9 +299,13 @@ void FileDataWriterModule::monitor_runner()
   while (m_run) {
     std::this_thread::sleep_for(1s);
     // XXX: is this really "throughput"?
-    for (const auto &[chid, metrics] : m_channelMetrics) {
+    for (auto &[chid, metrics] : m_channelMetrics) {
       INFO("Write throughput (channel "
            << chid << "): " << static_cast<double>(metrics.bytes_written) / 1000000 << " MBytes/s");
+      if (!m_statistics) {
+        // We have to reset the variable ourselves
+        metrics.bytes_written = 0;
+      }
     }
   }
 }
