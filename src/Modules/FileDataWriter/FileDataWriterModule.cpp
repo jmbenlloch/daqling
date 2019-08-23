@@ -119,7 +119,9 @@ void FileDataWriterModule::stop()
 {
   DAQProcess::stop();
   INFO(" getState: " << this->getState());
-  m_monitor_thread.join();
+  if (m_monitor_thread.joinable()) {
+    m_monitor_thread.join();
+  }
 }
 
 void FileDataWriterModule::runner()

@@ -58,7 +58,9 @@ namespace daqling {
       virtual void stop()
       {
         m_run = false;
-        m_runner_thread.join();
+        if (running()) {
+          m_runner_thread.join();
+        }
         m_state = "ready";
       };
 
