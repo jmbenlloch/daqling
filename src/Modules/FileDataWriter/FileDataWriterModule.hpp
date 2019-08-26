@@ -31,11 +31,8 @@
 #include "Utils/Binary.hpp"
 #include "Utils/ProducerConsumerQueue.hpp"
 
-/*
- * FileDataWriterModule
- * Description: Data logger for binary files with fstream.
- *   Relies on fixed size file IO with Binary splitting and concatenation.
- * Date: April 2019
+/**
+ * Module for writing your acquired data to file.
  */
 class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::core::DataLogger {
   public:
@@ -69,14 +66,22 @@ class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::c
     std::atomic<size_t> payload_queue_bytes = 0;
   };
 
-  /*
-   * A wrapper around a printf-like output file generator.
+  /**
+   * Output file generator with a printf-like filename pattern.
    */
   class FileGenerator {
 public:
     FileGenerator(const std::string pattern, const uint64_t chid) : m_pattern(pattern), m_chid(chid)
     {
     }
+
+    /**
+     * Generates the next output file in the sequence.
+     *
+     * @warning Silently overwrites files if they already exists
+     * @warning Silently overwrites previous output files if specified pattern does not generate
+     * unique file names.
+     */
     std::ofstream next();
 
 private:
