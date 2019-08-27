@@ -51,6 +51,9 @@ namespace daqling {
         m_thread.join();
       }
 
+      ReusableThread(const ReusableThread &) = delete;
+      ReusableThread &operator=(const ReusableThread &) = delete;
+
       unsigned int get_thread_id() const { return m_thread_id; }
 
       bool get_readiness() const { return m_task_executed; }
