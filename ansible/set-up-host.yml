@@ -4,14 +4,14 @@
   become: yes
   become_method: sudo
   roles:
-    - { role: lib-centos, when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux' }
-    - devel
+    - { role: lib-centos, when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux', tags: minimal }
+    - { role: devel, tags: minimal }
     - firewall
     - twiddler
-    - openhpc
+    - { role: openhpc, tags: minimal }
     # - cvmfs
     - control-deps
-    - externals
+    - { role: externals, tags: minimal }
   environment:
     LD_LIBRARY_PATH: "{{ lookup('env','LD_LIBRARY_PATH') }}" 
     PATH: "{{ lookup('env','PATH') }}"
