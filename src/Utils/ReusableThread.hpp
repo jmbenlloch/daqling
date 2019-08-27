@@ -20,7 +20,9 @@
 
 /// \cond
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
+#include <functional>
 #include <mutex>
 #include <thread>
 /// \endcond
@@ -36,18 +38,27 @@
 namespace daqling {
   namespace utilities {
 
+    using namespace std::chrono_literals;
+
     class ReusableThread {
   public:
       ReusableThread(unsigned int threadID)
           : m_thread_id(threadID), m_task_executed(true), m_task_assigned(false),
-            m_thread_quit(false), m_thread(&ReusableThread::thread_worker, this)
+            m_thread_quit(false), m_worker_done(false),
+            m_thread(&ReusableThread::thread_worker, this)
       {
       }
 
       ~ReusableThread()
       {
+        while (m_task_assigned) {
+          std::this_thread::sleep_for(1ms);
+        }
         m_thread_quit = true;
-        m_cv.notify_all();
+        while (!m_worker_done) {
+          std::this_thread::sleep_for(1ms);
+          m_cv.notify_all();
+        }
         m_thread.join();
       }
 
@@ -74,6 +85,7 @@ namespace daqling {
       std::atomic<bool> m_task_executed;
       std::atomic<bool> m_task_assigned;
       std::atomic<bool> m_thread_quit;
+      std::atomic<bool> m_worker_done;
       std::function<void()> m_task;
 
       std::mutex m_mtx;
@@ -93,6 +105,8 @@ namespace daqling {
             m_cv.wait(lock);
           }
         }
+
+        m_worker_done = true;
       }
     };
 
