@@ -39,12 +39,13 @@ namespace daqling {
     template <typename T> class DataStore : public DataStoreBase {
   public:
       DataStore(const std::shared_ptr<T> &ds) : m_ds(ds)
-      { /*std::cout << " woof: DataStore<T>(const T& ds): new instance of DataStore!" << std::endl;
-         */
+      {
+        // std::cout << " woof: DataStore<T>(const T& ds): new instance of DataStore!" << std::endl;
       }
       std::shared_ptr<T> &getAs() { return m_ds; }
       void setAs(const std::shared_ptr<T> &rhs)
-      { /*std::cout << " woof: setAs()!" << std::endl;*/
+      {
+        // std::cout << " woof: setAs()!" << std::endl;
         m_ds = rhs;
       }
 
