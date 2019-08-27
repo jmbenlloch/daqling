@@ -68,6 +68,28 @@ std::ofstream FileDataWriterModule::FileGenerator::next()
   return std::ofstream(ss.str(), std::ios::binary);
 }
 
+bool FileDataWriterModule::FileGenerator::yields_unique(const std::string &pattern)
+{
+  bool chid = false;
+  bool number = false;
+
+  for (auto c = pattern.cbegin(); c != pattern.cend(); c++) {
+    /*
+     * While %D can conceptually yield unique files it has a resolution of 1s;
+     * if FileGenerator::next() is called too often files will be overwritten.
+     */
+    if (*c == '%' && c + 1 != pattern.cend()) {
+      const auto nc = *(++c);
+      if (nc == 'n')
+        number = true;
+      if (nc == 'c')
+        chid = true;
+    }
+  }
+
+  return chid && number;
+}
+
 FileDataWriterModule::FileDataWriterModule() : m_stopWriters{false}
 {
 
@@ -252,6 +274,13 @@ void FileDataWriterModule::setup()
   INFO(" -> Maximum filesize: " << m_max_filesize << "B");
   INFO(" -> Buffer size: " << buffer_size << "B");
   INFO(" -> channels: " << m_channels);
+
+  if (!FileGenerator::yields_unique(pattern)) {
+    WARNING("Configured file name pattern '"
+            << pattern
+            << "' may not yield unique output file on rotation; your files may be silently "
+               "overwritten. Ensure the pattern contains '\%c' and '\%n'.");
+  }
 
   unsigned int threadid = 11111;       // XXX: magic
   constexpr size_t queue_size = 10000; // XXX: magic
