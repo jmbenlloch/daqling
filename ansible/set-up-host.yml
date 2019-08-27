@@ -15,7 +15,7 @@
   environment:
     LD_LIBRARY_PATH: "{{ lookup('env','LD_LIBRARY_PATH') }}" 
     PATH: "{{ lookup('env','PATH') }}"
-    CC: "{{ lookup('env','CC') }}"
-    CXX: "{{ lookup('env','CXX') }}"
+    CC: "{{ lookup('env','CC') or '/opt/ohpc/pub/compiler/gcc/8.3.0/bin/gcc' }}"
+    CXX: "{{ lookup('env','CXX') or '/opt/ohpc/pub/compiler/gcc/8.3.0/bin/g++' }}"
     http_proxy: "{{ lookup('env','http_proxy') }}" 
     https_proxy: "{{ lookup('env','https_proxy') }}" 
