@@ -139,12 +139,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -Wcast-align -Wc
 # Disable some for convenience
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function")
 
+option(ENABLE_SANITIZE "Whether to enable extra sanitize flags during debug builds" ON)
+
 # Set some debug flags
 if(CMAKE_BUILD_TYPE MATCHES Debug AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -U_FORTIFY_SOURCE")
 
-    message(STATUS "Running debug build, adding extra sanitizer flags")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined")
+    if(${ENABLE_SANITIZE})
+        message(STATUS "Adding extra sanitizer flags")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined")
+    endif()
 
     message(STATUS "Running debug build, tests enabled")
     enable_testing()

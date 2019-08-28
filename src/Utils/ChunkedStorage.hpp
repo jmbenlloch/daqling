@@ -224,7 +224,7 @@ namespace daqling {
           idsToRead.push_back(block);
           // Got a Batch or reached the end?
           if (idsToRead.size() == m_batchSize || block == attributes.getChunkCount() - 1) {
-            // const int firstBlockId = idsToRead.at(0);
+          // const int firstBlockId = idsToRead.at(0);
 #ifdef USE_TBB_FETCH
             // std::random_shuffle( idsToRead.begin(), idsToRead.end() );
             tbb::task_scheduler_init init(m_concurrencyLevel);

@@ -33,7 +33,7 @@ if(_clang_format)
         )
 
     else()
-        message(STATUS "Could only find version ${_clang_major_version} or clang-format, but version >= is required.")
+        message(STATUS "Could only find version ${_clang_major_version} or clang-format, but version >= 4 is required.")
     endif()
 else()
     message(STATUS "Could NOT find clang-format")
