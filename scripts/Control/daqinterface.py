@@ -136,7 +136,11 @@ while(not dc.stop_check):
     if arg != 'configure':
       dc.removeProcesses(data['components'])
   elif cmd == "command":
-    ccp = partial(dc.customCommandProcess, command=cmd_args[0])
-    spawnJoin(data['components'], ccp)
+    try:
+      ccp = partial(dc.customCommandProcess, command=cmd_args[0])
+      spawnJoin(data['components'], ccp)
+    except IndexError:
+      print("Missing required command argument")
+
 
 quit()
