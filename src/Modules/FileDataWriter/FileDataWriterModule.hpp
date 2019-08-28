@@ -84,6 +84,12 @@ public:
      */
     std::ofstream next();
 
+    /**
+     * Returns whether `pattern` yields unique output files on rotation.
+     * Effectively checks whether the pattern contains %n.
+     */
+    static bool yields_unique(const std::string &pattern);
+
 private:
     const std::string m_pattern;
     const uint64_t m_chid;

@@ -25,6 +25,7 @@
 
 /// \cond
 #include <dlfcn.h>
+#include <optional>
 #include <string>
 /// \endcond
 
@@ -43,8 +44,8 @@ namespace daqling {
       CreateFunc *m_create;
       DeleteFunc *m_delete;
 
-      daqling::core::DAQProcess *m_dp;
-      void *m_handle;
+      std::optional<DAQProcess *> m_dp;
+      std::optional<void *> m_handle;
       bool m_loaded;
 
       /**
@@ -53,11 +54,11 @@ namespace daqling {
        */
       template <typename FuncSig> FuncSig *resolve(const char *symbol)
       {
-        assert(m_handle != nullptr);
+        assert(*m_handle != nullptr);
         dlerror(); // discard any previous errors
 
         char *error;
-        void *handle = dlsym(m_handle, symbol);
+        void *handle = dlsym(*m_handle, symbol);
         error = dlerror();
         if (error) {
           ERROR("Module resolution error: " << error);
@@ -82,26 +83,26 @@ namespace daqling {
        *
        * @warning May only be called after a successful `load`.
        */
-      void configure() { m_dp->configure(); };
+      void configure() { m_dp.value()->configure(); };
 
       /**
        * Starts the loaded module.
        *
        * @warning May only be called after a successful `load`.
        */
-      void start() { m_dp->start(); };
+      void start() { m_dp.value()->start(); };
 
       /**
        * Stops the loaded module.
        *
        * @warning May only be called after a successful `load`.
        */
-      void stop() { m_dp->stop(); };
+      void stop() { m_dp.value()->stop(); };
 
       /**
        * Returns the state of the module.
        */
-      std::string getState() { return m_dp->getState(); }
+      std::string getState() { return m_dp.value()->getState(); }
 
       /**
        * Returns whether a module is loaded.
