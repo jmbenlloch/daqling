@@ -72,6 +72,7 @@ namespace daqling {
       void configure() { m_dp->configure(); };
       void start() { m_dp->start(); };
       void stop() { m_dp->stop(); };
+      bool command(const std::string &cmd) { return m_dp->command(cmd); }
       std::string getState() { return m_dp->getState(); }
       bool getLoaded() { return m_loaded; }
     };

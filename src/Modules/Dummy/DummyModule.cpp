@@ -32,6 +32,8 @@ void DummyModule::configure()
 {
   daqling::core::DAQProcess::configure();
   INFO("");
+
+  registerCommand("foobar", []() { INFO("Inside custom command"); });
 }
 
 void DummyModule::start()

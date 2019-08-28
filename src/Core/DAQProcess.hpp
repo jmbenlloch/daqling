@@ -66,6 +66,22 @@ namespace daqling {
 
       virtual void runner() = 0;
 
+      /**
+       * Runs a registered custom command named `key`, if available.
+       * Returns whether a command was found and run.
+       */
+      bool command(const std::string &key) noexcept
+      {
+        if (auto cmd = m_commands.find(key); cmd != m_commands.end()) {
+          DEBUG("Command '" << key << "' registered. Running...");
+          cmd->second();
+          return true;
+        }
+
+        DEBUG("No command '" << key << "' registered");
+        return false;
+      }
+
       std::string getState() { return m_state; }
 
       bool setupStatistics()
@@ -116,6 +132,16 @@ namespace daqling {
       bool running() const { return m_runner_thread.joinable(); }
 
   protected:
+      /**
+       * Registers a custom command under the name `cmd`.
+       * Returns whether the command was inserted (false meaning that command `cmd` already exists)
+       */
+      template <typename Function, typename... Args>
+      bool registerCommand(const std::string &cmd, Function &&f, Args &&... args)
+      {
+        return m_commands.emplace(cmd, std::bind(f, args...)).second;
+      }
+
       // ZMQ ConnectionManager
       daqling::core::ConnectionManager &m_connections =
         daqling::core::ConnectionManager::instance();
@@ -129,6 +155,9 @@ namespace daqling {
       std::string m_state;
       std::atomic<bool> m_run;
       std::thread m_runner_thread;
+
+  private:
+      std::map<const std::string, std::function<void()>> m_commands;
     };
 
   } // namespace core
