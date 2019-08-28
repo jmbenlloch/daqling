@@ -33,8 +33,8 @@ PluginManager::PluginManager() : m_create{}, m_delete{}, m_dp{}, m_loaded{false}
 PluginManager::~PluginManager()
 {
   if (m_handle) {
-    m_delete(m_dp);
-    dlclose(m_handle);
+    m_delete(*m_dp);
+    dlclose(*m_handle);
     m_loaded = false;
   }
 }
@@ -44,8 +44,9 @@ bool PluginManager::load(std::string name)
   // Load the shared object
   std::string pluginName = "lib/libDaqlingModule" + name + ".so";
   m_handle = dlopen(pluginName.c_str(), RTLD_NOW);
-  if (m_handle == nullptr) {
+  if (*m_handle == nullptr) {
     ERROR("Unable to dlopen module " << name << "; reason: " << dlerror());
+    m_handle.reset();
     return false;
   }
 

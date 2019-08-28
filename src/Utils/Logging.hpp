@@ -17,7 +17,10 @@
 
 /**
  * @file Logging.hpp
- * @author https://gitlab.cern.ch/atlas-tdaq-felix/felixbase
+ *
+ * Static logging implementation exposing macros to log to different levels.
+ * `set_instance` must be called before any log entries are made.
+ * Otherwise is UB.
  */
 
 #ifndef DAQLING_UTILITIES_LOGGING_HPP
@@ -64,11 +67,17 @@ namespace daqling::utilities {
 
   class Logger {
 private:
-    static bool m_module_logger_set;
+    static bool m_module_logger_set; // may only be set once
     static LoggerType m_module_logger;
     static LoggerType m_logger;
 
 public:
+    /**
+     * Sets the current logger instance.
+     *
+     * @warning May only be called if no logger is already set.
+     * @todo Replace assertion with an exception throw
+     */
     HEDLEY_PRIVATE
     static void set_instance(LoggerType logger)
     {
@@ -76,6 +85,12 @@ public:
       m_logger = logger;
     }
 
+    /**
+     * Gets the logger instance.
+     *
+     * @warning May only be called if a logger is already set.
+     * @todo Replace assertion with an exception throw
+     */
     HEDLEY_PRIVATE
     static LoggerType instance()
     {
@@ -83,12 +98,24 @@ public:
       return m_logger;
     }
 
+    /**
+     * Sets the logger assigned to the dynamically loaded module.
+     *
+     * @warning May only be called once.
+     * @todo Replace assertion with an exception throw
+     */
     static void set_module_instance(LoggerType logger)
     {
       assert(!std::exchange(m_module_logger_set, true));
       m_module_logger = logger;
     }
 
+    /**
+     * Gets the logger assigned to the dynamically loaded module.
+     *
+     * @warning May only be called if a module logger is already set.
+     * @todo Replace assertion with an exception throw
+     */
     static LoggerType get_module_instance()
     {
       assert(m_module_logger);
@@ -96,6 +123,9 @@ public:
     }
   };
 
+  /**
+   * Sets the log level of the logger instance.
+   */
   inline void set_log_level(spdlog::level::level_enum level)
   {
     Logger::instance()->set_level(level);

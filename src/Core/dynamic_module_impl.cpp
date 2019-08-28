@@ -10,23 +10,27 @@
 namespace daqutils = daqling::utilities;
 using namespace std::chrono_literals;
 
-// TODO: explain
+/*
+ * Defines a hidden symbol that holds the module's logger instance.
+ * All log entries made in the module will be done through this instance.
+ * Must be hidden from the symbol table so that it is not aliased to daqling's own when the module
+ * is dynamically loaded.
+ */
 HEDLEY_PRIVATE
 daqutils::LoggerType daqutils::Logger::m_logger;
 
 namespace daqling::core {
   extern "C" {
-  // declare to satisfy -Werror=missing-declarations
+  // forward-declare to satisfy -Werror=missing-declarations
   DAQProcess *daqling_module_create(daqutils::LoggerType);
   void daqling_module_delete(DAQProcess *);
   }
 
-  // and then define
   DAQProcess *daqling_module_create(daqutils::LoggerType logger)
   {
     assert(logger);
-    // must be set first so that we get "[module]" during setup
-    // TODO: improve docs
+    // Set the logger before create the module. Otherwise would be UB, as the module ctor may log
+    // entries.
     daqutils::Logger::set_instance(logger);
 
     auto module = new DAQLING_MODULE_NAME();

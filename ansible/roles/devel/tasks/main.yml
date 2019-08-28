@@ -10,6 +10,8 @@
     - mlocate
     - graphviz
     - python36-pip
+    - centos-release-scl-rh
+    - llvm-toolset-7
 
 - name: Updatedb
   shell: updatedb

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4.3 FATAL_ERROR)
-cmake_policy(SET CMP0077 NEW)
+cmake_policy(SET CMP0077 NEW) # option() honors normal variables
 set(PACKAGE daqling)
 set(PACKAGE_VERSION 0.0.1)
 
@@ -114,7 +114,7 @@ if(CERN_ENVIRONMENT)
   set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} zmq)
 else()
   # Build libzmq with libsodium instead of the built-in tweetnacl.
-  # Fixed zmq::context_t dtor on daqinterface `down` command when libzmq curve security is enabled.
+  # Fixes zmq::context_t dtor when libzmq curve security is enabled.
   set(WITH_LIBSODIUM ON)
 
   add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/zmq)
@@ -139,18 +139,22 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -Wcast-align -Wc
 # Disable some for convenience
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function")
 
-# Set some debug flags
+option(ENABLE_SANITIZE "Whether to enable extra sanitize flags during debug builds" ON)
+
+# Set flags on debug builds
 if(CMAKE_BUILD_TYPE MATCHES Debug AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -U_FORTIFY_SOURCE")
 
-    message(STATUS "Running debug build, adding extra sanitizer flags")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined")
+    if(${ENABLE_SANITIZE})
+        message(STATUS "Adding extra sanitizer flags")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined")
+    endif()
 
     message(STATUS "Running debug build, tests enabled")
     enable_testing()
 endif()
 
-# Set some release flags
+# Set flags on release builds
 if(CMAKE_BUILD_TYPE MATCHES Release)
   message(STATUS "Running release build, adding optimization flags")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
@@ -167,7 +171,7 @@ set(BUILD_MetricsSimulator OFF)
 
 include_directories(${daqling_dir}/src)
 
-# pass properties and variables to parent
+# Pass properties and variables to parent
 get_directory_property(hasParent PARENT_DIRECTORY)
 if (hasParent)
   get_property(inc_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
@@ -175,7 +179,7 @@ if (hasParent)
 
   get_property(link_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY LINK_DIRECTORIES)
   set(daqling_link_dirs ${link_dirs} PARENT_SCOPE)
-  
+
   set(daqling_dir ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
 
   set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} PARENT_SCOPE)
