@@ -70,24 +70,24 @@ std::ofstream FileDataWriterModule::FileGenerator::next()
 
 bool FileDataWriterModule::FileGenerator::yields_unique(const std::string &pattern)
 {
-  bool chid = false;
-  bool number = false;
+  std::map<char, bool> fields{{'n', false}, {'c', false}, {'D', false}};
 
   for (auto c = pattern.cbegin(); c != pattern.cend(); c++) {
-    /*
-     * While %D can conceptually yield unique files it has a resolution of 1s;
-     * if FileGenerator::next() is called too often files will be overwritten.
-     */
     if (*c == '%' && c + 1 != pattern.cend()) {
-      const auto nc = *(++c);
-      if (nc == 'n')
-        number = true;
-      if (nc == 'c')
-        chid = true;
+      try {
+        fields.at(*(++c)) = true;
+      } catch (const std::out_of_range &) {
+        continue;
+      }
     }
   }
 
-  return chid && number;
+  /*
+   * While %D can conceptually yield unique files it has a resolution of 1s;
+   * if FileGenerator::next() is called too often files will be overwritten.
+   * Just to be sure, make sure every field is specified.
+   */
+  return std::all_of(fields.cbegin(), fields.cend(), [](const auto &f) { return f.second; });
 }
 
 FileDataWriterModule::FileDataWriterModule() : m_stopWriters{false}
@@ -276,10 +276,11 @@ void FileDataWriterModule::setup()
   INFO(" -> channels: " << m_channels);
 
   if (!FileGenerator::yields_unique(pattern)) {
-    WARNING("Configured file name pattern '"
-            << pattern
-            << "' may not yield unique output file on rotation; your files may be silently "
-               "overwritten. Ensure the pattern contains '%c' and '%n'.");
+    CRITICAL("Configured file name pattern '"
+             << pattern
+             << "' may not yield unique output file on rotation; your files may be silently "
+                "overwritten. Ensure the pattern contains all fields ('%c', '%n' and '%D').");
+    throw std::logic_error("invalid file name pattern");
   }
 
   unsigned int threadid = 11111;       // XXX: magic
