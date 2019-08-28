@@ -279,7 +279,7 @@ void FileDataWriterModule::setup()
     WARNING("Configured file name pattern '"
             << pattern
             << "' may not yield unique output file on rotation; your files may be silently "
-               "overwritten. Ensure the pattern contains '\%c' and '\%n'.");
+               "overwritten. Ensure the pattern contains '%c' and '%n'.");
   }
 
   unsigned int threadid = 11111;       // XXX: magic

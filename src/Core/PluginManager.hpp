@@ -17,8 +17,7 @@
 
 /**
  * @file PluginManager.hpp
- * @brief Load shared objects of type DAQProcess
- * @date 2019-05-14
+ * @brief Loads module (shared object) of type DAQProcess
  */
 
 #ifndef DAQLING_CORE_PLUGINMANAGER_HPP
@@ -49,6 +48,10 @@ namespace daqling {
       std::optional<void *> m_handle;
       bool m_loaded;
 
+      /**
+       * Resolves a symbol from the loaded shared module.
+       * Throws std::runtime_error if the symbol cannot be resolved.
+       */
       template <typename FuncSig> FuncSig *resolve(const char *symbol)
       {
         assert(*m_handle != nullptr);
@@ -69,11 +72,41 @@ namespace daqling {
       PluginManager();
       ~PluginManager();
 
+      /**
+       * Tries to load a module of name `name`.
+       * Returns whether the operation succeeded.
+       */
       bool load(std::string name);
+
+      /**
+       * Configures the loaded module.
+       *
+       * @warning May only be called after a successful `load`.
+       */
       void configure() { m_dp.value()->configure(); };
+
+      /**
+       * Starts the loaded module.
+       *
+       * @warning May only be called after a successful `load`.
+       */
       void start() { m_dp.value()->start(); };
+
+      /**
+       * Stops the loaded module.
+       *
+       * @warning May only be called after a successful `load`.
+       */
       void stop() { m_dp.value()->stop(); };
+
+      /**
+       * Returns the state of the module.
+       */
       std::string getState() { return m_dp.value()->getState(); }
+
+      /**
+       * Returns whether a module is loaded.
+       */
       bool getLoaded() { return m_loaded; }
     };
 

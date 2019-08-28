@@ -4,6 +4,9 @@
 
 #include "Utils/Logging.hpp"
 
+/*
+ * Defines required logging fields.
+ */
 daqling::utilities::LoggerType daqling::utilities::Logger::m_logger;
 daqling::utilities::LoggerType daqling::utilities::Logger::m_module_logger;
 bool daqling::utilities::Logger::m_module_logger_set;

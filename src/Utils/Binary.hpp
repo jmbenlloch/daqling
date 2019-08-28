@@ -21,7 +21,7 @@
 /*
  * Binary
  * Description:
- *   A convenient void* wrapper, representing dynamically sized, continous memory area.
+ *   A convenient wrapper around a dynamically sized, continous memory area.
  */
 
 #include <algorithm>
