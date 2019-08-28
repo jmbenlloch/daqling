@@ -51,8 +51,8 @@ namespace daqling {
       virtual void start()
       {
         m_run = true;
-        m_runner_thread = std::thread(&DAQProcess::runner, this);
         m_state = "running";
+        m_runner_thread = std::thread(&DAQProcess::runner, this);
       };
 
       virtual void stop()
@@ -139,6 +139,10 @@ namespace daqling {
       template <typename Function, typename... Args>
       bool registerCommand(const std::string &cmd, Function &&f, Args &&... args)
       {
+        if (m_state == "running") {
+          throw std::logic_error("commands cannot be registered during runtime.");
+        }
+
         return m_commands.emplace(cmd, std::bind(f, args...)).second;
       }
 
