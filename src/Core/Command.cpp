@@ -159,7 +159,10 @@ bool daqling::core::Command::executeCommand(std::string &response)
     } else {
       response = "booted";
     }
+  } else {
+    return m_plugin.command(command);
   }
+
   return true; // TODO put some meaning or return void
 }
 
