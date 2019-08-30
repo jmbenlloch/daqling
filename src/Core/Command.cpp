@@ -30,21 +30,6 @@
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
-bool daqling::core::Command::startCommandHandler()
-{
-  // m_commandHandler = std::make_unique<daqling::utilities::ReusableThread>(10);
-  unsigned tid = 1;
-  bool rv = false;
-  m_commandFunctors.push_back([&, tid] {
-    DEBUG("CommandThread  ->>> Should handle command: " << m_command);
-    std::string response;
-    [[maybe_unused]] bool ret = executeCommand(response);
-    setResponse(response);
-    setHandled(true);
-  });
-  return rv;
-}
-
 bool daqling::core::Command::executeCommand(std::string &response)
 {
   // INFO("Loaded configuration");
@@ -168,17 +153,14 @@ bool daqling::core::Command::executeCommand(std::string &response)
 
 bool daqling::core::Command::handleCommand()
 {
-  m_commandHandler->set_work(m_commandFunctors[0]);
-  while (busy()) {
-    std::this_thread::sleep_for(1ms);
-  }
-  return true;
-}
 
-bool daqling::core::Command::busy()
-{
-  bool busy = (m_commandHandler->get_readiness() == false) ? true : false;
-  return busy;
+  DEBUG("CommandThread  ->>> Should handle command: " << m_command);
+  std::string response;
+  [[maybe_unused]] bool ret = executeCommand(response);
+  setResponse(response);
+  setHandled(true);
+
+  return true;
 }
 
 // template <typename TValue, typename TPred>

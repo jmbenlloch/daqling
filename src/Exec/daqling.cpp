@@ -79,7 +79,6 @@ int main(int argc, char **argv)
   daqling::core::Core c(port, "tcp", "*");
 
   c.setupCommandPath();
-  c.startCommandHandler();
 
   std::mutex *mtx = c.getMutex();
   std::condition_variable *cv = c.getCondVar();

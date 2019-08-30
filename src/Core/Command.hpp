@@ -30,14 +30,12 @@ namespace daqling {
       Command()
           : m_should_stop{false}, m_handled(false), m_command{""}, m_argument{""}, m_response{""}
       {
-        m_commandHandler = std::make_unique<daqling::utilities::ReusableThread>(10);
       }
       ~Command() {}
 
       //    std::string getResponse() { return m_response; }
       //    bool getHandled() { return m_handled; }
 
-      bool startCommandHandler();
       bool executeCommand(std::string &response);
       bool handleCommand();
 
@@ -54,7 +52,6 @@ namespace daqling {
       std::condition_variable *getCondVar() { return &m_cv; }
 
   private:
-      bool busy();
       bool m_should_stop;
       bool m_handled;
       std::string m_command;
@@ -63,8 +60,6 @@ namespace daqling {
       std::mutex m_mtx;
       std::condition_variable m_cv;
 
-      // Command handler
-      std::unique_ptr<daqling::utilities::ReusableThread> m_commandHandler;
       std::vector<std::function<void()>> m_commandFunctors;
 
       void stop_and_notify()

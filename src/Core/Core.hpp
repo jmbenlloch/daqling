@@ -34,7 +34,6 @@ namespace daqling {
       ~Core(){};
 
       bool setupCommandPath();
-      bool startCommandHandler();
       bool getShouldStop();
       std::mutex *getMutex() { return m_command.getMutex(); };
       std::condition_variable *getCondVar() { return m_command.getCondVar(); };
