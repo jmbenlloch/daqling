@@ -57,8 +57,8 @@ bool daqling::core::Command::executeCommand(std::string &response)
   if (command == "configure") {
     int failures = 0;
     auto &cfg = Configuration::instance();
-    cfg.load(m_config);
-    DEBUG("Get config: " << m_config);
+    cfg.load(m_argument);
+    DEBUG("Get config: " << m_argument);
 
     auto type = cfg.get<std::string>("type");
     DEBUG("Loading type: " << type);
@@ -160,7 +160,7 @@ bool daqling::core::Command::executeCommand(std::string &response)
       response = "booted";
     }
   } else {
-    return m_plugin.command(command, getConfig());
+    return m_plugin.command(command, m_argument);
   }
 
   return true; // TODO put some meaning or return void
