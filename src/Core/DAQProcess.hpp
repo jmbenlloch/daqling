@@ -32,6 +32,8 @@
 namespace daqling {
   namespace core {
 
+    using namespace std::placeholders;
+
     class DAQProcess {
   public:
       DAQProcess(){};
@@ -70,11 +72,11 @@ namespace daqling {
        * Runs a registered custom command named `key`, if available.
        * Returns whether a command was found and run.
        */
-      bool command(const std::string &key) noexcept
+      bool command(const std::string &key, const std::string &arg = "test") noexcept
       {
         if (auto cmd = m_commands.find(key); cmd != m_commands.end()) {
           DEBUG("Command '" << key << "' registered. Running...");
-          cmd->second();
+          cmd->second(arg);
           return true;
         }
 
@@ -161,7 +163,7 @@ namespace daqling {
       std::thread m_runner_thread;
 
   private:
-      std::map<const std::string, std::function<void()>> m_commands;
+      std::map<const std::string, std::function<void(const std::string &)>> m_commands;
     };
 
   } // namespace core

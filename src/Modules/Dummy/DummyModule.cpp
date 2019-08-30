@@ -17,6 +17,8 @@
 
 #include "DummyModule.hpp"
 
+using namespace daqling::core;
+
 DummyModule::DummyModule()
 {
   INFO("");
@@ -33,7 +35,10 @@ void DummyModule::configure()
   daqling::core::DAQProcess::configure();
   INFO("");
 
-  registerCommand("foobar", []() { INFO("Inside custom command"); });
+  registerCommand(
+    "foobar",
+    [](const std::string &arg) { INFO("Inside custom command. Got argument: " << arg); },
+    _1); // placeholder argument must be specified
 }
 
 void DummyModule::start()
