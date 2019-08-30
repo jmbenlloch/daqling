@@ -29,144 +29,141 @@
 #include "Statistics.hpp"
 #include "Utils/Logging.hpp"
 
-namespace daqling {
-  namespace core {
+namespace daqling::core {
 
-    using namespace std::placeholders;
+  using namespace std::placeholders;
 
-    class DAQProcess {
-  public:
-      DAQProcess(){};
+  class DAQProcess {
+public:
+    DAQProcess(){};
 
-      virtual ~DAQProcess(){};
+    virtual ~DAQProcess(){};
 
-      /* use virtual otherwise linker will try to perform static linkage */
-      virtual void configure()
-      {
-        setupStatistics();
-        if (m_stats_on) {
-          m_statistics->start();
-        }
-        m_state = "ready";
-      };
-
-      virtual void start()
-      {
-        m_run = true;
-        m_state = "running";
-        m_runner_thread = std::thread(&DAQProcess::runner, this);
-      };
-
-      virtual void stop()
-      {
-        m_run = false;
-        if (running()) {
-          m_runner_thread.join();
-        }
-        m_state = "ready";
-      };
-
-      virtual void runner() = 0;
-
-      /**
-       * Runs a registered custom command named `key`, if available.
-       * Returns whether a command was found and run.
-       */
-      bool command(const std::string &key, const std::string &arg) noexcept
-      {
-        if (auto cmd = m_commands.find(key); cmd != m_commands.end()) {
-          DEBUG("Command '" << key << "' registered. Running...");
-          cmd->second(arg);
-          return true;
-        }
-
-        DEBUG("No command '" << key << "' registered");
-        return false;
+    /* use virtual otherwise linker will try to perform static linkage */
+    virtual void configure()
+    {
+      setupStatistics();
+      if (m_stats_on) {
+        m_statistics->start();
       }
+      m_state = "ready";
+    };
 
-      std::string getState() { return m_state; }
+    virtual void start()
+    {
+      m_run = true;
+      m_state = "running";
+      m_runner_thread = std::thread(&DAQProcess::runner, this);
+    };
 
-      bool setupStatistics()
-      { // TODO
+    virtual void stop()
+    {
+      m_run = false;
+      if (running()) {
+        m_runner_thread.join();
+      }
+      m_state = "ready";
+    };
 
-        auto statsURI = m_config.getConfig()["settings"]["stats_uri"];
-        auto influxDbURI = m_config.getConfig()["settings"]["influxDb_uri"];
-        auto influxDbName = m_config.getConfig()["settings"]["influxDb_name"];
-        INFO("Setting up statistics on: " << statsURI);
-        if ((statsURI == "" || statsURI == nullptr) &&
-            (influxDbURI == "" || influxDbURI == nullptr)) {
-          INFO("No Statistics settings were provided... Running without stats.");
-          m_stats_on = false;
-          return false;
-        } else {
-          if (statsURI != "" && statsURI != nullptr) {
-            if (!m_connections.setupStatsConnection(1, statsURI)) {
-              ERROR("Connection setup failed for Statistics publishing!");
-              return false;
-            }
-          }
+    virtual void runner() = 0;
 
-          m_statistics = std::make_unique<Statistics>(m_connections.getStatSocket());
-          m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-            &m_connections.getQueueStat(1),
-            "CHN0-QueueSizeGuess",
-            daqling::core::metrics::LAST_VALUE,
-            daqling::core::metrics::SIZE);
-          m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-            &m_connections.getMsgStat(1),
-            "CHN0-NumMessages",
-            daqling::core::metrics::LAST_VALUE,
-            daqling::core::metrics::SIZE);
-          if (statsURI != "" && statsURI != nullptr) {
-            m_statistics->setZQMpublishing(true);
-            m_stats_on = true;
-          }
-          if (influxDbURI != "" && influxDbURI != nullptr) {
-            m_statistics->setInfluxDBname(influxDbName);
-            m_statistics->setInfluxDBuri(influxDbURI);
-            m_statistics->setInfluxDBsending(true);
-            m_stats_on = true;
-          }
-        }
+    /**
+     * Runs a registered custom command named `key`, if available.
+     * Returns whether a command was found and run.
+     */
+    bool command(const std::string &key, const std::string &arg) noexcept
+    {
+      if (auto cmd = m_commands.find(key); cmd != m_commands.end()) {
+        DEBUG("Command '" << key << "' registered. Running...");
+        cmd->second(arg);
         return true;
       }
 
-      bool running() const { return m_runner_thread.joinable(); }
+      DEBUG("No command '" << key << "' registered");
+      return false;
+    }
 
-  protected:
-      /**
-       * Registers a custom command under the name `cmd`.
-       * Returns whether the command was inserted (false meaning that command `cmd` already exists)
-       */
-      template <typename Function, typename... Args>
-      bool registerCommand(const std::string &cmd, Function &&f, Args &&... args)
-      {
-        if (m_state == "running") {
-          throw std::logic_error("commands cannot be registered during runtime.");
+    std::string getState() { return m_state; }
+
+    bool setupStatistics()
+    { // TODO
+
+      auto statsURI = m_config.getConfig()["settings"]["stats_uri"];
+      auto influxDbURI = m_config.getConfig()["settings"]["influxDb_uri"];
+      auto influxDbName = m_config.getConfig()["settings"]["influxDb_name"];
+      INFO("Setting up statistics on: " << statsURI);
+      if ((statsURI == "" || statsURI == nullptr) &&
+          (influxDbURI == "" || influxDbURI == nullptr)) {
+        INFO("No Statistics settings were provided... Running without stats.");
+        m_stats_on = false;
+        return false;
+      } else {
+        if (statsURI != "" && statsURI != nullptr) {
+          if (!m_connections.setupStatsConnection(1, statsURI)) {
+            ERROR("Connection setup failed for Statistics publishing!");
+            return false;
+          }
         }
 
-        return m_commands.emplace(cmd, std::bind(f, args...)).second;
+        m_statistics = std::make_unique<Statistics>(m_connections.getStatSocket());
+        m_statistics->registerVariable<std::atomic<size_t>, size_t>(
+          &m_connections.getQueueStat(1),
+          "CHN0-QueueSizeGuess",
+          daqling::core::metrics::LAST_VALUE,
+          daqling::core::metrics::SIZE);
+        m_statistics->registerVariable<std::atomic<size_t>, size_t>(
+          &m_connections.getMsgStat(1),
+          "CHN0-NumMessages",
+          daqling::core::metrics::LAST_VALUE,
+          daqling::core::metrics::SIZE);
+        if (statsURI != "" && statsURI != nullptr) {
+          m_statistics->setZQMpublishing(true);
+          m_stats_on = true;
+        }
+        if (influxDbURI != "" && influxDbURI != nullptr) {
+          m_statistics->setInfluxDBname(influxDbName);
+          m_statistics->setInfluxDBuri(influxDbURI);
+          m_statistics->setInfluxDBsending(true);
+          m_stats_on = true;
+        }
+      }
+      return true;
+    }
+
+    bool running() const { return m_runner_thread.joinable(); }
+
+protected:
+    /**
+     * Registers a custom command under the name `cmd`.
+     * Returns whether the command was inserted (false meaning that command `cmd` already exists)
+     */
+    template <typename Function, typename... Args>
+    bool registerCommand(const std::string &cmd, Function &&f, Args &&... args)
+    {
+      if (m_state == "running") {
+        throw std::logic_error("commands cannot be registered during runtime.");
       }
 
-      // ZMQ ConnectionManager
-      daqling::core::ConnectionManager &m_connections =
-        daqling::core::ConnectionManager::instance();
-      // JSON Configuration map
-      daqling::core::Configuration &m_config = daqling::core::Configuration::instance();
+      return m_commands.emplace(cmd, std::bind(f, args...)).second;
+    }
 
-      // Stats
-      bool m_stats_on;
-      std::unique_ptr<Statistics> m_statistics;
+    // ZMQ ConnectionManager
+    daqling::core::ConnectionManager &m_connections = daqling::core::ConnectionManager::instance();
+    // JSON Configuration map
+    daqling::core::Configuration &m_config = daqling::core::Configuration::instance();
 
-      std::string m_state;
-      std::atomic<bool> m_run;
-      std::thread m_runner_thread;
+    // Stats
+    bool m_stats_on;
+    std::unique_ptr<Statistics> m_statistics;
 
-  private:
-      std::map<const std::string, std::function<void(const std::string &)>> m_commands;
-    };
+    std::string m_state;
+    std::atomic<bool> m_run;
+    std::thread m_runner_thread;
 
-  } // namespace core
-} // namespace daqling
+private:
+    std::map<const std::string, std::function<void(const std::string &)>> m_commands;
+  };
+
+} // namespace daqling::core
 
 #endif // DAQLING_CORE_DAQPROCESS_HPP
