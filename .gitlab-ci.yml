@@ -9,7 +9,7 @@ stages:
     script:
         - mkdir build
         - cd build
-        - cmake3 -DENABLE_SANITIZE=OFF ..
+        - cmake3 -DENABLE_SANITIZE=OFF -DBUILD_Dummy=ON ..
         - make -j$(nproc)
     artifacts:
         paths:
