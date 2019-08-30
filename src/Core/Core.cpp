@@ -33,12 +33,6 @@ bool Core::setupCommandPath()
   return rv;
 }
 
-bool Core::startCommandHandler()
-{
-  m_command.startCommandHandler();
-  return true;
-}
-
 bool Core::getShouldStop()
 {
   return m_command.getShouldStop();
