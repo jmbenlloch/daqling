@@ -104,7 +104,10 @@ namespace daqling {
        *
        * Returns whether specified command was executed.
        */
-      bool command(const std::string &cmd) { return m_dp.value()->command(cmd); }
+      bool command(const std::string &cmd, const std::string &arg)
+      {
+        return m_dp.value()->command(cmd, arg);
+      }
 
       /**
        * Returns the state of the module.

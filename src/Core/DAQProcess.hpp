@@ -72,7 +72,7 @@ namespace daqling {
        * Runs a registered custom command named `key`, if available.
        * Returns whether a command was found and run.
        */
-      bool command(const std::string &key, const std::string &arg = "test") noexcept
+      bool command(const std::string &key, const std::string &arg) noexcept
       {
         if (auto cmd = m_commands.find(key); cmd != m_commands.end()) {
           DEBUG("Command '" << key << "' registered. Running...");
