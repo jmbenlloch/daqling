@@ -44,6 +44,6 @@ namespace daqling::core {
       // we cannot safely destruct resources in derived module that m_runner_thread may be using.
       std::this_thread::sleep_for(1ms); // TODO: use a cv instead
     }
-    delete static_cast<DAQLING_MODULE_NAME *>(module);
+    delete module;
   }
 } // namespace daqling::core
