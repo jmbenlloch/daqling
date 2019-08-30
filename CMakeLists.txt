@@ -166,8 +166,12 @@ endif()
 
 set(daqling_dir ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(BUILD_Dummy OFF)
-set(BUILD_MetricsSimulator OFF)
+if(NOT BUILD_Dummy)
+  set(BUILD_Dummy OFF)
+endif()
+if(NOT BUILD_MetricsSimulator)
+  set(BUILD_MetricsSimulator OFF)
+endif()
 
 include_directories(${daqling_dir}/src)
 
