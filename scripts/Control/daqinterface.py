@@ -20,6 +20,7 @@ import signal
 from os import environ as env
 import json
 from jsonschema import validate
+from functools import partial
 import daqcontrol
 import threading
 
@@ -119,20 +120,27 @@ for p in data['components']:
 signal.signal(signal.SIGINT, signal_handler)
 
 while(not dc.stop_check):
-  text = input("(config) | start | stop | down\n")
-  print("Executing", text)
+  cmd, *cmd_args = input("(config) | start | stop | down | command <cmd>\n").split(' ')
+  print("Executing", cmd, ' '.join(cmd_args))
   command_threads = []
-  if text == "config":
+  if cmd == "config":
     spawnJoin(data['components'], dc.configureProcess)
-  elif text == "start":
+  elif cmd == "start":
     spawnJoin(data['components'], dc.startProcess)
-  elif text == "stop":
+  elif cmd == "stop":
     spawnJoin(data['components'], dc.stopProcess)
-  elif text == "down":
+  elif cmd == "down":
     stop_check_threads()
     spawnJoin(data['components'], dc.stopProcess)
     spawnJoin(data['components'], dc.shutdownProcess)
     if arg != 'configure':
       dc.removeProcesses(data['components'])
+  elif cmd == "command":
+    try:
+      ccp = partial(dc.customCommandProcess, command=cmd_args[0], args=' '.join(cmd_args[1:]))
+      spawnJoin(data['components'], ccp)
+    except IndexError:
+      print("Missing required command argument")
+
 
 quit()

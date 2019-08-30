@@ -52,9 +52,9 @@ bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr)
     while (!m_stop_cmd_handler) {
       // INFO(m_className << " CMD_THREAD: Going for RECV poll...");
       if (m_cmd_socket->recv(&cmdMsg, ZMQ_DONTWAIT)) {
-        std::string cmdmsgStr(static_cast<char *>(cmdMsg.data()), cmdMsg.size());
-        DEBUG(m_className << " CMD_THREAD: Got CMD: " << cmdmsgStr);
-        cmd.setCommand(cmdmsgStr);
+        const std::string cmdStr(static_cast<char *>(cmdMsg.data()), cmdMsg.size());
+        DEBUG(m_className << " CMD_THREAD: Got CMD: " << cmdStr);
+        cmd.setCommand(cmdStr);
         int more;
         size_t more_size = sizeof(int);
         m_cmd_socket->getsockopt(ZMQ_RCVMORE, &more, &more_size);
@@ -62,9 +62,9 @@ bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr)
         if (more) {
           zmq::message_t configMsg;
           m_cmd_socket->recv(&configMsg, ZMQ_DONTWAIT);
-          std::string configStr(static_cast<char *>(configMsg.data()), configMsg.size());
-          DEBUG("======== RECEIVE MORE " << configStr);
-          cmd.setConfig(configStr);
+          const std::string argumentStr(static_cast<char *>(configMsg.data()), configMsg.size());
+          DEBUG("======== RECEIVE MORE " << argumentStr);
+          cmd.setArgument(argumentStr);
         }
 
         cmd.handleCommand();

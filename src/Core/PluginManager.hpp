@@ -100,6 +100,16 @@ namespace daqling {
       void stop() { m_dp.value()->stop(); };
 
       /**
+       * Executes a custom module command `cmd` if registered.
+       *
+       * Returns whether specified command was executed.
+       */
+      bool command(const std::string &cmd, const std::string &arg)
+      {
+        return m_dp.value()->command(cmd, arg);
+      }
+
+      /**
        * Returns the state of the module.
        */
       std::string getState() { return m_dp.value()->getState(); }
