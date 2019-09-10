@@ -103,7 +103,6 @@ class daqcontrol:
 
   def customCommandProcess(self, p, *, command, args=None):
     req = json.dumps({'command': command})
-    config = json.dumps(p)
     rv, rv1 = self.handleRequest(p['host'], p['port'], req, args)
     if rv != b'Success':
       print("Error", p['name'], rv, rv1)

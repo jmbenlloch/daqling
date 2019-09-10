@@ -127,8 +127,6 @@ bool daqling::core::Command::executeCommand(std::string &response)
 
     m_plugin.start();
     response = "Success";
-
-    INFO("Started connection manager");
   } else if (command == "stop") {
     m_plugin.stop();
 
@@ -145,7 +143,11 @@ bool daqling::core::Command::executeCommand(std::string &response)
       response = "booted";
     }
   } else {
-    return m_plugin.command(command, m_argument);
+    if (m_plugin.command(command, m_argument)) {
+      response = "Success";
+    } else {
+      return false;
+    }
   }
 
   return true; // TODO put some meaning or return void
