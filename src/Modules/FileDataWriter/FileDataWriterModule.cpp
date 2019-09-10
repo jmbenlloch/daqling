@@ -68,6 +68,28 @@ std::ofstream FileDataWriterModule::FileGenerator::next()
   return std::ofstream(ss.str(), std::ios::binary);
 }
 
+bool FileDataWriterModule::FileGenerator::yields_unique(const std::string &pattern)
+{
+  std::map<char, bool> fields{{'n', false}, {'c', false}, {'D', false}};
+
+  for (auto c = pattern.cbegin(); c != pattern.cend(); c++) {
+    if (*c == '%' && c + 1 != pattern.cend()) {
+      try {
+        fields.at(*(++c)) = true;
+      } catch (const std::out_of_range &) {
+        continue;
+      }
+    }
+  }
+
+  /*
+   * While %D can conceptually yield unique files it has a resolution of 1s;
+   * if FileGenerator::next() is called too often files will be overwritten.
+   * Just to be sure, make sure every field is specified.
+   */
+  return std::all_of(fields.cbegin(), fields.cend(), [](const auto &f) { return f.second; });
+}
+
 FileDataWriterModule::FileDataWriterModule() : m_stopWriters{false}
 {
 
@@ -95,7 +117,7 @@ void FileDataWriterModule::start()
 
   if (m_statistics) {
     // Register statistical variables
-    for (auto &[chid, metrics] : m_channelMetrics) {
+    for (auto & [ chid, metrics ] : m_channelMetrics) {
       m_statistics->registerVariable<std::atomic<size_t>, size_t>(
         &metrics.bytes_written,
         fmt::format("DL_BytesWritten_chid{}", chid),
@@ -129,7 +151,7 @@ void FileDataWriterModule::runner()
   DEBUG(" Running...");
 
   // Start the producer thread of each context
-  for (auto &[chid, ctx] : m_channelContexts) {
+  for (auto & [ chid, ctx ] : m_channelContexts) {
     std::get<ThreadContext>(ctx).producer.set_work([&]() {
       auto &pq = std::get<PayloadQueue>(ctx);
 
@@ -253,6 +275,14 @@ void FileDataWriterModule::setup()
   INFO(" -> Buffer size: " << buffer_size << "B");
   INFO(" -> channels: " << m_channels);
 
+  if (!FileGenerator::yields_unique(pattern)) {
+    CRITICAL("Configured file name pattern '"
+             << pattern
+             << "' may not yield unique output file on rotation; your files may be silently "
+                "overwritten. Ensure the pattern contains all fields ('%c', '%n' and '%D').");
+    throw std::logic_error("invalid file name pattern");
+  }
+
   unsigned int threadid = 11111;       // XXX: magic
   constexpr size_t queue_size = 10000; // XXX: magic
 
@@ -260,7 +290,7 @@ void FileDataWriterModule::setup()
     // For each channel, construct a context of a payload queue, a consumer thread, and a producer
     // thread.
     std::array<unsigned int, 2> tids = {threadid++, threadid++};
-    const auto &[it, success] =
+    const auto & [ it, success ] =
       m_channelContexts.emplace(chid, std::forward_as_tuple(queue_size, std::move(tids)));
     assert(success);
 
@@ -301,7 +331,7 @@ void FileDataWriterModule::monitor_runner()
   while (m_run) {
     std::this_thread::sleep_for(1s);
     // XXX: is this really "throughput"?
-    for (auto &[chid, metrics] : m_channelMetrics) {
+    for (auto & [ chid, metrics ] : m_channelMetrics) {
       INFO("Write throughput (channel "
            << chid << "): " << static_cast<double>(metrics.bytes_written) / 1000000 << " MBytes/s");
       if (!m_statistics) {

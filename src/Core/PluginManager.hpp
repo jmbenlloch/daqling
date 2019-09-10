@@ -17,8 +17,7 @@
 
 /**
  * @file PluginManager.hpp
- * @brief Load shared objects of type DAQProcess
- * @date 2019-05-14
+ * @brief Loads module (shared object) of type DAQProcess
  */
 
 #ifndef DAQLING_CORE_PLUGINMANAGER_HPP
@@ -26,6 +25,7 @@
 
 /// \cond
 #include <dlfcn.h>
+#include <optional>
 #include <string>
 /// \endcond
 
@@ -44,17 +44,21 @@ namespace daqling {
       CreateFunc *m_create;
       DeleteFunc *m_delete;
 
-      daqling::core::DAQProcess *m_dp;
-      void *m_handle;
+      std::optional<DAQProcess *> m_dp;
+      std::optional<void *> m_handle;
       bool m_loaded;
 
+      /**
+       * Resolves a symbol from the loaded shared module.
+       * Throws std::runtime_error if the symbol cannot be resolved.
+       */
       template <typename FuncSig> FuncSig *resolve(const char *symbol)
       {
-        assert(m_handle != nullptr);
+        assert(*m_handle != nullptr);
         dlerror(); // discard any previous errors
 
         char *error;
-        void *handle = dlsym(m_handle, symbol);
+        void *handle = dlsym(*m_handle, symbol);
         error = dlerror();
         if (error) {
           ERROR("Module resolution error: " << error);
@@ -68,11 +72,51 @@ namespace daqling {
       PluginManager();
       ~PluginManager();
 
+      /**
+       * Tries to load a module of name `name`.
+       * Returns whether the operation succeeded.
+       */
       bool load(std::string name);
-      void configure() { m_dp->configure(); };
-      void start() { m_dp->start(); };
-      void stop() { m_dp->stop(); };
-      std::string getState() { return m_dp->getState(); }
+
+      /**
+       * Configures the loaded module.
+       *
+       * @warning May only be called after a successful `load`.
+       */
+      void configure() { m_dp.value()->configure(); };
+
+      /**
+       * Starts the loaded module.
+       *
+       * @warning May only be called after a successful `load`.
+       */
+      void start() { m_dp.value()->start(); };
+
+      /**
+       * Stops the loaded module.
+       *
+       * @warning May only be called after a successful `load`.
+       */
+      void stop() { m_dp.value()->stop(); };
+
+      /**
+       * Executes a custom module command `cmd` if registered.
+       *
+       * Returns whether specified command was executed.
+       */
+      bool command(const std::string &cmd, const std::string &arg)
+      {
+        return m_dp.value()->command(cmd, arg);
+      }
+
+      /**
+       * Returns the state of the module.
+       */
+      std::string getState() { return m_dp.value()->getState(); }
+
+      /**
+       * Returns whether a module is loaded.
+       */
       bool getLoaded() { return m_loaded; }
     };
 

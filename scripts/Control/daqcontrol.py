@@ -101,6 +101,13 @@ class daqcontrol:
     if rv != b'Success':
       print("Error", p['name'], rv, rv1)
 
+  def customCommandProcess(self, p, *, command, args=None):
+    req = json.dumps({'command': command})
+    config = json.dumps(p)
+    rv, rv1 = self.handleRequest(p['host'], p['port'], req, args)
+    if rv != b'Success':
+      print("Error", p['name'], rv, rv1)
+
   def getStatus(self, p):
       sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
       req = json.dumps({'command': 'status'})

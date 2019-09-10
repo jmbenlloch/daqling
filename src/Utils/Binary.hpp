@@ -21,7 +21,7 @@
 /*
  * Binary
  * Description:
- *   A convenient void* wrapper, representing dynamically sized, continous memory area.
+ *   A convenient wrapper around a dynamically sized, continous memory area.
  */
 
 #include <algorithm>
@@ -97,12 +97,14 @@ public:
     /// Move Assignment operator
     Binary &operator=(Binary &&rhs) noexcept
     {
-      if (this == &rhs) {
-        return *this;
+      /*
+       * Required identity test as `x = std::move(x)` is UB.
+       * See <https://stackoverflow.com/a/24604504>
+       */
+      if (this != &rhs) {
+        m_data = std::move(rhs.m_data);
+        m_error = std::move(rhs.m_error);
       }
-
-      m_data = std::move(rhs.m_data);
-      m_error = std::move(rhs.m_error);
 
       return *this;
     }
