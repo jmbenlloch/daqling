@@ -11,7 +11,7 @@
     - graphviz
     - python36-pip
     - centos-release-scl-rh
-    - llvm-toolset-7
+    - llvm-toolset-7-clang
 
 - name: Updatedb
   shell: updatedb

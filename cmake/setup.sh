@@ -19,3 +19,4 @@ export TBB_ROOT_DIR=/opt/tbb-2019_U5
 export BOOST_VERSION=1.70
 export BOOST_ROOT_DIR=/opt/boost
 
+source /opt/rh/llvm-toolset-7/enable
