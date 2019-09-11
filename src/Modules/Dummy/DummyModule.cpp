@@ -35,10 +35,7 @@ void DummyModule::configure()
   daqling::core::DAQProcess::configure();
   INFO("");
 
-  registerCommand(
-    "foobar",
-    [](const std::string &arg) { INFO("Inside custom command. Got argument: " << arg); },
-    _1); // placeholder argument must be specified
+  registerCommand("foobar", "foobarred", foobar, _1);
 }
 
 void DummyModule::start()
@@ -59,4 +56,9 @@ void DummyModule::runner()
   while (m_run) {
   }
   INFO("Runner stopped");
+}
+
+
+void DummyModule::foobar(const std::string &arg) {
+    INFO("Inside custom command. Got argument: " << arg);
 }

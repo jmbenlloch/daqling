@@ -75,7 +75,9 @@ public:
     {
       if (auto cmd = m_commands.find(key); cmd != m_commands.end()) {
         DEBUG("Command '" << key << "' registered. Running...");
-        cmd->second(arg);
+        cmd->second.first(arg);
+        DEBUG("Moving to state " << cmd->second.second);
+        m_state = cmd->second.second;
         return true;
       }
 
@@ -138,13 +140,13 @@ protected:
      * Returns whether the command was inserted (false meaning that command `cmd` already exists)
      */
     template <typename Function, typename... Args>
-    bool registerCommand(const std::string &cmd, Function &&f, Args &&... args)
+    bool registerCommand(const std::string &cmd, const std::string &target_state, Function &&f, Args &&... args)
     {
       if (m_state == "running") {
         throw std::logic_error("commands cannot be registered during runtime.");
       }
 
-      return m_commands.emplace(cmd, std::bind(f, args...)).second;
+      return m_commands.emplace(cmd, std::make_pair(std::bind(f, args...), target_state)).second;
     }
 
     // ZMQ ConnectionManager
@@ -161,7 +163,7 @@ protected:
     std::thread m_runner_thread;
 
 private:
-    std::map<const std::string, std::function<void(const std::string &)>> m_commands;
+    std::map<const std::string, std::pair<std::function<void(const std::string &)>, const std::string>> m_commands;
   };
 
 } // namespace daqling::core
