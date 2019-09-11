@@ -38,8 +38,7 @@ struct data_t {
   char payload[24000];
 } __attribute__((__packed__));
 
-BoardReaderModule::BoardReaderModule()
-{
+BoardReaderModule::BoardReaderModule() {
   /* INFO("Passed " << name << " " << num << " with constructor"); */
   INFO("With config: " << m_config.dump());
 
@@ -48,20 +47,17 @@ BoardReaderModule::BoardReaderModule()
 
 BoardReaderModule::~BoardReaderModule() {}
 
-void BoardReaderModule::start()
-{
+void BoardReaderModule::start() {
   DAQProcess::start();
   INFO("getState: " << this->getState());
 }
 
-void BoardReaderModule::stop()
-{
+void BoardReaderModule::stop() {
   DAQProcess::stop();
   INFO("getState: " << this->getState());
 }
 
-void BoardReaderModule::runner()
-{
+void BoardReaderModule::runner() {
   unsigned sequence_number = 0;
   microseconds timestamp;
 

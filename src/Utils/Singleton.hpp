@@ -31,29 +31,28 @@
 /// \endcond
 
 namespace daqling {
-  namespace utilities {
+namespace utilities {
 
-    template <typename T> class Singleton {
-  public:
-      static T &instance();
+template <typename T> class Singleton {
+public:
+  static T &instance();
 
-      // Prevent copying and moving.
-      Singleton(Singleton const &) = delete;            // Copy construct
-      Singleton(Singleton &&) = delete;                 // Move construct
-      Singleton &operator=(Singleton const &) = delete; // Copy assign
-      Singleton &operator=(Singleton &&) = delete;      // Move assign
+  // Prevent copying and moving.
+  Singleton(Singleton const &) = delete;            // Copy construct
+  Singleton(Singleton &&) = delete;                 // Move construct
+  Singleton &operator=(Singleton const &) = delete; // Copy assign
+  Singleton &operator=(Singleton &&) = delete;      // Move assign
 
-  protected:
-      Singleton() {}
-    };
+protected:
+  Singleton() {}
+};
 
-    template <typename T> T &Singleton<T>::instance()
-    {
-      static const std::unique_ptr<T> instance{new T{}};
-      return *instance;
-    }
+template <typename T> T &Singleton<T>::instance() {
+  static const std::unique_ptr<T> instance{new T{}};
+  return *instance;
+}
 
-  } // namespace utilities
+} // namespace utilities
 } // namespace daqling
 
 #endif // DAQLING_UTILITIES_SINGLETON_HPP

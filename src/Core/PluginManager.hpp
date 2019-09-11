@@ -34,93 +34,91 @@
 #include "Utils/Logging.hpp"
 
 namespace daqling {
-  namespace core {
+namespace core {
 
-    class PluginManager : public daqling::utilities::Singleton<PluginManager> {
-  private:
-      using CreateFunc = DAQProcess *(daqling::utilities::LoggerType);
-      using DeleteFunc = void(DAQProcess *);
+class PluginManager : public daqling::utilities::Singleton<PluginManager> {
+private:
+  using CreateFunc = DAQProcess *(daqling::utilities::LoggerType);
+  using DeleteFunc = void(DAQProcess *);
 
-      CreateFunc *m_create;
-      DeleteFunc *m_delete;
+  CreateFunc *m_create;
+  DeleteFunc *m_delete;
 
-      std::optional<DAQProcess *> m_dp;
-      std::optional<void *> m_handle;
-      bool m_loaded;
+  std::optional<DAQProcess *> m_dp;
+  std::optional<void *> m_handle;
+  bool m_loaded;
 
-      /**
-       * Resolves a symbol from the loaded shared module.
-       * Throws std::runtime_error if the symbol cannot be resolved.
-       */
-      template <typename FuncSig> FuncSig *resolve(const char *symbol)
-      {
-        assert(*m_handle != nullptr);
-        dlerror(); // discard any previous errors
+  /**
+   * Resolves a symbol from the loaded shared module.
+   * Throws std::runtime_error if the symbol cannot be resolved.
+   */
+  template <typename FuncSig> FuncSig *resolve(const char *symbol) {
+    assert(*m_handle != nullptr);
+    dlerror(); // discard any previous errors
 
-        char *error;
-        void *handle = dlsym(*m_handle, symbol);
-        error = dlerror();
-        if (error) {
-          ERROR("Module resolution error: " << error);
-          throw std::runtime_error("resolution error");
-        }
+    char *error;
+    void *handle = dlsym(*m_handle, symbol);
+    error = dlerror();
+    if (error) {
+      ERROR("Module resolution error: " << error);
+      throw std::runtime_error("resolution error");
+    }
 
-        return reinterpret_cast<FuncSig *>(handle);
-      }
+    return reinterpret_cast<FuncSig *>(handle);
+  }
 
-  public:
-      PluginManager();
-      ~PluginManager();
+public:
+  PluginManager();
+  ~PluginManager();
 
-      /**
-       * Tries to load a module of name `name`.
-       * Returns whether the operation succeeded.
-       */
-      bool load(std::string name);
+  /**
+   * Tries to load a module of name `name`.
+   * Returns whether the operation succeeded.
+   */
+  bool load(std::string name);
 
-      /**
-       * Configures the loaded module.
-       *
-       * @warning May only be called after a successful `load`.
-       */
-      void configure() { m_dp.value()->configure(); };
+  /**
+   * Configures the loaded module.
+   *
+   * @warning May only be called after a successful `load`.
+   */
+  void configure() { m_dp.value()->configure(); };
 
-      /**
-       * Starts the loaded module.
-       *
-       * @warning May only be called after a successful `load`.
-       */
-      void start() { m_dp.value()->start(); };
+  /**
+   * Starts the loaded module.
+   *
+   * @warning May only be called after a successful `load`.
+   */
+  void start() { m_dp.value()->start(); };
 
-      /**
-       * Stops the loaded module.
-       *
-       * @warning May only be called after a successful `load`.
-       */
-      void stop() { m_dp.value()->stop(); };
+  /**
+   * Stops the loaded module.
+   *
+   * @warning May only be called after a successful `load`.
+   */
+  void stop() { m_dp.value()->stop(); };
 
-      /**
-       * Executes a custom module command `cmd` if registered.
-       *
-       * Returns whether specified command was executed.
-       */
-      bool command(const std::string &cmd, const std::string &arg)
-      {
-        return m_dp.value()->command(cmd, arg);
-      }
+  /**
+   * Executes a custom module command `cmd` if registered.
+   *
+   * Returns whether specified command was executed.
+   */
+  bool command(const std::string &cmd, const std::string &arg) {
+    return m_dp.value()->command(cmd, arg);
+  }
 
-      /**
-       * Returns the state of the module.
-       */
-      std::string getState() { return m_dp.value()->getState(); }
+  /**
+   * Returns the state of the module.
+   */
+  std::string getState() { return m_dp.value()->getState(); }
 
-      /**
-       * Returns whether a module is loaded.
-       */
-      bool getLoaded() { return m_loaded; }
-    };
+  /**
+   * Returns whether a module is loaded.
+   */
+  bool getLoaded() { return m_loaded; }
+};
 
-  } // namespace core
+} // namespace core
 } // namespace daqling
 
 #endif // DAQLING_CORE_PLUGINMANAGER_HPP

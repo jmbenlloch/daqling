@@ -39,43 +39,35 @@
 class CassandraDataLoggerModule : public daqling::core::DAQProcess,
                                   public daqling::core::DataLogger {
   class CassandraChunkedStorageProvider : public daqling::persistency::ChunkedStorageProvider {
-public:
-    explicit CassandraChunkedStorageProvider()
-    {
+  public:
+    explicit CassandraChunkedStorageProvider() {
       // Any init?
     }
 
     virtual ~CassandraChunkedStorageProvider(){};
     bool exists() { return true; }
     void create(){};
-    const size_t writeChunk(const std::string &objectName,
-                            int chunkId,
-                            const std::pair<const void *, size_t> &data,
-                            int ttl) const
-    {
+    const size_t writeChunk(const std::string &objectName, int chunkId,
+                            const std::pair<const void *, size_t> &data, int ttl) const {
       return 0;
     }
-    bool readChunk(const std::string &objectName, int chunkId, size_t split, void *&blobPtr) const
-    {
+    bool readChunk(const std::string &objectName, int chunkId, size_t split, void *&blobPtr) const {
       return false;
     };
     const int getDefaultChunkSize() { return 0; }
     void deleteObject(const std::string &objectName, int chunkCount) const {}
     void writeMetadata(const std::string &objectName,
-                       const daqling::persistency::ObjectMetadata &attr) const
-    {
-    }
-    const daqling::persistency::ObjectMetadata readMetadata(const std::string &objectName) const
-    {
+                       const daqling::persistency::ObjectMetadata &attr) const {}
+    const daqling::persistency::ObjectMetadata readMetadata(const std::string &objectName) const {
       daqling::persistency::ObjectMetadata attributes;
       return attributes;
     }
 
-private:
+  private:
     const std::string M_NAME = "chunk";
   };
 
-  public:
+public:
   CassandraDataLoggerModule();
   ~CassandraDataLoggerModule();
 
@@ -89,7 +81,7 @@ private:
   bool write(uint64_t keyId, daqling::utilities::Binary &payload);
   void shutdown();
 
-  private:
+private:
   // RS -> ALL THIS SHOULD BE NICELY HIDDEN BEHIND A SESSION LAYER.
   const std::string M_KEYSPACE_NAME = "daq";
   const std::string M_CF_NAME = "payload";
@@ -104,10 +96,10 @@ private:
   const std::string M_COLUMN_DATA = "data";
 
   const std::string Q_SAY_HI =
-    "SELECT key,bootstrapped,broadcast_address,cluster_name,cql_version,data_center FROM "
-    "system.local";
+      "SELECT key,bootstrapped,broadcast_address,cluster_name,cql_version,data_center FROM "
+      "system.local";
   const std::string Q_CF_EXISTS =
-    "SELECT table_name from system_schema.tables WHERE keyspace_name=? AND table_name=?";
+      "SELECT table_name from system_schema.tables WHERE keyspace_name=? AND table_name=?";
   const std::string Q_INSERT = "INSERT INTO daq.payload (pkey, type, s_info, version, time, size, "
                                "data) VALUES (?,?,?,?,?,?,?);";
 

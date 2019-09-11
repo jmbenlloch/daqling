@@ -25,38 +25,37 @@
 #include "PluginManager.hpp"
 
 namespace daqling {
-  namespace core {
+namespace core {
 
-    class Core {
-  public:
-      Core(int port, std::string protocol, std::string address)
-          : m_port{port}, m_protocol{protocol}, m_address{address} {};
-      ~Core(){};
+class Core {
+public:
+  Core(int port, std::string protocol, std::string address)
+      : m_port{port}, m_protocol{protocol}, m_address{address} {};
+  ~Core(){};
 
-      bool setupCommandPath();
-      bool getShouldStop();
-      std::mutex *getMutex() { return m_command.getMutex(); };
-      std::condition_variable *getCondVar() { return m_command.getCondVar(); };
+  bool setupCommandPath();
+  bool getShouldStop();
+  std::mutex *getMutex() { return m_command.getMutex(); };
+  std::condition_variable *getCondVar() { return m_command.getCondVar(); };
 
-  private:
-      int m_port;
-      std::string m_protocol;
-      std::string m_address;
+private:
+  int m_port;
+  std::string m_protocol;
+  std::string m_address;
 
-      std::thread m_cmdHandler;
+  std::thread m_cmdHandler;
 
-      // ZMQ ConnectionManager
-      daqling::core::ConnectionManager &m_connections =
-        daqling::core::ConnectionManager::instance();
-      // Command exchange
-      daqling::core::Command &m_command = daqling::core::Command::instance();
-      // JSON Configuration map
-      daqling::core::Configuration &m_config = daqling::core::Configuration::instance();
-      // Plugin manager
-      daqling::core::PluginManager &m_plugin = daqling::core::PluginManager::instance();
-    };
+  // ZMQ ConnectionManager
+  daqling::core::ConnectionManager &m_connections = daqling::core::ConnectionManager::instance();
+  // Command exchange
+  daqling::core::Command &m_command = daqling::core::Command::instance();
+  // JSON Configuration map
+  daqling::core::Configuration &m_config = daqling::core::Configuration::instance();
+  // Plugin manager
+  daqling::core::PluginManager &m_plugin = daqling::core::PluginManager::instance();
+};
 
-  } // namespace core
+} // namespace core
 } // namespace daqling
 
 #endif // DAQLING_CORE_CORE_HPP

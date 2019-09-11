@@ -15,10 +15,10 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <chrono>
-#include <thread>
 #include "Utils/Logging.hpp"
 #include "Utils/zhelpers.hpp"
+#include <chrono>
+#include <thread>
 
 struct data_t {
   uint8_t tag;
@@ -26,8 +26,7 @@ struct data_t {
   uint32_t whatever;
 } __attribute__((__packed__));
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   zmq::context_t context(1);
   zmq::socket_t publisher(context, ZMQ_PUB);
 

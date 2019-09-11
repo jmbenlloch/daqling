@@ -31,8 +31,7 @@ using namespace std::chrono_literals;
 using CreateFunc = daqling::core::DAQProcess *(void);
 using DestroyFunc = void(daqling::core::DAQProcess *);
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   if (argc == 1) {
     ERROR("No plugin name entered");
     return 1;

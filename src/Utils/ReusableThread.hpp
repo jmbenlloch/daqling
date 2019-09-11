@@ -36,81 +36,75 @@
  *********************************/
 
 namespace daqling {
-  namespace utilities {
+namespace utilities {
 
-    using namespace std::chrono_literals;
+using namespace std::chrono_literals;
 
-    class ReusableThread {
-  public:
-      ReusableThread(unsigned int threadID)
-          : m_thread_id(threadID), m_task_executed(true), m_task_assigned(false),
-            m_thread_quit(false), m_worker_done(false),
-            m_thread(&ReusableThread::thread_worker, this)
-      {
+class ReusableThread {
+public:
+  ReusableThread(unsigned int threadID)
+      : m_thread_id(threadID), m_task_executed(true), m_task_assigned(false), m_thread_quit(false),
+        m_worker_done(false), m_thread(&ReusableThread::thread_worker, this) {}
+
+  ~ReusableThread() {
+    while (m_task_assigned) {
+      std::this_thread::sleep_for(1ms);
+    }
+    m_thread_quit = true;
+    while (!m_worker_done) {
+      std::this_thread::sleep_for(1ms);
+      m_cv.notify_all();
+    }
+    m_thread.join();
+  }
+
+  ReusableThread(const ReusableThread &) = delete;
+  ReusableThread &operator=(const ReusableThread &) = delete;
+
+  unsigned int get_thread_id() const { return m_thread_id; }
+
+  bool get_readiness() const { return m_task_executed; }
+
+  template <typename Function, typename... Args> bool set_work(Function &&f, Args &&... args) {
+    if (!m_task_assigned && m_task_executed.exchange(false)) {
+      m_task = std::bind(f, args...);
+      m_task_assigned = true;
+      m_cv.notify_all();
+      return true;
+    }
+    return false;
+  }
+
+private:
+  unsigned int m_thread_id;
+  std::atomic<bool> m_task_executed;
+  std::atomic<bool> m_task_assigned;
+  std::atomic<bool> m_thread_quit;
+  std::atomic<bool> m_worker_done;
+  std::function<void()> m_task;
+
+  std::mutex m_mtx;
+  std::condition_variable m_cv;
+  std::thread m_thread;
+
+  void thread_worker() {
+    std::unique_lock<std::mutex> lock(m_mtx);
+
+    while (!m_thread_quit) {
+      if (!m_task_executed && m_task_assigned) {
+        m_task();
+        m_task_executed = true;
+        m_task_assigned = false;
+      } else {
+        m_cv.wait(lock);
       }
+    }
 
-      ~ReusableThread()
-      {
-        while (m_task_assigned) {
-          std::this_thread::sleep_for(1ms);
-        }
-        m_thread_quit = true;
-        while (!m_worker_done) {
-          std::this_thread::sleep_for(1ms);
-          m_cv.notify_all();
-        }
-        m_thread.join();
-      }
+    m_worker_done = true;
+  }
+};
 
-      ReusableThread(const ReusableThread &) = delete;
-      ReusableThread &operator=(const ReusableThread &) = delete;
-
-      unsigned int get_thread_id() const { return m_thread_id; }
-
-      bool get_readiness() const { return m_task_executed; }
-
-      template <typename Function, typename... Args> bool set_work(Function &&f, Args &&... args)
-      {
-        if (!m_task_assigned && m_task_executed.exchange(false)) {
-          m_task = std::bind(f, args...);
-          m_task_assigned = true;
-          m_cv.notify_all();
-          return true;
-        }
-        return false;
-      }
-
-  private:
-      unsigned int m_thread_id;
-      std::atomic<bool> m_task_executed;
-      std::atomic<bool> m_task_assigned;
-      std::atomic<bool> m_thread_quit;
-      std::atomic<bool> m_worker_done;
-      std::function<void()> m_task;
-
-      std::mutex m_mtx;
-      std::condition_variable m_cv;
-      std::thread m_thread;
-
-      void thread_worker()
-      {
-        std::unique_lock<std::mutex> lock(m_mtx);
-
-        while (!m_thread_quit) {
-          if (!m_task_executed && m_task_assigned) {
-            m_task();
-            m_task_executed = true;
-            m_task_assigned = false;
-          } else {
-            m_cv.wait(lock);
-          }
-        }
-
-        m_worker_done = true;
-      }
-    };
-
-  } // namespace utilities
+} // namespace utilities
 } // namespace daqling
 
 #endif // DAQLING_UTILITIES_REUSABLETHREAD_HPP

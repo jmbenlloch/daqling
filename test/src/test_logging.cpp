@@ -20,8 +20,7 @@
 
 using namespace daqling;
 
-int main(int, char **)
-{
+int main(int, char **) {
 
   INFO("WOOF WOOF");
   WARNING("Ugh!" << 12345 << "bof bof" << '\n');

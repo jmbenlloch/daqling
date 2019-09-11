@@ -31,8 +31,7 @@
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
-bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr)
-{
+bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr) {
   if (m_is_cmd_setup) {
     INFO(" Command is already online... Won't do anything.");
     return false;
@@ -80,8 +79,7 @@ bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr)
   return true;
 }
 
-bool ConnectionManager::setupStatsConnection(uint8_t ioT, std::string connStr)
-{
+bool ConnectionManager::setupStatsConnection(uint8_t ioT, std::string connStr) {
   if (m_is_stats_setup) {
     INFO(" Statistics socket is already online... Won't do anything.");
     return false;
@@ -98,11 +96,8 @@ bool ConnectionManager::setupStatsConnection(uint8_t ioT, std::string connStr)
   return true;
 }
 
-bool ConnectionManager::addChannel(uint64_t chn,
-                                   EDirection dir,
-                                   const std::string &connStr,
-                                   size_t queueSize)
-{
+bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, const std::string &connStr,
+                                   size_t queueSize) {
   // subscriber socket is an exception, as it can be connected to multiple endpoints
   if (m_sockets.find(chn) != m_sockets.end()) {
     if (dir == EDirection::SUBSCRIBER) {
@@ -151,8 +146,7 @@ bool ConnectionManager::addChannel(uint64_t chn,
   return true;
 }
 
-bool ConnectionManager::addReceiveHandler(uint64_t chn)
-{
+bool ConnectionManager::addReceiveHandler(uint64_t chn) {
   INFO(" [CLIENT] ReceiveHandler for channel [" << chn << "] starting...");
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
@@ -174,8 +168,7 @@ bool ConnectionManager::addReceiveHandler(uint64_t chn)
   return true;
 }
 
-bool ConnectionManager::addSendHandler(uint64_t chn)
-{
+bool ConnectionManager::addSendHandler(uint64_t chn) {
   INFO(" [SERVER] SendHandler for channel [" << chn << "] starting...");
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
@@ -196,8 +189,7 @@ bool ConnectionManager::addSendHandler(uint64_t chn)
   return true;
 }
 
-bool ConnectionManager::addSubscribeHandler(uint64_t chn)
-{
+bool ConnectionManager::addSubscribeHandler(uint64_t chn) {
   INFO(" [SUB] SubscribeHandler for channel [" << chn << "] starting...");
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
@@ -219,8 +211,7 @@ bool ConnectionManager::addSubscribeHandler(uint64_t chn)
   return true;
 }
 
-bool ConnectionManager::addPublishHandler(uint64_t chn)
-{
+bool ConnectionManager::addPublishHandler(uint64_t chn) {
   INFO(" [PUB] PublishHandler for channel [" << chn << "] starting...");
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
@@ -241,8 +232,7 @@ bool ConnectionManager::addPublishHandler(uint64_t chn)
   return true;
 }
 
-bool ConnectionManager::get(uint64_t chn, daqling::utilities::Binary &bin)
-{
+bool ConnectionManager::get(uint64_t chn, daqling::utilities::Binary &bin) {
   if (m_pcqs[chn]->sizeGuess() != 0) {
     utilities::Binary msgBin(m_pcqs[chn]->frontPtr()->data(), m_pcqs[chn]->frontPtr()->size());
     m_pcqs[chn]->popFront();
@@ -252,22 +242,19 @@ bool ConnectionManager::get(uint64_t chn, daqling::utilities::Binary &bin)
   return false;
 }
 
-void ConnectionManager::put(uint64_t chn, utilities::Binary &msgBin)
-{
+void ConnectionManager::put(uint64_t chn, utilities::Binary &msgBin) {
   zmq::message_t message(msgBin.size());
   memcpy(message.data(), msgBin.data(), msgBin.size());
   m_pcqs[chn]->write(std::move(message));
 }
 
-void ConnectionManager::putStr(uint64_t chn, const std::string &string)
-{
+void ConnectionManager::putStr(uint64_t chn, const std::string &string) {
   zmq::message_t message(string.size());
   memcpy(message.data(), string.data(), string.size());
   m_pcqs[chn]->write(std::move(message));
 }
 
-std::string ConnectionManager::getStr(uint64_t chn)
-{
+std::string ConnectionManager::getStr(uint64_t chn) {
   std::string s("");
   if (m_pcqs[chn]->sizeGuess() != 0) {
     s = std::string(static_cast<char *>(m_pcqs[chn]->frontPtr()->data()),
@@ -277,8 +264,7 @@ std::string ConnectionManager::getStr(uint64_t chn)
   return s;
 }
 
-bool ConnectionManager::start()
-{
+bool ConnectionManager::start() {
   m_stop_handlers.store(false);
   for (auto const &dirIt : m_directions) //([first: chn, second:dir])
   {
@@ -300,8 +286,7 @@ bool ConnectionManager::start()
   return true; // TODO put some meaning or return void
 }
 
-bool ConnectionManager::stop()
-{
+bool ConnectionManager::stop() {
   m_stop_handlers.store(true);
   std::this_thread::sleep_for(100ms); // allow time to stop
   for (auto &tIt : m_handlers) {

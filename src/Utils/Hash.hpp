@@ -31,38 +31,37 @@
  */
 namespace daqling {
 
-  namespace persistency {
+namespace persistency {
 
-    typedef std::string Hash;
-    static constexpr unsigned int HASH_SIZE = 40;
+typedef std::string Hash;
+static constexpr unsigned int HASH_SIZE = 40;
 
-    inline Hash makeHash(const std::string &objectType, const daqling::utilities::Binary &data)
-    {
-      SHA_CTX ctx;
-      if (!SHA1_Init(&ctx)) {
-        ERROR("daqling::persistency::makeHash: SHA1 initialization error.");
-      }
-      if (!SHA1_Update(&ctx, objectType.c_str(), objectType.size())) {
-        ERROR("daqling::persistency::makeHash: SHA1 processing error (1).");
-      }
-      if (!SHA1_Update(&ctx, data.data(), data.size())) {
-        ERROR("daqling::persistency::makeHash: SHA1 processing error (2).");
-      }
-      unsigned char hash[SHA_DIGEST_LENGTH];
-      if (!SHA1_Final(hash, &ctx)) {
-        ERROR("daqling::persistency::makeHash: SHA1 finalization error.");
-      }
+inline Hash makeHash(const std::string &objectType, const daqling::utilities::Binary &data) {
+  SHA_CTX ctx;
+  if (!SHA1_Init(&ctx)) {
+    ERROR("daqling::persistency::makeHash: SHA1 initialization error.");
+  }
+  if (!SHA1_Update(&ctx, objectType.c_str(), objectType.size())) {
+    ERROR("daqling::persistency::makeHash: SHA1 processing error (1).");
+  }
+  if (!SHA1_Update(&ctx, data.data(), data.size())) {
+    ERROR("daqling::persistency::makeHash: SHA1 processing error (2).");
+  }
+  unsigned char hash[SHA_DIGEST_LENGTH];
+  if (!SHA1_Final(hash, &ctx)) {
+    ERROR("daqling::persistency::makeHash: SHA1 finalization error.");
+  }
 
-      char tmp[SHA_DIGEST_LENGTH * 2 + 1];
-      // re-write bytes in hex
-      for (unsigned int i = 0; i < 20; i++) {
-        ::sprintf(&tmp[i * 2], "%02x", hash[i]);
-      }
-      tmp[20 * 2] = 0;
-      return tmp;
-    }
+  char tmp[SHA_DIGEST_LENGTH * 2 + 1];
+  // re-write bytes in hex
+  for (unsigned int i = 0; i < 20; i++) {
+    ::sprintf(&tmp[i * 2], "%02x", hash[i]);
+  }
+  tmp[20 * 2] = 0;
+  return tmp;
+}
 
-  } // namespace persistency
+} // namespace persistency
 
 } // namespace daqling
 

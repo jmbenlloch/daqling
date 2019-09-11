@@ -20,8 +20,7 @@
 
 using namespace daqling;
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 
   INFO("WOOF WOOF");
   WARNING("Ugh!" << 12345 << "bof bof" << '\n');

@@ -20,30 +20,28 @@ HEDLEY_PRIVATE
 daqutils::LoggerType daqutils::Logger::m_logger;
 
 namespace daqling::core {
-  extern "C" {
-  // forward-declare to satisfy -Werror=missing-declarations
-  DAQProcess *daqling_module_create(daqutils::LoggerType);
-  void daqling_module_delete(DAQProcess *);
-  }
+extern "C" {
+// forward-declare to satisfy -Werror=missing-declarations
+DAQProcess *daqling_module_create(daqutils::LoggerType);
+void daqling_module_delete(DAQProcess *);
+}
 
-  DAQProcess *daqling_module_create(daqutils::LoggerType logger)
-  {
-    assert(logger);
-    // Set the logger before create the module. Otherwise would be UB, as the module ctor may log
-    // entries.
-    daqutils::Logger::set_instance(logger);
+DAQProcess *daqling_module_create(daqutils::LoggerType logger) {
+  assert(logger);
+  // Set the logger before create the module. Otherwise would be UB, as the module ctor may log
+  // entries.
+  daqutils::Logger::set_instance(logger);
 
-    auto module = new DAQLING_MODULE_NAME();
-    return static_cast<DAQProcess *>(module);
-  }
+  auto module = new DAQLING_MODULE_NAME();
+  return static_cast<DAQProcess *>(module);
+}
 
-  void daqling_module_delete(DAQProcess *module)
-  {
-    while (module->running()) {
-      // DAQProcess::m_runner_thread has yet to join,
-      // we cannot safely destruct resources in derived module that m_runner_thread may be using.
-      std::this_thread::sleep_for(1ms); // TODO: use a cv instead
-    }
-    delete module;
+void daqling_module_delete(DAQProcess *module) {
+  while (module->running()) {
+    // DAQProcess::m_runner_thread has yet to join,
+    // we cannot safely destruct resources in derived module that m_runner_thread may be using.
+    std::this_thread::sleep_for(1ms); // TODO: use a cv instead
   }
+  delete module;
+}
 } // namespace daqling::core

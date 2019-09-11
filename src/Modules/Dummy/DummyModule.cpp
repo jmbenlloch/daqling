@@ -19,46 +19,35 @@
 
 using namespace daqling::core;
 
-DummyModule::DummyModule()
-{
-  INFO("");
-}
+DummyModule::DummyModule() { INFO(""); }
 
-DummyModule::~DummyModule()
-{
-  INFO("");
-}
+DummyModule::~DummyModule() { INFO(""); }
 
 // optional (configuration can be handled in the constructor)
-void DummyModule::configure()
-{
+void DummyModule::configure() {
   daqling::core::DAQProcess::configure();
   INFO("");
 
   registerCommand("foobar", "foobarred", foobar, _1);
 }
 
-void DummyModule::start()
-{
+void DummyModule::start() {
   daqling::core::DAQProcess::start();
   INFO("");
 }
 
-void DummyModule::stop()
-{
+void DummyModule::stop() {
   daqling::core::DAQProcess::stop();
   INFO("");
 }
 
-void DummyModule::runner()
-{
+void DummyModule::runner() {
   INFO("Running...");
   while (m_run) {
   }
   INFO("Runner stopped");
 }
 
-
 void DummyModule::foobar(const std::string &arg) {
-    INFO("Inside custom command. Got argument: " << arg);
+  INFO("Inside custom command. Got argument: " << arg);
 }

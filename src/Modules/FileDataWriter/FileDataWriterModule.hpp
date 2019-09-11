@@ -35,7 +35,7 @@
  * Module for writing your acquired data to file.
  */
 class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::core::DataLogger {
-  public:
+public:
   FileDataWriterModule();
   ~FileDataWriterModule();
 
@@ -51,7 +51,7 @@ class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::c
   bool write(uint64_t keyId, daqling::utilities::Binary &payload);
   void shutdown();
 
-  private:
+private:
   struct ThreadContext {
     ThreadContext(std::array<unsigned int, 2> tids) : consumer(tids[0]), producer(tids[1]) {}
     daqling::utilities::ReusableThread consumer;
@@ -70,10 +70,9 @@ class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::c
    * Output file generator with a printf-like filename pattern.
    */
   class FileGenerator {
-public:
-    FileGenerator(const std::string pattern, const uint64_t chid) : m_pattern(pattern), m_chid(chid)
-    {
-    }
+  public:
+    FileGenerator(const std::string pattern, const uint64_t chid)
+        : m_pattern(pattern), m_chid(chid) {}
 
     /**
      * Generates the next output file in the sequence.
@@ -90,7 +89,7 @@ public:
      */
     static bool yields_unique(const std::string &pattern);
 
-private:
+  private:
     const std::string m_pattern;
     const uint64_t m_chid;
     unsigned m_filenum = 0;
@@ -107,9 +106,7 @@ private:
   mutable std::map<uint64_t, Metrics> m_channelMetrics;
 
   // Internals
-  void flusher(const uint64_t chid,
-               PayloadQueue &pq,
-               const size_t max_buffer_size,
+  void flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size,
                FileGenerator fg) const;
   std::map<uint64_t, Context> m_channelContexts;
   std::thread m_monitor_thread;

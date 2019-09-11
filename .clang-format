@@ -1,38 +1,5 @@
 ---
 Language: Cpp
 BasedOnStyle: LLVM
-SortIncludes: true
-AccessModifierOffset: -4
-AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: false
-AllowShortIfStatementsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: Inline
-AllowAllParametersOfDeclarationOnNextLine: false
-BinPackParameters: false
-BinPackArguments: false
 ColumnLimit: 100
-ConstructorInitializerAllOnOneLineOrOnePerLine: false
-DerivePointerAlignment: false
-ExperimentalAutoDetectBinPacking: false
-IncludeCategories:
-  - Regex:           '^<.*'
-    Priority:        1
-  - Regex:           '^<.*\.h*>'
-    Priority:        2
-  - Regex:           '.*'
-    Priority:        3
-IncludeIsMainRegex: '([-_](test|unittest))?$'
-IndentCaseLabels: false
-NamespaceIndentation: All
-PointerAlignment: Right
-SpaceBeforeParens: ControlStatements
-Cpp11BracedListStyle: true
-Standard: Cpp11
-IndentWidth: 2
-TabWidth: 2
-UseTab: Never
-ContinuationIndentWidth: 2
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterFunction: true
 ...

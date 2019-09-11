@@ -30,8 +30,7 @@ using namespace std::chrono_literals;
 
 PluginManager::PluginManager() : m_create{}, m_delete{}, m_dp{}, m_loaded{false} {}
 
-PluginManager::~PluginManager()
-{
+PluginManager::~PluginManager() {
   if (m_handle) {
     m_delete(*m_dp);
     dlclose(*m_handle);
@@ -39,8 +38,7 @@ PluginManager::~PluginManager()
   }
 }
 
-bool PluginManager::load(std::string name)
-{
+bool PluginManager::load(std::string name) {
   // Load the shared object
   std::string pluginName = "lib/libDaqlingModule" + name + ".so";
   m_handle = dlopen(pluginName.c_str(), RTLD_NOW);

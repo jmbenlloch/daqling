@@ -20,7 +20,7 @@
 #include "Core/DAQProcess.hpp"
 
 class MetricsSimulatorModule : public daqling::core::DAQProcess {
-  public:
+public:
   MetricsSimulatorModule();
   ~MetricsSimulatorModule();
 
@@ -29,7 +29,7 @@ class MetricsSimulatorModule : public daqling::core::DAQProcess {
 
   void runner();
 
-  protected:
+protected:
   std::atomic<int> m_metric1;
   std::atomic<float> m_metric2;
   std::atomic<double> m_metric3;

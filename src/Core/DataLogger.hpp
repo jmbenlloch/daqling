@@ -29,24 +29,24 @@
  */
 
 namespace daqling {
-  namespace core {
+namespace core {
 
-    class DataLogger {
-  public:
-      DataLogger() {}
-      virtual ~DataLogger(){};
+class DataLogger {
+public:
+  DataLogger() {}
+  virtual ~DataLogger(){};
 
-      virtual void setup() = 0;
-      virtual void write() = 0;
-      virtual void read() = 0;
-      virtual bool write(uint64_t keyId, daqling::utilities::Binary &payload) = 0;
-      virtual void shutdown() = 0;
+  virtual void setup() = 0;
+  virtual void write() = 0;
+  virtual void read() = 0;
+  virtual bool write(uint64_t keyId, daqling::utilities::Binary &payload) = 0;
+  virtual void shutdown() = 0;
 
-  protected:
-      daqling::utilities::DataStoreBase m_dataStore;
-    };
+protected:
+  daqling::utilities::DataStoreBase m_dataStore;
+};
 
-  } // namespace core
+} // namespace core
 } // namespace daqling
 
 #endif // DAQLING_CORE_DATALOGGER_HPP

@@ -27,8 +27,7 @@ struct body {
   void operator()(continue_msg) const { printf("%s\n", my_name.c_str()); }
 };
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   INFO("WOOF WOOF -> Test basic TBB FlowGraph");
 
   graph g;

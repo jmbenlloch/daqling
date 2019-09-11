@@ -63,75 +63,68 @@
 #define ALERT(MSG) LOG(spdlog::level::warn, MSG)
 
 namespace daqling::utilities {
-  using LoggerType = std::shared_ptr<spdlog::logger>;
+using LoggerType = std::shared_ptr<spdlog::logger>;
 
-  class Logger {
+class Logger {
 private:
-    static bool m_module_logger_set; // may only be set once
-    static LoggerType m_module_logger;
-    static LoggerType m_logger;
+  static bool m_module_logger_set; // may only be set once
+  static LoggerType m_module_logger;
+  static LoggerType m_logger;
 
 public:
-    /**
-     * Sets the current logger instance.
-     *
-     * @warning May only be called if no logger is already set.
-     * @todo Replace assertion with an exception throw
-     */
-    HEDLEY_PRIVATE
-    static void set_instance(LoggerType logger)
-    {
-      assert(!m_logger);
-      m_logger = logger;
-    }
-
-    /**
-     * Gets the logger instance.
-     *
-     * @warning May only be called if a logger is already set.
-     * @todo Replace assertion with an exception throw
-     */
-    HEDLEY_PRIVATE
-    static LoggerType instance()
-    {
-      assert(m_logger);
-      return m_logger;
-    }
-
-    /**
-     * Sets the logger assigned to the dynamically loaded module.
-     *
-     * @warning May only be called once.
-     * @todo Replace assertion with an exception throw
-     */
-    static void set_module_instance(LoggerType logger)
-    {
-      assert(!std::exchange(m_module_logger_set, true));
-      m_module_logger = logger;
-    }
-
-    /**
-     * Gets the logger assigned to the dynamically loaded module.
-     *
-     * @warning May only be called if a module logger is already set.
-     * @todo Replace assertion with an exception throw
-     */
-    static LoggerType get_module_instance()
-    {
-      assert(m_module_logger);
-      return m_module_logger;
-    }
-  };
-
   /**
-   * Sets the log level of the logger instance.
+   * Sets the current logger instance.
+   *
+   * @warning May only be called if no logger is already set.
+   * @todo Replace assertion with an exception throw
    */
-  inline void set_log_level(spdlog::level::level_enum level)
-  {
-    Logger::instance()->set_level(level);
+  HEDLEY_PRIVATE
+  static void set_instance(LoggerType logger) {
+    assert(!m_logger);
+    m_logger = logger;
   }
 
-  typedef spdlog::level::level_enum level;
+  /**
+   * Gets the logger instance.
+   *
+   * @warning May only be called if a logger is already set.
+   * @todo Replace assertion with an exception throw
+   */
+  HEDLEY_PRIVATE
+  static LoggerType instance() {
+    assert(m_logger);
+    return m_logger;
+  }
+
+  /**
+   * Sets the logger assigned to the dynamically loaded module.
+   *
+   * @warning May only be called once.
+   * @todo Replace assertion with an exception throw
+   */
+  static void set_module_instance(LoggerType logger) {
+    assert(!std::exchange(m_module_logger_set, true));
+    m_module_logger = logger;
+  }
+
+  /**
+   * Gets the logger assigned to the dynamically loaded module.
+   *
+   * @warning May only be called if a module logger is already set.
+   * @todo Replace assertion with an exception throw
+   */
+  static LoggerType get_module_instance() {
+    assert(m_module_logger);
+    return m_module_logger;
+  }
+};
+
+/**
+ * Sets the log level of the logger instance.
+ */
+inline void set_log_level(spdlog::level::level_enum level) { Logger::instance()->set_level(level); }
+
+typedef spdlog::level::level_enum level;
 } // namespace daqling::utilities
 
 #endif // DAQLING_UTILITIES_LOGGING_HPP

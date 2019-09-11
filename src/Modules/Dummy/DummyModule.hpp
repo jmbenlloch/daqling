@@ -22,7 +22,7 @@
 class DummyModule : public daqling::core::DAQProcess {
   static void foobar(const std::string &arg);
 
-  public:
+public:
   DummyModule();
   ~DummyModule();
 

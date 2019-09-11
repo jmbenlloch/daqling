@@ -20,15 +20,13 @@
 using namespace daqling::core;
 
 Statistics::Statistics(std::unique_ptr<zmq::socket_t> &statSock, unsigned interval)
-    : m_stat_socket{statSock}, m_interval{interval}
-{
+    : m_stat_socket{statSock}, m_interval{interval} {
   m_stop_thread = false;
   m_influxDb = false;
   m_zmq_publisher = false;
 }
 
-Statistics::~Statistics()
-{
+Statistics::~Statistics() {
   m_reg_metrics.clear();
   m_reg_metrics.shrink_to_fit();
   m_stop_thread = true;
@@ -36,25 +34,21 @@ Statistics::~Statistics()
     m_stat_thread.join();
 }
 
-bool Statistics::configure(unsigned interval)
-{
+bool Statistics::configure(unsigned interval) {
   m_interval = interval;
   return true;
 }
 
-void Statistics::start()
-{
+void Statistics::start() {
   INFO("Start");
   m_stat_thread = std::thread(&Statistics::CheckStatistics, this);
 }
 
-void Statistics::registerCoreMetric(std::string name, std::atomic<size_t> *metric)
-{
+void Statistics::registerCoreMetric(std::string name, std::atomic<size_t> *metric) {
   m_registered_metrics.insert(std::make_pair(name, metric));
 }
 
-void Statistics::CheckStatistics()
-{
+void Statistics::CheckStatistics() {
   INFO("Statistics thread about to spawn...");
 
   while (!m_stop_thread) {

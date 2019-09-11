@@ -24,7 +24,7 @@
 #include "Core/DAQProcess.hpp"
 
 class BoardReaderModule : public daqling::core::DAQProcess {
-  public:
+public:
   BoardReaderModule();
   ~BoardReaderModule();
   void start();
@@ -32,6 +32,6 @@ class BoardReaderModule : public daqling::core::DAQProcess {
 
   void runner();
 
-  private:
+private:
   unsigned m_board_id;
 };

@@ -25,15 +25,11 @@
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
-bool Core::setupCommandPath()
-{
+bool Core::setupCommandPath() {
   std::string connStr(m_protocol + "://" + m_address + ":" + std::to_string(m_port));
   INFO(" BINDING COMMAND SOCKET : " << connStr);
   bool rv = m_connections.setupCommandConnection(1, connStr);
   return rv;
 }
 
-bool Core::getShouldStop()
-{
-  return m_command.getShouldStop();
-}
+bool Core::getShouldStop() { return m_command.getShouldStop(); }

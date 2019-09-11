@@ -26,15 +26,13 @@
 using namespace std::chrono_literals;
 using logger = daqling::utilities::Logger;
 
-static std::string sink_pattern(const bool debug)
-{
+static std::string sink_pattern(const bool debug) {
   std::ostringstream pattern;
   pattern << "[%Y-%m-%d %T.%e] [%n] [%l] [%t]" << (debug ? " [%@]" : "") << " %v";
   return pattern.str();
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   if (argc < 4) {
     std::cerr << "Usage: " << argv[0] << " <command-port> <core-log-level> <module-log-level>\n";
     return EXIT_FAILURE;

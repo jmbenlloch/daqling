@@ -30,8 +30,7 @@
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
-bool daqling::core::Command::executeCommand(std::string &response)
-{
+bool daqling::core::Command::executeCommand(std::string &response) {
   // INFO("Loaded configuration");
   // auto command = cfg.get<std::string>("command");
   auto command = nlohmann::json::parse(m_command)["command"];
@@ -153,8 +152,7 @@ bool daqling::core::Command::executeCommand(std::string &response)
   return true; // TODO put some meaning or return void
 }
 
-bool daqling::core::Command::handleCommand()
-{
+bool daqling::core::Command::handleCommand() {
 
   DEBUG("CommandThread  ->>> Should handle command: " << m_command);
   std::string response;

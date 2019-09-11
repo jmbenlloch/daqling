@@ -26,18 +26,18 @@
  */
 
 namespace daqling {
-  namespace utilities {
+namespace utilities {
 
-    typedef std::uint64_t timestamp_t;
+typedef std::uint64_t timestamp_t;
 
-    static const timestamp_t ns = 1;
-    static const timestamp_t us = 1000 * ns;
-    static const timestamp_t ms = 1000 * us;
-    static const timestamp_t s = 1000 * ms;
+static const timestamp_t ns = 1;
+static const timestamp_t us = 1000 * ns;
+static const timestamp_t ms = 1000 * us;
+static const timestamp_t s = 1000 * ms;
 
-    typedef enum { UNKNOWN = 0, BINARY, INMEMORY, CASSANDRA, REST } EBackendType;
+typedef enum { UNKNOWN = 0, BINARY, INMEMORY, CASSANDRA, REST } EBackendType;
 
-  } // namespace utilities
+} // namespace utilities
 } // namespace daqling
 
 #endif // DAQLING_UTILITIES_TYPES_HPP

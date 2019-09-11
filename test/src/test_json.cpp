@@ -15,8 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
 #include "nlohmann/json.hpp"
+#include <iostream>
 
 using nlohmann::json;
 
@@ -31,8 +31,7 @@ std::vector<process> processes;
 //   j = json{{"name", p.name}, {"address", p.address}, {"age", p.age}};
 // }
 
-static void from_json(const json &j, std::vector<process> &ps)
-{
+static void from_json(const json &j, std::vector<process> &ps) {
   std::cout << "range-based for" << std::endl;
   for (auto &element : j) {
     process p;
@@ -43,8 +42,7 @@ static void from_json(const json &j, std::vector<process> &ps)
   }
 }
 
-int main(int, char const *[])
-{
+int main(int, char const *[]) {
   json j = {{{"name", "Luke"}, {"type", "Jedi"}},
             {{"name", "Han"}, {"type", "Mercenary"}},
             {{"name", "Leia"}, {"type", "Princess"}}};

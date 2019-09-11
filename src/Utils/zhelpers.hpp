@@ -46,8 +46,7 @@ typedef __int64 int64_t;
 #define snprintf c99_snprintf
 #define vsnprintf c99_vsnprintf
 
-inline int c99_vsnprintf(char *outBuf, size_t size, const char *format, va_list ap)
-{
+inline int c99_vsnprintf(char *outBuf, size_t size, const char *format, va_list ap) {
   int count = -1;
 
   if (size != 0)
@@ -58,8 +57,7 @@ inline int c99_vsnprintf(char *outBuf, size_t size, const char *format, va_list 
   return count;
 }
 
-inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...)
-{
+inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...) {
   int count;
   va_list ap;
 
@@ -76,8 +74,7 @@ inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...)
 #define within(num) static_cast<int>(static_cast<float>(num) * random() / (RAND_MAX + 1.0))
 
 //  Receive 0MQ string from socket and convert into string
-static std::string s_recv(zmq::socket_t &socket)
-{
+static std::string s_recv(zmq::socket_t &socket) {
 
   zmq::message_t message;
   socket.recv(&message);
@@ -86,8 +83,7 @@ static std::string s_recv(zmq::socket_t &socket)
 }
 
 //  Convert string to 0MQ string and send to socket
-static bool s_send(zmq::socket_t &socket, const std::string &string)
-{
+static bool s_send(zmq::socket_t &socket, const std::string &string) {
 
   zmq::message_t message(string.size());
   memcpy(message.data(), string.data(), string.size());
@@ -97,8 +93,7 @@ static bool s_send(zmq::socket_t &socket, const std::string &string)
 }
 
 //  Sends string as 0MQ string, as multipart non-terminal
-static bool s_sendmore(zmq::socket_t &socket, const std::string &string)
-{
+static bool s_sendmore(zmq::socket_t &socket, const std::string &string) {
 
   zmq::message_t message(string.size());
   memcpy(message.data(), string.data(), string.size());
@@ -109,8 +104,7 @@ static bool s_sendmore(zmq::socket_t &socket, const std::string &string)
 
 //  Receives all message parts from socket, prints neatly
 //
-static void s_dump(zmq::socket_t &socket)
-{
+static void s_dump(zmq::socket_t &socket) {
   std::cout << "----------------------------------------" << std::endl;
 
   while (1) {
@@ -155,8 +149,7 @@ static void s_dump(zmq::socket_t &socket)
 //    DO NOT call this version of s_set_id from multiple threads on MS Windows
 //    since s_set_id will call rand() on MS Windows. rand(), however, is not
 //    reentrant or thread-safe. See issue #521.
-inline std::string s_set_id(zmq::socket_t &socket)
-{
+inline std::string s_set_id(zmq::socket_t &socket) {
   std::stringstream ss;
   ss << std::hex << std::uppercase << std::setw(4) << std::setfill('0') << within(0x10000) << "-"
      << std::setw(4) << std::setfill('0') << within(0x10000);
@@ -165,8 +158,7 @@ inline std::string s_set_id(zmq::socket_t &socket)
 }
 #else
 // Fix #521
-inline std::string s_set_id(zmq::socket_t &socket, intptr_t id)
-{
+inline std::string s_set_id(zmq::socket_t &socket, intptr_t id) {
   std::stringstream ss;
   ss << std::hex << std::uppercase << std::setw(4) << std::setfill('0') << id;
   socket.setsockopt(ZMQ_IDENTITY, ss.str().c_str(), ss.str().length());
@@ -176,15 +168,13 @@ inline std::string s_set_id(zmq::socket_t &socket, intptr_t id)
 
 //  Report 0MQ version number
 //
-static void s_version(void)
-{
+static void s_version(void) {
   int major, minor, patch;
   zmq_version(&major, &minor, &patch);
   std::cout << "Current 0MQ version is " << major << "." << minor << "." << patch << std::endl;
 }
 
-static void s_version_assert(int want_major, int want_minor)
-{
+static void s_version_assert(int want_major, int want_minor) {
   int major, minor, patch;
   zmq_version(&major, &minor, &patch);
   if (major < want_major || (major == want_major && minor < want_minor)) {
@@ -196,8 +186,7 @@ static void s_version_assert(int want_major, int want_minor)
 }
 
 //  Return current system clock as milliseconds
-static int64_t s_clock(void)
-{
+static int64_t s_clock(void) {
 #if (defined(WIN32))
   FILETIME fileTime;
   GetSystemTimeAsFileTime(&fileTime);
@@ -214,8 +203,7 @@ static int64_t s_clock(void)
 }
 
 //  Sleep for a number of milliseconds
-static void s_sleep(int msecs)
-{
+static void s_sleep(int msecs) {
 #if (defined(WIN32))
   Sleep(msecs);
 #else
@@ -226,8 +214,7 @@ static void s_sleep(int msecs)
 #endif
 }
 
-static void s_console(const char *format, ...)
-{
+static void s_console(const char *format, ...) {
   time_t curtime = time(nullptr);
   struct tm *loctime = localtime(&curtime);
   char *formatted = new char[22];
@@ -250,13 +237,9 @@ static void s_console(const char *format, ...)
 //  zmq_poll.
 
 static int s_interrupted = 0;
-static void s_signal_handler(int)
-{
-  s_interrupted = 1;
-}
+static void s_signal_handler(int) { s_interrupted = 1; }
 
-static void s_catch_signals()
-{
+static void s_catch_signals() {
 #if (!defined(WIN32))
   struct sigaction action;
   action.sa_handler = s_signal_handler;

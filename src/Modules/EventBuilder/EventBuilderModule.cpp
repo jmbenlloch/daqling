@@ -23,27 +23,23 @@
 
 using namespace std::chrono_literals;
 
-EventBuilderModule::EventBuilderModule()
-{
+EventBuilderModule::EventBuilderModule() {
   INFO("With config: " << m_config.dump() << " getState: " << this->getState());
 }
 
 EventBuilderModule::~EventBuilderModule() {}
 
-void EventBuilderModule::start()
-{
+void EventBuilderModule::start() {
   DAQProcess::start();
   INFO("getState: " << getState());
 }
 
-void EventBuilderModule::stop()
-{
+void EventBuilderModule::stop() {
   DAQProcess::stop();
   INFO("getState: " << this->getState());
 }
 
-void EventBuilderModule::runner()
-{
+void EventBuilderModule::runner() {
   INFO("Running...");
   while (m_run) {
     daqling::utilities::Binary b1, b2;

@@ -28,16 +28,14 @@
 using namespace std::chrono_literals;
 namespace daqutils = daqling::utilities;
 
-CassandraDataLoggerModule::CassandraDataLoggerModule()
-{
+CassandraDataLoggerModule::CassandraDataLoggerModule() {
   INFO(" setting up session.");
   m_cluster = cass_cluster_new();
   m_session = cass_session_new();
   setup();
 }
 
-CassandraDataLoggerModule::~CassandraDataLoggerModule()
-{
+CassandraDataLoggerModule::~CassandraDataLoggerModule() {
   INFO(" Closing session and connection to cluster...");
   CassFuture *future = cass_session_close(m_session);
   cass_future_wait(future);
@@ -47,16 +45,14 @@ CassandraDataLoggerModule::~CassandraDataLoggerModule()
 }
 
 void CassandraDataLoggerModule::readIntoBinary(daqutils::Binary &binary,
-                                               const CassValue *const &value)
-{
+                                               const CassValue *const &value) {
   const cass_byte_t *value_bytes;
   size_t value_length;
   cass_value_get_bytes(value, &value_bytes, &value_length);
   binary = daqutils::Binary(static_cast<const void *>(value_bytes), value_length);
 }
 
-const std::string CassandraDataLoggerModule::getErrorStr(CassFuture *&future)
-{
+const std::string CassandraDataLoggerModule::getErrorStr(CassFuture *&future) {
   CassError rc = cass_future_error_code(future);
   std::string errStr(cass_error_desc(rc));
   const char *message;
@@ -67,8 +63,8 @@ const std::string CassandraDataLoggerModule::getErrorStr(CassFuture *&future)
   return finalStr;
 }
 
-bool CassandraDataLoggerModule::prepareQuery(const std::string &qStr, const CassPrepared **prepared)
-{
+bool CassandraDataLoggerModule::prepareQuery(const std::string &qStr,
+                                             const CassPrepared **prepared) {
   bool success = false;
   CassFuture *future = cass_session_prepare(m_session, qStr.c_str());
   cass_future_wait(future);
@@ -83,8 +79,7 @@ bool CassandraDataLoggerModule::prepareQuery(const std::string &qStr, const Cass
   return success;
 }
 
-bool CassandraDataLoggerModule::executeStatement(CassStatement *&statement)
-{
+bool CassandraDataLoggerModule::executeStatement(CassStatement *&statement) {
   bool success = false;
   CassFuture *future = cass_session_execute(m_session, statement);
   cass_future_wait(future);
@@ -97,8 +92,7 @@ bool CassandraDataLoggerModule::executeStatement(CassStatement *&statement)
 }
 
 bool CassandraDataLoggerModule::executeStatement(CassStatement *&statement,
-                                                 const CassResult **result)
-{
+                                                 const CassResult **result) {
   bool success = false;
   CassFuture *future = cass_session_execute(m_session, statement);
   cass_future_wait(future);
@@ -112,8 +106,7 @@ bool CassandraDataLoggerModule::executeStatement(CassStatement *&statement,
   return success;
 }
 
-bool CassandraDataLoggerModule::executeQuery(const std::string &queryStr)
-{
+bool CassandraDataLoggerModule::executeQuery(const std::string &queryStr) {
   bool success = false;
   CassStatement *statement = cass_statement_new(queryStr.c_str(), 0);
   CassFuture *future = cass_session_execute(m_session, statement);
@@ -127,8 +120,7 @@ bool CassandraDataLoggerModule::executeQuery(const std::string &queryStr)
   return success;
 }
 
-bool CassandraDataLoggerModule::columnFamilyExists(const std::string &columnFamilyName)
-{
+bool CassandraDataLoggerModule::columnFamilyExists(const std::string &columnFamilyName) {
   bool found = false;
   const CassPrepared *prepared = nullptr;
   // std::string qStr = "SELECT columnfamily_name FROM system.SCHEMA_COLUMNFAMILIES WHERE
@@ -152,13 +144,11 @@ bool CassandraDataLoggerModule::columnFamilyExists(const std::string &columnFami
   return found;
 }
 
-bool CassandraDataLoggerModule::exists()
-{
+bool CassandraDataLoggerModule::exists() {
   return columnFamilyExists(M_CF_NAME) && m_chunkProvider.exists();
 }
 
-bool CassandraDataLoggerModule::create()
-{
+bool CassandraDataLoggerModule::create() {
   /*
     std::stringstream qssChunk;
     qssChunk << "CREATE TABLE " << KEYSPACE_NAME<< "." << M_NAME
@@ -207,20 +197,17 @@ bool CassandraDataLoggerModule::create()
 
 #warning RS -> YOU NEED TO INTRODUCE A PROPER SESSION LAYER BETWEEN STORAGE AND DAQ!
 
-void CassandraDataLoggerModule::start()
-{
+void CassandraDataLoggerModule::start() {
   DAQProcess::start();
   INFO(" getState: " << getState());
 }
 
-void CassandraDataLoggerModule::stop()
-{
+void CassandraDataLoggerModule::stop() {
   DAQProcess::stop();
   INFO(" getState: " << this->getState());
 }
 
-void CassandraDataLoggerModule::runner()
-{
+void CassandraDataLoggerModule::runner() {
   INFO(" Running...");
   uint64_t incr = 0;
   while (m_run) {
@@ -235,8 +222,7 @@ void CassandraDataLoggerModule::runner()
   INFO(" Runner stopped");
 }
 
-void CassandraDataLoggerModule::setup()
-{
+void CassandraDataLoggerModule::setup() {
   INFO(" Connecting to storage cluster based on configuration.");
   std::string clusterStr = m_config.getConfig()["settings"]["ring"];
 
@@ -269,8 +255,7 @@ void CassandraDataLoggerModule::write() {}
 
 void CassandraDataLoggerModule::read() {}
 
-bool CassandraDataLoggerModule::write(uint64_t keyId, daqling::utilities::Binary &payload)
-{
+bool CassandraDataLoggerModule::write(uint64_t keyId, daqling::utilities::Binary &payload) {
   daqutils::Binary sinfoData(0);
   bool success = false;
   const CassPrepared *prepared = nullptr;
@@ -286,11 +271,11 @@ bool CassandraDataLoggerModule::write(uint64_t keyId, daqling::utilities::Binary
     cass_statement_bind_string(statement, 1, "event");
     cass_statement_bind_string(statement, 3, "dummy");
     cass_statement_bind_int64(statement, 4, 0L);
-    cass_statement_bind_bytes(
-      statement, 2, static_cast<const unsigned char *>(sinfoData.data()), sinfoData.size());
+    cass_statement_bind_bytes(statement, 2, static_cast<const unsigned char *>(sinfoData.data()),
+                              sinfoData.size());
 #ifndef USE_CHUNKS
-    cass_statement_bind_bytes(
-      statement, 6, static_cast<const unsigned char *>(payload.data()), payload.size());
+    cass_statement_bind_bytes(statement, 6, static_cast<const unsigned char *>(payload.data()),
+                              payload.size());
 #else
     // cond::Binary dummyPayload = cond::Binary();
     // cass_statement_bind_bytes( statement, 6, reinterpret_cast<const unsigned

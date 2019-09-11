@@ -20,7 +20,7 @@
 #include "Core/DAQProcess.hpp"
 
 class EventBuilderModule : public daqling::core::DAQProcess {
-  public:
+public:
   EventBuilderModule();
   ~EventBuilderModule();
 

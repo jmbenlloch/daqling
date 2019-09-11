@@ -35,135 +35,124 @@
 
 namespace daqling::utilities {
 
-  class Binary {
+class Binary {
 
 public:
-    using byte = uint8_t;
-    enum class error_code {
-      alloc,
-      invalid_arg,
-    };
+  using byte = uint8_t;
+  enum class error_code {
+    alloc,
+    invalid_arg,
+  };
 
-    /// Default Constructor. Creates an empty BLOB
-    Binary() noexcept = default;
+  /// Default Constructor. Creates an empty BLOB
+  Binary() noexcept = default;
 
-    /// Destructor. Frees internally allocated memory, if any
-    ~Binary() noexcept = default;
+  /// Destructor. Frees internally allocated memory, if any
+  ~Binary() noexcept = default;
 
-    /// Constructor initializing a BLOB with `size` bytes from `data`
-    explicit Binary(const void *data, const size_t size) noexcept
-    {
-      if (!data) {
-        m_error = error_code::invalid_arg;
-        return;
-      }
-
-      try {
-        m_data = std::vector<byte>(static_cast<const byte *>(data),
-                                   static_cast<const byte *>(data) + size);
-      } catch (const std::bad_alloc &) {
-        m_error = error_code::alloc;
-      }
+  /// Constructor initializing a BLOB with `size` bytes from `data`
+  explicit Binary(const void *data, const size_t size) noexcept {
+    if (!data) {
+      m_error = error_code::invalid_arg;
+      return;
     }
 
-    /// Copy constructor
-    explicit Binary(const Binary &rhs) noexcept
-    {
-      try {
-        m_data = rhs.m_data;
-      } catch (const std::bad_alloc &) {
-        m_error = error_code::alloc;
-      }
+    try {
+      m_data = std::vector<byte>(static_cast<const byte *>(data),
+                                 static_cast<const byte *>(data) + size);
+    } catch (const std::bad_alloc &) {
+      m_error = error_code::alloc;
+    }
+  }
+
+  /// Copy constructor
+  explicit Binary(const Binary &rhs) noexcept {
+    try {
+      m_data = rhs.m_data;
+    } catch (const std::bad_alloc &) {
+      m_error = error_code::alloc;
+    }
+  }
+
+  /// Move constructor
+  explicit Binary(Binary &&rhs) noexcept
+      : m_data{std::move(rhs.m_data)}, m_error{std::move(rhs.m_error)} {}
+
+  /// Assignment operator
+  Binary &operator=(const Binary &rhs) noexcept {
+    try {
+      m_data = rhs.m_data;
+    } catch (const std::bad_alloc &) {
+      m_error = error_code::alloc;
     }
 
-    /// Move constructor
-    explicit Binary(Binary &&rhs) noexcept
-        : m_data{std::move(rhs.m_data)}, m_error{std::move(rhs.m_error)}
-    {
+    return *this;
+  }
+
+  /// Move Assignment operator
+  Binary &operator=(Binary &&rhs) noexcept {
+    /*
+     * Required identity test as `x = std::move(x)` is UB.
+     * See <https://stackoverflow.com/a/24604504>
+     */
+    if (this != &rhs) {
+      m_data = std::move(rhs.m_data);
+      m_error = std::move(rhs.m_error);
     }
 
-    /// Assignment operator
-    Binary &operator=(const Binary &rhs) noexcept
-    {
-      try {
-        m_data = rhs.m_data;
-      } catch (const std::bad_alloc &) {
-        m_error = error_code::alloc;
-      }
+    return *this;
+  }
 
-      return *this;
+  /// Appends the data of another blob
+  Binary &operator+=(const Binary &rhs) noexcept {
+    assert(!m_error);
+
+    try {
+      m_data.insert(m_data.end(), rhs.m_data.begin(), rhs.m_data.end());
+    } catch (const std::bad_alloc &) {
+      m_error = error_code::alloc;
     }
+    return *this;
+  }
 
-    /// Move Assignment operator
-    Binary &operator=(Binary &&rhs) noexcept
-    {
-      /*
-       * Required identity test as `x = std::move(x)` is UB.
-       * See <https://stackoverflow.com/a/24604504>
-       */
-      if (this != &rhs) {
-        m_data = std::move(rhs.m_data);
-        m_error = std::move(rhs.m_error);
-      }
+  /// Equal operator. Compares the contents of the binary blocks
+  bool operator==(const Binary &rhs) const noexcept {
+    return (m_data == rhs.m_data) && (m_error == rhs.m_error);
+  }
 
-      return *this;
-    }
+  /// Comparison operator
+  inline bool operator!=(const Binary &rhs) const noexcept { return !this->operator==(rhs); }
 
-    /// Appends the data of another blob
-    Binary &operator+=(const Binary &rhs) noexcept
-    {
-      assert(!m_error);
+  /// Returns the internally stored data
+  template <typename T = void *> const T data() const noexcept {
+    static_assert(std::is_pointer<T>(), "Type parameter must be a pointer type");
+    return reinterpret_cast<T>(const_cast<byte *>(m_data.data()));
+  }
 
-      try {
-        m_data.insert(m_data.end(), rhs.m_data.begin(), rhs.m_data.end());
-      } catch (const std::bad_alloc &) {
-        m_error = error_code::alloc;
-      }
-      return *this;
-    }
+  /// Returns the internally stored data
+  template <typename T = void *> T data() noexcept {
+    static_assert(std::is_pointer<T>(), "Type parameter must be a pointer type");
+    return reinterpret_cast<T>(m_data.data());
+  }
 
-    /// Equal operator. Compares the contents of the binary blocks
-    bool operator==(const Binary &rhs) const noexcept
-    {
-      return (m_data == rhs.m_data) && (m_error == rhs.m_error);
-    }
+  /// Current size of the blob
+  size_t size() const noexcept { return m_data.size(); }
 
-    /// Comparison operator
-    inline bool operator!=(const Binary &rhs) const noexcept { return !this->operator==(rhs); }
-
-    /// Returns the internally stored data
-    template <typename T = void *> const T data() const noexcept
-    {
-      static_assert(std::is_pointer<T>(), "Type parameter must be a pointer type");
-      return reinterpret_cast<T>(const_cast<byte *>(m_data.data()));
-    }
-
-    /// Returns the internally stored data
-    template <typename T = void *> T data() noexcept
-    {
-      static_assert(std::is_pointer<T>(), "Type parameter must be a pointer type");
-      return reinterpret_cast<T>(m_data.data());
-    }
-
-    /// Current size of the blob
-    size_t size() const noexcept { return m_data.size(); }
-
-    /// Returns whether or not the Binary is in a usable state or if an error occured
-    [[nodiscard]] std::optional<error_code> error() const noexcept { return m_error; }
+  /// Returns whether or not the Binary is in a usable state or if an error occured
+  [[nodiscard]] std::optional<error_code> error() const noexcept { return m_error; }
 
 private:
-    /// The BLOB data buffer
-    std::vector<byte> m_data;
+  /// The BLOB data buffer
+  std::vector<byte> m_data;
 
-    /// Error flag
-    std::optional<error_code> m_error;
-  };
+  /// Error flag
+  std::optional<error_code> m_error;
+};
 
 } // namespace daqling::utilities
 
 /// xxd(1)-like output representation of a `Binary`
-inline std::ostream &operator<<(std::ostream &out, const daqling::utilities::Binary &rhs)
-{
+inline std::ostream &operator<<(std::ostream &out, const daqling::utilities::Binary &rhs) {
   for (size_t i = 0; i < rhs.size(); i++) {
     const bool newline_prefix = i % 16 == 0;
     const bool newline = (i + 1) % 16 == 0;
@@ -187,8 +176,8 @@ inline std::ostream &operator<<(std::ostream &out, const daqling::utilities::Bin
         std::string str(c - i % 16, c + 1);
 
         // Replace unprintable characters with a '.'
-        std::replace_if(
-          str.begin(), str.end(), [&loc](auto c) { return !std::isprint(c, loc); }, '.');
+        std::replace_if(str.begin(), str.end(), [&loc](auto c) { return !std::isprint(c, loc); },
+                        '.');
 
         return std::move(str);
       });
