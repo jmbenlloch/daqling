@@ -5,7 +5,7 @@ stages:
     - testing
 
 # Default compile jobs
-.compile:
+compile:
     stage: compilation
     script:
         - mkdir build
@@ -20,13 +20,13 @@ stages:
         - source cmake/setup.sh
 
 # Default tests
-.test:
+test:
     stage: testing
     script:
         - cd build/
         - ctest3 --output-on-failure -j4
     dependencies:
-        - .compile
+        - compile
     before_script:
         - source cmake/setup.sh
 
@@ -36,6 +36,6 @@ format:
         - cd build
         - make check-format
     dependencies:
-        - .compile
+        - compile
     before_script:
         - source cmake/setup.sh
