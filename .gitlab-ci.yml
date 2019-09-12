@@ -1,7 +1,8 @@
+image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:latest
+
 stages:
     - compilation
     - testing
-    - formatting
 
 # Default compile jobs
 .compile:
@@ -18,10 +19,7 @@ stages:
 
 cmp:cc7-gcc:
     extends: .compile
-    image: clicdp/cc7-base
     before_script:
-        - yum install -y ansible
-        - ansible-playbook ansible/set-up-host.yml -vvv --tags minimal
         - source cmake/setup.sh
 
 # Default tests
@@ -36,19 +34,12 @@ tst:cc7-gcc:
     dependencies:
         - cmp:cc7-gcc
     before_script:
-        - yum install -y ansible
-        - ansible-playbook ansible/set-up-host.yml -vvv --tags minimal
         - source cmake/setup.sh
-    image: clicdp/cc7-base
 
 format:
     stage: formatting
-    image: clicdp/cc7-base
     script:
-        - yum install -y ansible
-        - ansible-playbook ansible/set-up-host.yml -vvv --tags minimal
         - source cmake/setup.sh
         - cd build
-        - source /opt/rh/llvm-toolset-7/enable
         - cmake3 ..
         - make check-format
