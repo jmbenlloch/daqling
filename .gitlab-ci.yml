@@ -37,7 +37,7 @@ tst:cc7-gcc:
         - source cmake/setup.sh
 
 format:
-    stage: formatting
+    stage: testing
     script:
         - source cmake/setup.sh
         - cd build
