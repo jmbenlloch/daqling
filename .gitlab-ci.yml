@@ -26,13 +26,16 @@ stages:
         - cd build/
         - ctest3 --output-on-failure -j4
     dependencies:
-        - cmp:cc7-gcc
+        - .compile
     before_script:
         - source cmake/setup.sh
 
 format:
     stage: testing
     script:
-        - source cmake/setup.sh
         - cd build
         - make check-format
+    dependencies:
+        - .compile
+    before_script:
+        - source cmake/setup.sh
