@@ -4,9 +4,7 @@ A software framework for the development of modular and distributed data acquisi
 
 ## Documentation
 
-Documentation can be found at the following links:
-
-- [CodiMD][codimd]
+In depth documentation can be found [here][codimd].
 
 [codimd]: <https://codimd.web.cern.ch/s/B1oArin-r>
 
