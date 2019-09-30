@@ -4,15 +4,11 @@ Software framework for development of modular and distributed data acquisition s
 
 ## Documentation
 
-WIP: Scattered documentation can be found at the following links:
+Documentation can be found at the following links:
 
 - [CodiMD][codimd]
-- [Google documents][drive]
-- [Overleaf][overleaf]
 
 [codimd]: <https://codimd.web.cern.ch/s/B1oArin-r>
-[drive]: <https://drive.google.com/drive/folders/1sMiRltFLZY9HFLqsrGpXrNlBZx4Yx3qN?usp=sharing>
-[overleaf]: <https://www.overleaf.com/9291872198hhwbjgmdstpv>
 
 ## Install the framework
 
@@ -54,10 +50,7 @@ then:
     cmake3 ../
     make
 
-You can also do incremental compilation like:
-
-    make utilities
-    make core
+It is possible to build only selected targets. Check `make help` in order to obtain the list of available ones.
 
 #### (Optional) Build the CassandraDataLogger
 
@@ -98,7 +91,7 @@ In order to include TBB 2019.0 in the build it is necessary to:
 ## Running the demo
 
     source cmake/setup.sh
-    daqinterface configs/valid-config.json complete
+    daqinterface configs/valid-config.json
     start
     stop
     down
@@ -107,15 +100,8 @@ In order to include TBB 2019.0 in the build it is necessary to:
 
 ## Development
 
-In order to develop your own module, check the existing demonstration modules in `daqling/src/Modules` and `daqling/include/Modules` for guidance.
+In order to develop your own module, check the existing modules in `src/Modules` and for guidance.
 
-Copy and adapt the template `src/Modules/NewModule.cpp` and `include/Modules/NewModule.hpp` and start developing your custom module.
+Copy and adapt the template folder `src/Modules/Dummy` and develop your custom module.
 
-Finally add the new custom module to `src/Modules/CMakeLists.txt` in order to build it as part of the project.
-
-The `dev` option of `daqinterface`
-
-    daqinterface invalid-config.json complete dev
-
-- skips the `json-config.schema` validation, therefore allowing to experiment with new fields in the configuration json files.
-- sets the process logging level to `DEBUG`.
+The custom module will be discovered (don't forget to modify the name of the module in the `CMakeLists.txt` file) and built by CMake as part of the project.

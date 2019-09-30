@@ -58,10 +58,10 @@ def stop_check_threads():
 debug = False
 
 arg = "complete"
-if len(sys.argv) <= 2:
+if len(sys.argv) <= 1:
   print_help()
   quit()
-else:
+elif len(sys.argv) == 3:
   arg = sys.argv[2]
 
 for o in sys.argv:
