@@ -12,7 +12,7 @@ Documentation can be found at the following links:
 
 ## Install the framework
 
-### Run ansible-playbook to configure your CentOS7 host
+### Run ansible-playbook to configure your CentOS 7 host
 
 The playbook will set up your host with the system libraries and tools
 
@@ -22,10 +22,6 @@ The playbook will set up your host with the system libraries and tools
     ansible-playbook set-up-host.yml --ask-become
 
 #### (Optional)
-
-Cassandra
-
-    ansible-playbook install-cassandra.yml --ask-become
 
 Web dependencies
 
@@ -38,6 +34,10 @@ Redis
 Boost 1.70
 
     ansible-playbook install-boost-1_70.yml --ask-become
+
+Cassandra
+
+    ansible-playbook install-cassandra.yml --ask-become
 
 ### Build
 
@@ -52,18 +52,6 @@ then:
 
 It is possible to build only selected targets. Check `make help` in order to obtain the list of available ones.
 
-#### (Optional) Build the CassandraDataLogger
-
-In order to build the CassandraDataLogger it is necessary to:
-
-- have a Cassandra C++ driver installation under `/opt/cassandra-driver/` (optional Ansible playbook)
-- from a fresh terminal:
-
-      source cmake/setup.sh
-      cd build
-      cmake3 ../ -DENABLE_CASSANDRA=1
-      make
-
 #### (Optional) Build with Boost 1.70
 
 In order to include Boost 1.70 in the build it is necessary to:
@@ -74,6 +62,18 @@ In order to include Boost 1.70 in the build it is necessary to:
       source cmake/setup.sh
       cd build
       cmake3 ../ -DENABLE_BOOST=1
+      make
+
+#### (Optional) Build the CassandraDataLogger
+
+In order to build the CassandraDataLogger it is necessary to:
+
+- have a Cassandra C++ driver installation under `/opt/cassandra-driver/` (optional Ansible playbook)
+- from a fresh terminal:
+
+      source cmake/setup.sh
+      cd build
+      cmake3 ../ -DENABLE_CASSANDRA=1
       make
 
 #### (Optional) Build with TBB 2019.0
