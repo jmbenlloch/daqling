@@ -39,22 +39,21 @@ struct data_t {
 } __attribute__((__packed__));
 
 BoardReaderModule::BoardReaderModule() {
-  /* INFO("Passed " << name << " " << num << " with constructor"); */
-  INFO("With config: " << m_config.dump());
+  DEBUG("With config: " << m_config.dump());
 
-  m_board_id = m_config.getConfig()["settings"]["board_id"];
+  m_board_id = m_config.getSettings()["board_id"];
 }
 
 BoardReaderModule::~BoardReaderModule() {}
 
 void BoardReaderModule::start() {
   DAQProcess::start();
-  INFO("getState: " << this->getState());
+  DEBUG("getState: " << this->getState());
 }
 
 void BoardReaderModule::stop() {
   DAQProcess::stop();
-  INFO("getState: " << this->getState());
+  DEBUG("getState: " << this->getState());
 }
 
 void BoardReaderModule::runner() {
@@ -65,7 +64,7 @@ void BoardReaderModule::runner() {
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> dis(200, 1500);
 
-  INFO("Running...");
+  DEBUG("Running...");
   while (m_run) {
     timestamp = duration_cast<microseconds>(system_clock::now().time_since_epoch());
     const unsigned payload_size = static_cast<unsigned>(dis(gen));
@@ -94,5 +93,5 @@ void BoardReaderModule::runner() {
     sequence_number++;
     std::this_thread::sleep_for(500ms);
   }
-  INFO("Runner stopped");
+  DEBUG("Runner stopped");
 }

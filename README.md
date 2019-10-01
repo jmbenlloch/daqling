@@ -4,7 +4,7 @@ A software framework for the development of modular and distributed data acquisi
 
 ## Documentation
 
-In depth documentation can be found [here][codimd].
+Detailed documentation can be found [here][codimd].
 
 [codimd]: <https://codimd.web.cern.ch/s/B1oArin-r>
 
@@ -95,7 +95,11 @@ To include TBB 2019.0 in the build it is necessary to:
       cmake3 ../ -DENABLE_TBB=1
       make
 
-## Running the demo
+## Running the data acquisition system demo
+
+`daqinterface` is a command line tool that spawns and configures the components listed in the JSON configuration file passed as argument.
+
+It then allows to control the components via standard commands such as `start`, `stop`, as well as custom commands.
 
     source cmake/setup.sh
     daqinterface configs/valid-config.json

@@ -90,7 +90,7 @@ bool FileDataWriterModule::FileGenerator::yields_unique(const std::string &patte
 
 FileDataWriterModule::FileDataWriterModule() : m_stopWriters{false} {
 
-  INFO(__METHOD_NAME__);
+  DEBUG("");
 
   /* #warning RS -> Needs to be properly configured. */
   // Set up static resources...
@@ -99,14 +99,14 @@ FileDataWriterModule::FileDataWriterModule() : m_stopWriters{false} {
 }
 
 FileDataWriterModule::~FileDataWriterModule() {
-  INFO(__METHOD_NAME__);
+  DEBUG("");
   // Tear down resources...
   m_stopWriters.store(true);
 }
 
 void FileDataWriterModule::start() {
   DAQProcess::start();
-  INFO(" getState: " << getState());
+  DEBUG(" getState: " << getState());
 
   m_monitor_thread = std::thread(&FileDataWriterModule::monitor_runner, this);
 
@@ -128,7 +128,7 @@ void FileDataWriterModule::start() {
 
 void FileDataWriterModule::stop() {
   DAQProcess::stop();
-  INFO(" getState: " << this->getState());
+  DEBUG(" getState: " << this->getState());
   if (m_monitor_thread.joinable()) {
     m_monitor_thread.join();
   }
@@ -248,11 +248,11 @@ void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq,
 void FileDataWriterModule::setup() {
   // Read out required and optional configurations
   m_max_filesize =
-      m_config.getConfig()["settings"].value("max_filesize", 1 * daqutils::Constant::Giga);
+      m_config.getSettings().value("max_filesize", 1 * daqutils::Constant::Giga);
   const size_t buffer_size =
-      m_config.getConfig()["settings"].value("buffer_size", 4 * daqutils::Constant::Kilo);
-  m_channels = m_config.getConfig()["connections"]["receivers"].size();
-  const std::string pattern = m_config.getConfig()["settings"]["filename_pattern"];
+      m_config.getSettings().value("buffer_size", 4 * daqutils::Constant::Kilo);
+  m_channels = m_config.getConnections()["receivers"].size();
+  const std::string pattern = m_config.getSettings()["filename_pattern"];
   INFO("Configuration:");
   INFO(" -> Maximum filesize: " << m_max_filesize << "B");
   INFO(" -> Buffer size: " << buffer_size << "B");

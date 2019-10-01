@@ -43,6 +43,8 @@ public:
   std::string dump() { return m_config.dump(); }
   void load(const std::string &jsonStr) { m_config = nlohmann::json::parse(jsonStr); }
   nlohmann::json &getConfig() { return m_config; }
+  nlohmann::json &getSettings() { return m_config["settings"]; }
+  nlohmann::json &getConnections() { return m_config["connections"]; }
 
   template <typename T> void set(const std::string &key, const T &value) { m_config[key] = value; }
   template <typename T> T get(const std::string &key) { return m_config[key]; }
