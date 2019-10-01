@@ -39,3 +39,4 @@ format:
         - compile
     before_script:
         - source cmake/setup.sh
+    allow_failure: true

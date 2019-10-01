@@ -247,8 +247,7 @@ void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq,
 
 void FileDataWriterModule::setup() {
   // Read out required and optional configurations
-  m_max_filesize =
-      m_config.getSettings().value("max_filesize", 1 * daqutils::Constant::Giga);
+  m_max_filesize = m_config.getSettings().value("max_filesize", 1 * daqutils::Constant::Giga);
   const size_t buffer_size =
       m_config.getSettings().value("buffer_size", 4 * daqutils::Constant::Kilo);
   m_channels = m_config.getConnections()["receivers"].size();
