@@ -242,7 +242,7 @@ bool ConnectionManager::get(uint64_t chn, daqling::utilities::Binary &bin) {
   return false;
 }
 
-void ConnectionManager::put(uint64_t chn, utilities::Binary &msgBin) {
+void ConnectionManager::put(uint64_t chn, daqling::utilities::Binary &msgBin) {
   zmq::message_t message(msgBin.size());
   memcpy(message.data(), msgBin.data(), msgBin.size());
   m_pcqs[chn]->write(std::move(message));

@@ -31,8 +31,6 @@
 
 #include "DAQProcess.hpp"
 
-#include "Utils/Logging.hpp"
-
 namespace daqling {
 namespace core {
 

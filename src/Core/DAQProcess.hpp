@@ -27,7 +27,6 @@
 #include "Configuration.hpp"
 #include "ConnectionManager.hpp"
 #include "Statistics.hpp"
-#include "Utils/Logging.hpp"
 
 namespace daqling::core {
 

@@ -24,8 +24,6 @@
 #include <vector>
 /// \endcond
 
-#include "Statistics.hpp"
-
 namespace daqling {
 namespace core {
 namespace metrics {

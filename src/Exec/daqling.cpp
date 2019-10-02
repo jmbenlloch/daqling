@@ -20,7 +20,6 @@
 /// \endcond
 
 #include "Core/Core.hpp"
-#include "Utils/Logging.hpp"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
 using namespace std::chrono_literals;
