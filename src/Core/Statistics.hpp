@@ -46,7 +46,7 @@ public:
 
   bool configure(unsigned interval);
 
-  void setZQMpublishing(bool zmq_publisher) { m_zmq_publisher = zmq_publisher; }
+  void setZMQpublishing(bool zmq_publisher) { m_zmq_publisher = zmq_publisher; }
   void setInfluxDBsending(bool influxDb) { m_influxDb = influxDb; }
   void setInfluxDBname(std::string influxDb_name) { m_influxDb_name = influxDb_name; }
   void setInfluxDBuri(std::string influxDb_uri) { m_influxDb_uri = influxDb_uri; }

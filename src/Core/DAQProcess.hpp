@@ -109,7 +109,7 @@ public:
           &m_connections.getMsgStat(1), "CHN0-NumMessages", daqling::core::metrics::LAST_VALUE,
           daqling::core::metrics::SIZE);
       if (statsURI != "" && statsURI != nullptr) {
-        m_statistics->setZQMpublishing(true);
+        m_statistics->setZMQpublishing(true);
         m_stats_on = true;
       }
       if (influxDbURI != "" && influxDbURI != nullptr) {
