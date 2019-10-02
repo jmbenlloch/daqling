@@ -18,10 +18,7 @@
 #ifndef STATISTICS_HPP
 #define STATISTICS_HPP
 
-#include "Metric.hpp"
-#include "Utils/Logging.hpp"
-
-#include "zmq.hpp"
+/// \cond
 #include <atomic>
 #include <cpr/cpr.h>
 #include <ctime>
@@ -32,6 +29,11 @@
 #include <string>
 #include <thread>
 #include <vector>
+/// \endcond
+
+#include "Metric.hpp"
+#include "Utils/Logging.hpp"
+#include "Utils/zhelpers.hpp"
 
 namespace daqling {
 namespace core {

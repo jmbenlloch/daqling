@@ -24,6 +24,7 @@
  *   A convenient wrapper around a dynamically sized, continous memory area.
  */
 
+/// \cond
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -32,6 +33,7 @@
 #include <iostream>
 #include <optional>
 #include <vector>
+/// \endcond
 
 namespace daqling::utilities {
 

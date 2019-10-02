@@ -18,10 +18,13 @@
 #ifndef METRIC_HPP
 #define METRIC_HPP
 
-#include "Statistics.hpp"
+/// \cond
 #include <ctime>
 #include <string>
 #include <vector>
+/// \endcond
+
+#include "Statistics.hpp"
 
 namespace daqling {
 namespace core {

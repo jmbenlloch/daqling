@@ -19,7 +19,6 @@
 #define DAQLING_CORE_CONNECTIONMANAGER_HPP
 
 /// \cond
-#include "Utils/zhelpers.hpp"
 #include <algorithm>
 #include <map>
 #include <memory>
@@ -32,6 +31,7 @@
 #include "Utils/ProducerConsumerQueue.hpp"
 #include "Utils/ReusableThread.hpp"
 #include "Utils/Singleton.hpp"
+#include "Utils/zhelpers.hpp"
 
 #define MSGQ
 
