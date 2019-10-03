@@ -52,12 +52,24 @@ It is possible to build specified targets. `make help` will list the available o
 
 #### Advanced build options
 
+The `ccmake` command:
+
+    source cmake/setup.sh
+    cd build
     ccmake3 ../
 
-allows browsing available build options, such as Module selection and Debug flags. E.g.:
+allows browsing available build options, such as selection of Modules to be built and Debug flags. E.g.:
 
     ENABLE_SANITIZE [ON, OFF]
     CMAKE_BUILD_TYPE [Debug, Release]
+
+To generate *Doxygen* documentation for DAQling:
+
+    source cmake/setup.sh
+    cd build
+    make doc
+
+After generation it is possible to browse the pages by opening `doxygen_html/index.html` with a browser.
 
 #### (Optional) Build with Boost 1.70
 
