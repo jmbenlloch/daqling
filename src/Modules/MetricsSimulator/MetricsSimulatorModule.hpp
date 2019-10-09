@@ -24,7 +24,7 @@ public:
   MetricsSimulatorModule();
   ~MetricsSimulatorModule();
 
-  void start();
+  void start(int run_num);
   void stop();
 
   void runner();

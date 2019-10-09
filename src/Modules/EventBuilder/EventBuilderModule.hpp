@@ -24,7 +24,7 @@ public:
   EventBuilderModule();
   ~EventBuilderModule();
 
-  void start();
+  void start(int run_num);
   void stop();
 
   void runner();

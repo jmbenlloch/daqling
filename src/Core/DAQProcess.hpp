@@ -47,7 +47,9 @@ public:
     m_state = "ready";
   };
 
-  virtual void start() {
+  virtual void start(int run_num) {
+    m_run_number = run_num;
+    DEBUG("run number " << m_run_number);
     m_run = true;
     m_state = "running";
     m_runner_thread = std::thread(&DAQProcess::runner, this);
@@ -150,6 +152,7 @@ protected:
   std::string m_state;
   std::atomic<bool> m_run;
   std::thread m_runner_thread;
+  int m_run_number;
 
 private:
   std::map<const std::string,

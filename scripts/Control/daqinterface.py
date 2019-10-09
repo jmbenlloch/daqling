@@ -126,7 +126,12 @@ while(not dc.stop_check):
   if cmd == "config":
     spawnJoin(data['components'], dc.configureProcess)
   elif cmd == "start":
-    spawnJoin(data['components'], dc.startProcess)
+    try:
+      sp = partial(dc.startProcess, arg=cmd_args[0])
+      spawnJoin(data['components'], sp)
+    except IndexError:
+      print("Run number not specified. Default to 0")
+      spawnJoin(data['components'], dc.startProcess)
   elif cmd == "stop":
     spawnJoin(data['components'], dc.stopProcess)
   elif cmd == "down":

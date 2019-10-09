@@ -104,8 +104,8 @@ FileDataWriterModule::~FileDataWriterModule() {
   m_stopWriters.store(true);
 }
 
-void FileDataWriterModule::start() {
-  DAQProcess::start();
+void FileDataWriterModule::start(int run_num) {
+  DAQProcess::start(run_num);
   DEBUG(" getState: " << getState());
 
   m_monitor_thread = std::thread(&FileDataWriterModule::monitor_runner, this);

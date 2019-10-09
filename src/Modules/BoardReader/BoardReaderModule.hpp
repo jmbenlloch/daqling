@@ -27,7 +27,7 @@ class BoardReaderModule : public daqling::core::DAQProcess {
 public:
   BoardReaderModule();
   ~BoardReaderModule();
-  void start();
+  void start(int run_num);
   void stop();
 
   void runner();

@@ -29,8 +29,8 @@ EventBuilderModule::EventBuilderModule() {
 
 EventBuilderModule::~EventBuilderModule() {}
 
-void EventBuilderModule::start() {
-  DAQProcess::start();
+void EventBuilderModule::start(int run_num) {
+  DAQProcess::start(run_num);
   DEBUG("getState: " << getState());
 }
 

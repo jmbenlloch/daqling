@@ -87,7 +87,7 @@ public:
    *
    * @warning May only be called after a successful `load`.
    */
-  void start() { m_dp.value()->start(); };
+  void start(int run_num) { m_dp.value()->start(run_num); };
 
   /**
    * Stops the loaded module.

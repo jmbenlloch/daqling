@@ -123,8 +123,7 @@ bool daqling::core::Command::executeCommand(std::string &response) {
     m_plugin.configure();
   } else if (command == "start") {
     cm.start();
-
-    m_plugin.start();
+    m_plugin.start(std::stoi(m_argument));
     response = "Success";
   } else if (command == "stop") {
     m_plugin.stop();
