@@ -39,7 +39,6 @@ bool daqling::core::Command::executeCommand(std::string &response) {
   auto &cm = daqling::core::ConnectionManager::instance();
 
   if (command == "configure") {
-    int failures = 0;
     auto &cfg = Configuration::instance();
     cfg.load(m_argument);
     DEBUG("Get config: " << m_argument);
@@ -48,78 +47,77 @@ bool daqling::core::Command::executeCommand(std::string &response) {
     DEBUG("Loading type: " << type);
 
     auto j = cfg.getConfig();
-    auto rcvs = j["connections"]["receivers"];
-    DEBUG("receivers empty " << rcvs.empty());
-    for (auto &it : rcvs) {
-      DEBUG("key" << it);
-      std::ostringstream connStr;
-      ConnectionManager::EDirection dir;
-      if (it["type"] == "pair") {
-        dir = ConnectionManager::EDirection::CLIENT;
-      } else if (it["type"] == "pubsub") {
-        dir = ConnectionManager::EDirection::SUBSCRIBER;
-      } else {
-        ERROR("Unrecognized socket type");
-        ++failures;
+    try {
+      auto rcvs = j["connections"]["receivers"];
+      DEBUG("receivers empty " << rcvs.empty());
+      for (auto &it : rcvs) {
+        DEBUG("key" << it);
+        std::ostringstream connStr;
+        ConnectionManager::EDirection dir;
+        if (it["type"] == "pair") {
+          dir = ConnectionManager::EDirection::CLIENT;
+        } else if (it["type"] == "pubsub") {
+          dir = ConnectionManager::EDirection::SUBSCRIBER;
+        } else {
+          ERROR("Unrecognized socket type");
+          throw - 1;
+        }
+        if (it["transport"] == "ipc") {
+          std::string path = it["path"];
+          connStr << "ipc://" << path;
+        } else if (it["transport"] == "tcp") {
+          std::string host = it["host"];
+          connStr << "tcp://" << host << ":" << it["port"];
+        } else {
+          ERROR("Unrecognized transport type");
+          throw - 1;
+        }
+        if (!cm.addChannel(it["chid"], dir, connStr.str(), 10000)) {
+          ERROR("addChannel failure!");
+          throw - 1;
+        }
       }
-      if (it["transport"] == "ipc") {
-        std::string path = it["path"];
-        connStr << "ipc://" << path;
-      } else if (it["transport"] == "tcp") {
-        std::string host = it["host"];
-        connStr << "tcp://" << host << ":" << it["port"];
-      } else {
-        ERROR("Unrecognized transport type");
-        ++failures;
-      }
-      if (!cm.addChannel(it["chid"], dir, connStr.str(), 10000)) {
-        ERROR("addChannel failure!");
-        ++failures;
-      }
-    }
 
-    auto sndrs = j["connections"]["senders"];
-    DEBUG("senders empty " << sndrs.empty());
-    for (auto &it : sndrs) {
-      DEBUG("key" << it);
-      std::ostringstream connStr;
-      ConnectionManager::EDirection dir;
-      if (it["type"] == "pair") {
-        dir = ConnectionManager::EDirection::SERVER;
-      } else if (it["type"] == "pubsub") {
-        dir = ConnectionManager::EDirection::PUBLISHER;
-      } else {
-        ERROR("Unrecognized socket type");
-        ++failures;
+      auto sndrs = j["connections"]["senders"];
+      DEBUG("senders empty " << sndrs.empty());
+      for (auto &it : sndrs) {
+        DEBUG("key" << it);
+        std::ostringstream connStr;
+        ConnectionManager::EDirection dir;
+        if (it["type"] == "pair") {
+          dir = ConnectionManager::EDirection::SERVER;
+        } else if (it["type"] == "pubsub") {
+          dir = ConnectionManager::EDirection::PUBLISHER;
+        } else {
+          ERROR("Unrecognized socket type");
+          throw - 1;
+        }
+        if (it["transport"] == "ipc") {
+          std::string path = it["path"];
+          connStr << "ipc://" << path;
+        } else if (it["transport"] == "tcp") {
+          std::string host = it["host"];
+          connStr << "tcp://" << host << ":" << it["port"];
+        } else {
+          ERROR("Unrecognized transport type");
+          throw - 1;
+        }
+        if (!cm.addChannel(it["chid"], dir, connStr.str(), 10000)) {
+          ERROR("addChannel failure!");
+          throw - 1;
+        }
       }
-      if (it["transport"] == "ipc") {
-        std::string path = it["path"];
-        connStr << "ipc://" << path;
-      } else if (it["transport"] == "tcp") {
-        std::string host = it["host"];
-        connStr << "tcp://" << host << ":" << it["port"];
-      } else {
-        ERROR("Unrecognized transport type");
-        ++failures;
-      }
-      if (!cm.addChannel(it["chid"], dir, connStr.str(), 10000)) {
-        ERROR("addChannel failure!");
-        ++failures;
-      }
-    }
 
-    if (!m_plugin.load(type)) {
-      ERROR("Plugin load failure!");
-      ++failures;
-    }
-
-    if (failures > 0) {
+      if (!m_plugin.load(type)) {
+        ERROR("Plugin load failure!");
+        throw - 1;
+      }
+    } catch (int e) {
       response = "Failure";
       stop_and_notify();
       return false;
-    } else {
-      response = "Success";
     }
+    response = "Success";
     m_plugin.configure();
   } else if (command == "start") {
     cm.start();
