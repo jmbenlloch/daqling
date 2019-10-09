@@ -111,11 +111,11 @@ To include TBB 2019.0 in the build it is necessary to:
 
 `daqinterface` is a command line tool that spawns and configures the components listed in the JSON configuration file passed as argument.
 
-It then allows to control the components via standard commands such as `start`, `stop`, as well as custom commands.
+It then allows to control the components via standard commands such as `start` (with optional run number), `stop`, as well as custom commands.
 
     source cmake/setup.sh
     daqinterface configs/valid-config.json
-    start
+    start [run_num]
     stop
     down
 
