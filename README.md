@@ -6,6 +6,10 @@ A software framework for the development of modular and distributed data acquisi
 
 Detailed documentation can be found [here][codimd].
 
+Subscribe to the "daqling-users" CERN e-group for updates.
+
+To contact the developers: daqling-developers@cern.ch (only for "daqling-users" members).
+
 [codimd]: <https://codimd.web.cern.ch/s/B1oArin-r>
 
 ## Host configuration and framework build
