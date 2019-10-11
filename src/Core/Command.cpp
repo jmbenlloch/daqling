@@ -119,6 +119,11 @@ bool daqling::core::Command::executeCommand(std::string &response) {
     }
     response = "Success";
     m_plugin.configure();
+  } else if (command == "unconfigure") {
+    // TODO add removeChannel
+    bool rv = m_plugin.unload();
+    INFO("after unload rv " << rv);
+    response = "Success";
   } else if (command == "start") {
     cm.start();
     m_plugin.start(std::stoi(m_argument));
