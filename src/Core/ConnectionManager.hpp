@@ -47,8 +47,8 @@ namespace core {
 class ConnectionManager : public daqling::utilities::Singleton<ConnectionManager> {
 public:
   ConnectionManager()
-      : m_activeChannels{0}, m_is_cmd_setup{false}, m_is_stats_setup{false}, m_stop_cmd_handler{false},
-        m_stop_handlers{false} {}
+      : m_activeChannels{0}, m_is_cmd_setup{false}, m_is_stats_setup{false},
+        m_stop_cmd_handler{false}, m_stop_handlers{false} {}
   ~ConnectionManager() {
     m_stop_handlers = true;
     m_stop_cmd_handler = true;
