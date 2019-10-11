@@ -62,7 +62,6 @@ bool PluginManager::load(std::string name) {
 }
 
 bool PluginManager::unload() {
-  INFO("attempting unload");
   if (m_loaded) {
     m_delete(*m_dp);
     m_loaded = false;

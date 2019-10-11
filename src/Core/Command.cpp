@@ -120,9 +120,10 @@ bool daqling::core::Command::executeCommand(std::string &response) {
     response = "Success";
     m_plugin.configure();
   } else if (command == "unconfigure") {
-    // TODO add removeChannel
-    bool rv = m_plugin.unload();
-    INFO("after unload rv " << rv);
+    while (cm.getNumOfChannels() > 0) {
+      cm.removeChannel(cm.getNumOfChannels());
+    }
+    m_plugin.unload();
     response = "Success";
   } else if (command == "start") {
     cm.start();
@@ -130,9 +131,7 @@ bool daqling::core::Command::executeCommand(std::string &response) {
     response = "Success";
   } else if (command == "stop") {
     m_plugin.stop();
-
     cm.stop();
-
     response = "Success";
   } else if (command == "shutdown") {
     stop_and_notify();

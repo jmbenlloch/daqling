@@ -96,7 +96,7 @@ bool ConnectionManager::setupStatsConnection(uint8_t ioT, std::string connStr) {
   return true;
 }
 
-bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, const std::string &connStr,
+bool ConnectionManager::addChannel(unsigned chn, EDirection dir, const std::string &connStr,
                                    size_t queueSize) {
   // subscriber socket is an exception, as it can be connected to multiple endpoints
   if (m_sockets.find(chn) != m_sockets.end()) {
@@ -143,10 +143,22 @@ bool ConnectionManager::addChannel(uint64_t chn, EDirection dir, const std::stri
     ERROR(" Failed to add channel! ZMQ returned: " << e.what());
     return false;
   }
+  m_activeChannels++;
   return true;
 }
 
-bool ConnectionManager::addReceiveHandler(uint64_t chn) {
+bool ConnectionManager::removeChannel(unsigned chn) {
+  m_sockets.erase(chn);
+  m_contexts.erase(chn);
+  m_pcqs.erase(chn);
+  m_pcqSizes.erase(chn);
+  m_numMsgsHandled.erase(chn);
+  m_directions.erase(chn);
+  m_activeChannels--;
+  return true;
+}
+
+bool ConnectionManager::addReceiveHandler(unsigned chn) {
   INFO(" [CLIENT] ReceiveHandler for channel [" << chn << "] starting...");
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
@@ -168,7 +180,7 @@ bool ConnectionManager::addReceiveHandler(uint64_t chn) {
   return true;
 }
 
-bool ConnectionManager::addSendHandler(uint64_t chn) {
+bool ConnectionManager::addSendHandler(unsigned chn) {
   INFO(" [SERVER] SendHandler for channel [" << chn << "] starting...");
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
@@ -189,7 +201,7 @@ bool ConnectionManager::addSendHandler(uint64_t chn) {
   return true;
 }
 
-bool ConnectionManager::addSubscribeHandler(uint64_t chn) {
+bool ConnectionManager::addSubscribeHandler(unsigned chn) {
   INFO(" [SUB] SubscribeHandler for channel [" << chn << "] starting...");
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
@@ -211,7 +223,7 @@ bool ConnectionManager::addSubscribeHandler(uint64_t chn) {
   return true;
 }
 
-bool ConnectionManager::addPublishHandler(uint64_t chn) {
+bool ConnectionManager::addPublishHandler(unsigned chn) {
   INFO(" [PUB] PublishHandler for channel [" << chn << "] starting...");
   m_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
@@ -232,7 +244,7 @@ bool ConnectionManager::addPublishHandler(uint64_t chn) {
   return true;
 }
 
-bool ConnectionManager::get(uint64_t chn, daqling::utilities::Binary &bin) {
+bool ConnectionManager::get(unsigned chn, daqling::utilities::Binary &bin) {
   if (m_pcqs[chn]->sizeGuess() != 0) {
     utilities::Binary msgBin(m_pcqs[chn]->frontPtr()->data(), m_pcqs[chn]->frontPtr()->size());
     m_pcqs[chn]->popFront();
@@ -242,19 +254,19 @@ bool ConnectionManager::get(uint64_t chn, daqling::utilities::Binary &bin) {
   return false;
 }
 
-void ConnectionManager::put(uint64_t chn, daqling::utilities::Binary &msgBin) {
+void ConnectionManager::put(unsigned chn, daqling::utilities::Binary &msgBin) {
   zmq::message_t message(msgBin.size());
   memcpy(message.data(), msgBin.data(), msgBin.size());
   m_pcqs[chn]->write(std::move(message));
 }
 
-void ConnectionManager::putStr(uint64_t chn, const std::string &string) {
+void ConnectionManager::putStr(unsigned chn, const std::string &string) {
   zmq::message_t message(string.size());
   memcpy(message.data(), string.data(), string.size());
   m_pcqs[chn]->write(std::move(message));
 }
 
-std::string ConnectionManager::getStr(uint64_t chn) {
+std::string ConnectionManager::getStr(unsigned chn) {
   std::string s("");
   if (m_pcqs[chn]->sizeGuess() != 0) {
     s = std::string(static_cast<char *>(m_pcqs[chn]->frontPtr()->data()),
