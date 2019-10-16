@@ -138,7 +138,6 @@ while(not dc.stop_check):
     spawnJoin(data['components'], dc.stopProcess)
   elif cmd == "down":
     stop_check_threads()
-    spawnJoin(data['components'], dc.stopProcess)
     spawnJoin(data['components'], dc.shutdownProcess)
     if arg != 'configure':
       dc.removeProcesses(data['components'])

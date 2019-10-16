@@ -25,6 +25,9 @@
 namespace daqling {
 namespace core {
 
+struct connection_failure : public std::exception {};
+struct invalid_command : public std::exception {};
+
 class Command : public daqling::utilities::Singleton<Command> {
 public:
   Command()
