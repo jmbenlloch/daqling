@@ -15,11 +15,11 @@
 
 Go to URL:
 
-    http://rd51pro:5000/metrics
+    http://<host>:5000/metrics
 
 Post data with curl with the available metrics (datarate and cpuutil):
 
-    curl -d '{"value":5}' -H "Content-Type: application/json" -X POST http://rd51pro:5000/add/datarate
+    curl -d '{"value":5}' -H "Content-Type: application/json" -X POST http://<host>:5000/add/datarate
 
 To run the full metrics example:
 
@@ -39,4 +39,4 @@ To run the full metrics example:
 
 Go to URL:
 
-    http://0.0.0.0:5000/graph
+    http://<host>:5000/graph
