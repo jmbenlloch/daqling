@@ -123,6 +123,7 @@ bool daqling::core::Command::executeCommand(std::string &response) {
     while (cm.getNumOfChannels() > 0) {
       cm.removeChannel(cm.getNumOfChannels());
     }
+    cm.unsetStatsConnection();
     m_plugin.unload();
     response = "Success";
   } else if (command == "start") {

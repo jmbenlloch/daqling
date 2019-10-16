@@ -70,6 +70,7 @@ public:
   // Functionalities
   bool setupCommandConnection(uint8_t ioT, std::string connStr);
   bool setupStatsConnection(uint8_t ioT, std::string connStr);
+  bool unsetStatsConnection();
 
   // Add a channel (sockets and queues)
   bool addChannel(unsigned chn, EDirection dir, const std::string &connStr, size_t queueSize);

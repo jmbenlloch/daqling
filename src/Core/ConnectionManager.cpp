@@ -93,6 +93,14 @@ bool ConnectionManager::setupStatsConnection(uint8_t ioT, std::string connStr) {
     ERROR(" Failed to add Stats publisher channel! ZMQ returned: " << e.what());
     return false;
   }
+  m_is_stats_setup = true;
+  return true;
+}
+
+bool ConnectionManager::unsetStatsConnection() {
+  m_stats_socket.reset();
+  m_stats_context.reset();
+  m_is_stats_setup = false;
   return true;
 }
 
@@ -148,12 +156,12 @@ bool ConnectionManager::addChannel(unsigned chn, EDirection dir, const std::stri
 }
 
 bool ConnectionManager::removeChannel(unsigned chn) {
+  m_directions.erase(chn);
+  m_numMsgsHandled.erase(chn);
+  m_pcqSizes.erase(chn);
+  m_pcqs.erase(chn);
   m_sockets.erase(chn);
   m_contexts.erase(chn);
-  m_pcqs.erase(chn);
-  m_pcqSizes.erase(chn);
-  m_numMsgsHandled.erase(chn);
-  m_directions.erase(chn);
   m_activeChannels--;
   return true;
 }
