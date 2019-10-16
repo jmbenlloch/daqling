@@ -76,6 +76,12 @@ public:
   bool load(std::string name);
 
   /**
+   * Unloads the loaded module.
+   * Returns whether the operation succeeded.
+   */
+  bool unload();
+
+  /**
    * Configures the loaded module.
    *
    * @warning May only be called after a successful `load`.

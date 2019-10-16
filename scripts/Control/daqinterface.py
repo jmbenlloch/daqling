@@ -125,6 +125,8 @@ while(not dc.stop_check):
   command_threads = []
   if cmd == "config":
     spawnJoin(data['components'], dc.configureProcess)
+  if cmd == "unconfig":
+    spawnJoin(data['components'], dc.unconfigureProcess)
   elif cmd == "start":
     try:
       sp = partial(dc.startProcess, arg=cmd_args[0])
