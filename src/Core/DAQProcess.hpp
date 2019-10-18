@@ -47,7 +47,7 @@ public:
     m_state = "ready";
   };
 
-  virtual void start(int run_num) {
+  virtual void start(unsigned run_num) {
     m_run_number = run_num;
     DEBUG("run number " << m_run_number);
     m_run = true;
@@ -152,7 +152,7 @@ protected:
   std::string m_state;
   std::atomic<bool> m_run;
   std::thread m_runner_thread;
-  int m_run_number;
+  unsigned m_run_number;
 
 private:
   std::map<const std::string,

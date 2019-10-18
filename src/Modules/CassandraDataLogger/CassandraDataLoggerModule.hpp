@@ -71,7 +71,7 @@ public:
   CassandraDataLoggerModule();
   ~CassandraDataLoggerModule();
 
-  void start(int);
+  void start(unsigned);
   void stop();
   void runner();
 

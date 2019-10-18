@@ -46,7 +46,7 @@ BoardReaderModule::BoardReaderModule() {
 
 BoardReaderModule::~BoardReaderModule() {}
 
-void BoardReaderModule::start(int run_num) {
+void BoardReaderModule::start(unsigned run_num) {
   DAQProcess::start(run_num);
   DEBUG("getState: " << this->getState());
 }

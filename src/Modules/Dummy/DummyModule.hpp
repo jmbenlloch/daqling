@@ -27,7 +27,7 @@ public:
   ~DummyModule();
 
   void configure(); // optional (configuration can be handled in the constructor)
-  void start(int run_num);
+  void start(unsigned run_num);
   void stop();
 
   void runner();

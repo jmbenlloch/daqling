@@ -93,7 +93,7 @@ public:
    *
    * @warning May only be called after a successful `load`.
    */
-  void start(int run_num) { m_dp.value()->start(run_num); };
+  void start(unsigned run_num) { m_dp.value()->start(run_num); };
 
   /**
    * Stops the loaded module.

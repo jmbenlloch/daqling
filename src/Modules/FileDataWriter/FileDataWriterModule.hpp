@@ -39,7 +39,7 @@ public:
   FileDataWriterModule();
   ~FileDataWriterModule();
 
-  void start(int run_num);
+  void start(unsigned run_num);
   void stop();
   void runner();
 

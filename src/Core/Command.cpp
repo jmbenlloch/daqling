@@ -129,7 +129,7 @@ bool daqling::core::Command::executeCommand(std::string &response) {
       if (!m_plugin.getLoaded() || m_plugin.getState() == "running")
         throw invalid_command();
       cm.start();
-      m_plugin.start(std::stoi(m_argument));
+      m_plugin.start(static_cast<unsigned>(std::stoi(m_argument)));
       response = "Success";
     } else if (command == "stop") {
       if (!m_plugin.getLoaded() || m_plugin.getState() != "running")

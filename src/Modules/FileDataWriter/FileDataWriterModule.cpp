@@ -104,7 +104,7 @@ FileDataWriterModule::~FileDataWriterModule() {
   m_stopWriters.store(true);
 }
 
-void FileDataWriterModule::start(int run_num) {
+void FileDataWriterModule::start(unsigned run_num) {
   DAQProcess::start(run_num);
   DEBUG(" getState: " << getState());
 

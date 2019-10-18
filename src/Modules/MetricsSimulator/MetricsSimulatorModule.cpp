@@ -23,7 +23,7 @@ MetricsSimulatorModule::MetricsSimulatorModule() { INFO(""); }
 
 MetricsSimulatorModule::~MetricsSimulatorModule() { INFO(""); }
 
-void MetricsSimulatorModule::start(int run_num) {
+void MetricsSimulatorModule::start(unsigned run_num) {
   daqling::core::DAQProcess::start(run_num);
   m_metric1 = 0;
   m_metric2 = 0;

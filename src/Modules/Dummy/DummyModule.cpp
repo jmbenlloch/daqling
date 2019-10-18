@@ -31,7 +31,7 @@ void DummyModule::configure() {
   registerCommand("foobar", "foobarred", foobar, _1);
 }
 
-void DummyModule::start(int run_num) {
+void DummyModule::start(unsigned run_num) {
   daqling::core::DAQProcess::start(run_num);
   INFO("");
 }

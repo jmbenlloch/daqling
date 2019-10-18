@@ -197,7 +197,7 @@ bool CassandraDataLoggerModule::create() {
 
 #warning RS -> YOU NEED TO INTRODUCE A PROPER SESSION LAYER BETWEEN STORAGE AND DAQ!
 
-void CassandraDataLoggerModule::start(int run_num) {
+void CassandraDataLoggerModule::start(unsigned run_num) {
   DAQProcess::start(run_num);
   INFO(" getState: " << getState());
 }
