@@ -38,16 +38,18 @@ bool daqling::core::Command::executeCommand(std::string &response) {
   auto &m_plugin = daqling::core::PluginManager::instance();
   auto &cm = daqling::core::ConnectionManager::instance();
 
-  if (command == "configure") {
-    auto &cfg = Configuration::instance();
-    cfg.load(m_argument);
-    DEBUG("Get config: " << m_argument);
+  try {
+    if (command == "configure") {
+      if (m_plugin.getLoaded())
+        throw invalid_command();
+      auto &cfg = Configuration::instance();
+      cfg.load(m_argument);
+      DEBUG("Get config: " << m_argument);
 
-    auto type = cfg.get<std::string>("type");
-    DEBUG("Loading type: " << type);
+      auto type = cfg.get<std::string>("type");
+      DEBUG("Loading type: " << type);
 
-    auto j = cfg.getConfig();
-    try {
+      auto j = cfg.getConfig();
       auto rcvs = j["connections"]["receivers"];
       DEBUG("receivers empty " << rcvs.empty());
       for (auto &it : rcvs) {
@@ -60,7 +62,7 @@ bool daqling::core::Command::executeCommand(std::string &response) {
           dir = ConnectionManager::EDirection::SUBSCRIBER;
         } else {
           ERROR("Unrecognized socket type");
-          throw - 1;
+          throw connection_failure();
         }
         if (it["transport"] == "ipc") {
           std::string path = it["path"];
@@ -70,11 +72,11 @@ bool daqling::core::Command::executeCommand(std::string &response) {
           connStr << "tcp://" << host << ":" << it["port"];
         } else {
           ERROR("Unrecognized transport type");
-          throw - 1;
+          throw connection_failure();
         }
         if (!cm.addChannel(it["chid"], dir, connStr.str(), 10000)) {
           ERROR("addChannel failure!");
-          throw - 1;
+          throw connection_failure();
         }
       }
 
@@ -90,7 +92,7 @@ bool daqling::core::Command::executeCommand(std::string &response) {
           dir = ConnectionManager::EDirection::PUBLISHER;
         } else {
           ERROR("Unrecognized socket type");
-          throw - 1;
+          throw connection_failure();
         }
         if (it["transport"] == "ipc") {
           std::string path = it["path"];
@@ -100,55 +102,65 @@ bool daqling::core::Command::executeCommand(std::string &response) {
           connStr << "tcp://" << host << ":" << it["port"];
         } else {
           ERROR("Unrecognized transport type");
-          throw - 1;
+          throw connection_failure();
         }
         if (!cm.addChannel(it["chid"], dir, connStr.str(), 10000)) {
           ERROR("addChannel failure!");
-          throw - 1;
+          throw connection_failure();
         }
       }
 
       if (!m_plugin.load(type)) {
         ERROR("Plugin load failure!");
-        throw - 1;
+        throw connection_failure();
       }
-    } catch (int e) {
-      response = "Failure";
-      stop_and_notify();
-      return false;
-    }
-    response = "Success";
-    m_plugin.configure();
-  } else if (command == "unconfigure") {
-    while (cm.getNumOfChannels() > 0) {
-      cm.removeChannel(cm.getNumOfChannels());
-    }
-    cm.unsetStatsConnection();
-    m_plugin.unload();
-    response = "Success";
-  } else if (command == "start") {
-    cm.start();
-    m_plugin.start(std::stoi(m_argument));
-    response = "Success";
-  } else if (command == "stop") {
-    m_plugin.stop();
-    cm.stop();
-    response = "Success";
-  } else if (command == "shutdown") {
-    stop_and_notify();
-    response = "Success";
-  } else if (command == "status") {
-    if (m_plugin.getLoaded()) {
-      response = m_plugin.getState();
-    } else {
-      response = "booted";
-    }
-  } else {
-    if (m_plugin.command(command, m_argument)) {
       response = "Success";
+      m_plugin.configure();
+    } else if (command == "unconfigure") {
+      if (!m_plugin.getLoaded())
+        throw invalid_command();
+      while (cm.getNumOfChannels() > 0) {
+        cm.removeChannel(cm.getNumOfChannels());
+      }
+      cm.unsetStatsConnection();
+      m_plugin.unload();
+      response = "Success";
+    } else if (command == "start") {
+      if (!m_plugin.getLoaded() || m_plugin.getState() == "running")
+        throw invalid_command();
+      cm.start();
+      m_plugin.start(std::stoi(m_argument));
+      response = "Success";
+    } else if (command == "stop") {
+      if (!m_plugin.getLoaded() || m_plugin.getState() != "running")
+        throw invalid_command();
+      m_plugin.stop();
+      cm.stop();
+      response = "Success";
+    } else if (command == "shutdown") {
+      stop_and_notify();
+      response = "Success";
+    } else if (command == "status") {
+      if (m_plugin.getLoaded()) {
+        response = m_plugin.getState();
+      } else {
+        response = "booted";
+      }
     } else {
-      return false;
+      if (m_plugin.command(command, m_argument)) {
+        response = "Success";
+      } else {
+        return false;
+      }
     }
+  } catch (connection_failure &) {
+    response = "Failure";
+    stop_and_notify();
+    return false;
+  } catch (invalid_command &) {
+    WARNING("Invalid command " << command << ". Return Failure.");
+    response = "Failure";
+    return false;
   }
 
   return true; // TODO put some meaning or return void
