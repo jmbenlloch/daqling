@@ -40,7 +40,7 @@ bool daqling::core::Command::executeCommand(std::string &response) {
 
   try {
     if (command == "configure") {
-      if (m_plugin.getLoaded() == true)
+      if (m_plugin.getLoaded())
         throw invalid_command();
       auto &cfg = Configuration::instance();
       cfg.load(m_argument);
@@ -117,7 +117,7 @@ bool daqling::core::Command::executeCommand(std::string &response) {
       response = "Success";
       m_plugin.configure();
     } else if (command == "unconfigure") {
-      if (m_plugin.getLoaded() == false || m_plugin.getState() != "ready")
+      if (!m_plugin.getLoaded())
         throw invalid_command();
       while (cm.getNumOfChannels() > 0) {
         cm.removeChannel(cm.getNumOfChannels());
@@ -126,20 +126,18 @@ bool daqling::core::Command::executeCommand(std::string &response) {
       m_plugin.unload();
       response = "Success";
     } else if (command == "start") {
-      if (m_plugin.getLoaded() == false || m_plugin.getState() == "running")
+      if (!m_plugin.getLoaded() || m_plugin.getState() == "running")
         throw invalid_command();
       cm.start();
       m_plugin.start(std::stoi(m_argument));
       response = "Success";
     } else if (command == "stop") {
-      if (m_plugin.getLoaded() == false || m_plugin.getState() != "running")
+      if (!m_plugin.getLoaded() || m_plugin.getState() != "running")
         throw invalid_command();
       m_plugin.stop();
       cm.stop();
       response = "Success";
     } else if (command == "shutdown") {
-      if (m_plugin.getLoaded() == true && m_plugin.getState() != "ready")
-        throw invalid_command();
       stop_and_notify();
       response = "Success";
     } else if (command == "status") {
