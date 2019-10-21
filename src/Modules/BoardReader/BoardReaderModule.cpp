@@ -17,31 +17,21 @@
 
 /// \cond
 #include <chrono>
-#include <iomanip>
 #include <random>
 /// \endcond
 
+#include "Common/DataFormat.hpp"
 #include "BoardReaderModule.hpp"
 
 using namespace std::chrono_literals;
 using namespace std::chrono;
 
-struct header_t {
-  uint16_t payload_size;
-  uint16_t source_id;
-  uint32_t seq_number;
-  uint64_t timestamp;
-} __attribute__((__packed__));
-
-struct data_t {
-  header_t header;
-  char payload[24000];
-} __attribute__((__packed__));
 
 BoardReaderModule::BoardReaderModule() {
   DEBUG("With config: " << m_config.dump());
 
   m_board_id = m_config.getSettings()["board_id"];
+  m_delay_ms = std::chrono::milliseconds(m_config.getSettings()["delay_ms"]);
 }
 
 BoardReaderModule::~BoardReaderModule() {}
@@ -74,7 +64,7 @@ void BoardReaderModule::runner() {
                             << timestamp.count() << std::dec << "  >>  payload size "
                             << payload_size);
 
-    data_t *data = static_cast<data_t *>(malloc(total_size));
+    std::unique_ptr<data_t> data(new data_t);
     data->header.payload_size = payload_size;
     data->header.seq_number = sequence_number;
     data->header.source_id = m_board_id;
@@ -82,8 +72,7 @@ void BoardReaderModule::runner() {
     memset(data->payload, 0xFE, payload_size);
 
     // ready to be sent to EB
-    auto binary = daqling::utilities::Binary(static_cast<const void *>(data), total_size);
-    free(data);
+    auto binary = daqling::utilities::Binary(static_cast<const void *>(data.get()), total_size);
 
     // print binary
     // INFO("\n" << binary);
@@ -91,7 +80,7 @@ void BoardReaderModule::runner() {
     m_connections.put(1, binary);
 
     sequence_number++;
-    std::this_thread::sleep_for(500ms);
+    std::this_thread::sleep_for(m_delay_ms);
   }
   DEBUG("Runner stopped");
 }

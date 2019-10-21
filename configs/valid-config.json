@@ -9,7 +9,8 @@
       "type": "BoardReader",
       "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
-        "board_id": 0
+        "board_id": 0,
+        "delay_ms": 100
       },
       "connections": {
         "senders": [
@@ -30,7 +31,8 @@
       "type": "BoardReader",
       "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
-        "board_id": 1
+        "board_id": 1,
+        "delay_ms": 100
       },
       "connections": {
         "senders": [

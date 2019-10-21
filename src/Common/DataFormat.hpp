@@ -17,22 +17,15 @@
 
 #pragma once
 
-/// \cond
-#include <string>
-/// \endcond
 
-#include "Core/DAQProcess.hpp"
+struct header_t {
+  uint16_t payload_size;
+  uint16_t source_id;
+  uint32_t seq_number;
+  uint64_t timestamp;
+} __attribute__((__packed__));
 
-class BoardReaderModule : public daqling::core::DAQProcess {
-public:
-  BoardReaderModule();
-  ~BoardReaderModule();
-  void start(unsigned run_num);
-  void stop();
-
-  void runner();
-
-private:
-  unsigned m_board_id;
-  std::chrono::milliseconds m_delay_ms;
-};
+struct data_t {
+  header_t header;
+  char payload[24000];
+} __attribute__((__packed__));
