@@ -44,6 +44,8 @@ std::ofstream FileDataWriterModule::FileGenerator::next() {
       return std::to_string(m_filenum++);
     case 'c': // The channel id
       return std::to_string(m_chid);
+    case 'r': // The run number
+      return std::to_string(m_run_number);
     default:
       std::stringstream ss;
       ss << "Unknown output file argument '" << c << "'";
@@ -68,7 +70,7 @@ std::ofstream FileDataWriterModule::FileGenerator::next() {
 }
 
 bool FileDataWriterModule::FileGenerator::yields_unique(const std::string &pattern) {
-  std::map<char, bool> fields{{'n', false}, {'c', false}, {'D', false}};
+  std::map<char, bool> fields{{'n', false}, {'c', false}, {'D', false}, {'r', false}};
 
   for (auto c = pattern.cbegin(); c != pattern.cend(); c++) {
     if (*c == '%' && c + 1 != pattern.cend()) {
@@ -89,24 +91,42 @@ bool FileDataWriterModule::FileGenerator::yields_unique(const std::string &patte
 }
 
 FileDataWriterModule::FileDataWriterModule() : m_stopWriters{false} {
-
   DEBUG("");
 
-  /* #warning RS -> Needs to be properly configured. */
   // Set up static resources...
   std::ios_base::sync_with_stdio(false);
   setup();
 }
 
-FileDataWriterModule::~FileDataWriterModule() {
-  DEBUG("");
-  // Tear down resources...
-  m_stopWriters.store(true);
-}
+FileDataWriterModule::~FileDataWriterModule() { DEBUG(""); }
 
 void FileDataWriterModule::start(unsigned run_num) {
+  m_start_completed.store(false);
   DAQProcess::start(run_num);
   DEBUG(" getState: " << getState());
+
+  m_stopWriters.store(false);
+  unsigned int threadid = 11111;       // XXX: magic
+  constexpr size_t queue_size = 10000; // XXX: magic
+
+  for (uint64_t chid = 1; chid <= m_channels; chid++) {
+    // For each channel, construct a context of a payload queue, a consumer thread, and a producer
+    // thread.
+    std::array<unsigned int, 2> tids = {threadid++, threadid++};
+    const auto & [ it, success ] =
+        m_channelContexts.emplace(chid, std::forward_as_tuple(queue_size, std::move(tids)));
+    assert(success);
+
+    // Contruct variables for metrics
+    m_channelMetrics[chid];
+
+    // Start the context's consumer thread.
+    std::get<ThreadContext>(it->second)
+        .consumer.set_work(&FileDataWriterModule::flusher, this, it->first,
+                           std::ref(std::get<PayloadQueue>(it->second)), m_buffer_size,
+                           FileGenerator(m_pattern, it->first, m_run_number));
+  }
+  assert(m_channelContexts.size() == m_channels);
 
   m_monitor_thread = std::thread(&FileDataWriterModule::monitor_runner, this);
 
@@ -124,11 +144,14 @@ void FileDataWriterModule::start(unsigned run_num) {
           daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
     }
   }
+  m_start_completed.store(true);
 }
 
 void FileDataWriterModule::stop() {
   DAQProcess::stop();
   DEBUG(" getState: " << this->getState());
+  m_stopWriters.store(true);
+
   if (m_monitor_thread.joinable()) {
     m_monitor_thread.join();
   }
@@ -136,6 +159,10 @@ void FileDataWriterModule::stop() {
 
 void FileDataWriterModule::runner() {
   DEBUG(" Running...");
+
+  while (!m_start_completed) {
+    std::this_thread::sleep_for(1ms);
+  }
 
   // Start the producer thread of each context
   for (auto & [ chid, ctx ] : m_channelContexts) {
@@ -248,44 +275,21 @@ void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq,
 void FileDataWriterModule::setup() {
   // Read out required and optional configurations
   m_max_filesize = m_config.getSettings().value("max_filesize", 1 * daqutils::Constant::Giga);
-  const size_t buffer_size =
-      m_config.getSettings().value("buffer_size", 4 * daqutils::Constant::Kilo);
+  m_buffer_size = m_config.getSettings().value("buffer_size", 4 * daqutils::Constant::Kilo);
   m_channels = m_config.getConnections()["receivers"].size();
-  const std::string pattern = m_config.getSettings()["filename_pattern"];
+  m_pattern = m_config.getSettings()["filename_pattern"];
   INFO("Configuration:");
   INFO(" -> Maximum filesize: " << m_max_filesize << "B");
-  INFO(" -> Buffer size: " << buffer_size << "B");
+  INFO(" -> Buffer size: " << m_buffer_size << "B");
   INFO(" -> channels: " << m_channels);
 
-  if (!FileGenerator::yields_unique(pattern)) {
+  if (!FileGenerator::yields_unique(m_pattern)) {
     CRITICAL("Configured file name pattern '"
-             << pattern
+             << m_pattern
              << "' may not yield unique output file on rotation; your files may be silently "
                 "overwritten. Ensure the pattern contains all fields ('%c', '%n' and '%D').");
     throw std::logic_error("invalid file name pattern");
   }
-
-  unsigned int threadid = 11111;       // XXX: magic
-  constexpr size_t queue_size = 10000; // XXX: magic
-
-  for (uint64_t chid = 1; chid <= m_channels; chid++) {
-    // For each channel, construct a context of a payload queue, a consumer thread, and a producer
-    // thread.
-    std::array<unsigned int, 2> tids = {threadid++, threadid++};
-    const auto & [ it, success ] =
-        m_channelContexts.emplace(chid, std::forward_as_tuple(queue_size, std::move(tids)));
-    assert(success);
-
-    // Contruct variables for metrics
-    m_channelMetrics[chid];
-
-    // Start the context's consumer thread.
-    std::get<ThreadContext>(it->second)
-        .consumer.set_work(&FileDataWriterModule::flusher, this, it->first,
-                           std::ref(std::get<PayloadQueue>(it->second)), buffer_size,
-                           FileGenerator(pattern, it->first));
-  }
-  assert(m_channelContexts.size() == m_channels);
 
   DEBUG("setup finished");
 }
