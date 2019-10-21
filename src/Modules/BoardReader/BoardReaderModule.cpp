@@ -31,7 +31,7 @@ BoardReaderModule::BoardReaderModule() {
   DEBUG("With config: " << m_config.dump());
 
   m_board_id = m_config.getSettings()["board_id"];
-  m_delay_ms = std::chrono::milliseconds(m_config.getSettings()["delay_ms"]);
+  m_delay_us = std::chrono::microseconds(m_config.getSettings()["delay_us"]);
 }
 
 BoardReaderModule::~BoardReaderModule() {}
@@ -80,7 +80,8 @@ void BoardReaderModule::runner() {
     m_connections.put(1, binary);
 
     sequence_number++;
-    std::this_thread::sleep_for(m_delay_ms);
+    
+    std::this_thread::sleep_for(m_delay_us);
   }
   DEBUG("Runner stopped");
 }

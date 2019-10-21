@@ -42,7 +42,6 @@ def print_help():
 def signal_handler(sig, frame):
   print("Ctrl+C: shutting down")
   stop_check_threads()
-  spawnJoin(data['components'], dc.stopProcess)
   spawnJoin(data['components'], dc.shutdownProcess)
   if arg != 'configure':
     dc.removeProcesses(data['components'])

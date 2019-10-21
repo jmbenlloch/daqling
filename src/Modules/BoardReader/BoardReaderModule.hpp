@@ -34,5 +34,5 @@ public:
 
 private:
   unsigned m_board_id;
-  std::chrono::milliseconds m_delay_ms;
+  std::chrono::microseconds m_delay_us;
 };
