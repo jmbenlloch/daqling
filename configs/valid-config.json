@@ -86,7 +86,7 @@
       "type": "FileDataWriter",
       "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
-        "filename_pattern": "/tmp/test-%D.%n.%c.bin"
+        "filename_pattern": "/tmp/test-%D.%r.%c.%n.bin"
       },
       "connections": {
         "receivers": [

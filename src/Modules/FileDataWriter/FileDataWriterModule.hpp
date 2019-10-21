@@ -66,13 +66,17 @@ private:
     std::atomic<size_t> payload_queue_bytes = 0;
   };
 
+  size_t m_buffer_size;
+  std::string m_pattern;
+  std::atomic<bool> m_start_completed;
+
   /**
    * Output file generator with a printf-like filename pattern.
    */
   class FileGenerator {
   public:
-    FileGenerator(const std::string pattern, const uint64_t chid)
-        : m_pattern(pattern), m_chid(chid) {}
+    FileGenerator(const std::string pattern, const uint64_t chid, const unsigned run_number)
+        : m_pattern(pattern), m_chid(chid), m_run_number(run_number) {}
 
     /**
      * Generates the next output file in the sequence.
@@ -93,6 +97,7 @@ private:
     const std::string m_pattern;
     const uint64_t m_chid;
     unsigned m_filenum = 0;
+    const unsigned m_run_number;
   };
 
   // Configs
