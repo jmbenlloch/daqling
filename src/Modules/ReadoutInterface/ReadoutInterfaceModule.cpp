@@ -59,7 +59,7 @@ void ReadoutInterfaceModule::runner() {
     const unsigned payload_size = static_cast<unsigned>(dis(gen));
     const unsigned total_size = sizeof(header_t) + sizeof(char) * payload_size;
 
-    INFO("sequence number " << sequence_number << "  >>  timestamp " << std::hex << "0x"
+    DEBUG("sequence number " << sequence_number << "  >>  timestamp " << std::hex << "0x"
                             << timestamp.count() << std::dec << "  >>  payload size "
                             << payload_size);
 
@@ -79,7 +79,10 @@ void ReadoutInterfaceModule::runner() {
     m_connections.put(0, binary);
 
     sequence_number++;
-
+    if (sequence_number == UINT32_MAX) {
+      ERROR("Reached maximum sequence number! That's enough for an example...");
+      throw;
+    }
     std::this_thread::sleep_for(m_delay_us);
   }
   DEBUG("Runner stopped");

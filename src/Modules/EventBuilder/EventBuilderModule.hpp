@@ -21,7 +21,7 @@
 
 class EventBuilderModule : public daqling::core::DAQProcess {
 
-  unsigned m_number_of_channels;
+  unsigned m_nreceivers;
 
 public:
   EventBuilderModule();

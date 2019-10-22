@@ -26,7 +26,7 @@ using namespace std::chrono_literals;
 
 EventBuilderModule::EventBuilderModule() {
   DEBUG("With config: " << m_config.dump() << " getState: " << this->getState());
-  m_number_of_channels = m_config.getConnections()["receivers"].size();
+  m_nreceivers = m_config.getConnections()["receivers"].size();
 }
 
 EventBuilderModule::~EventBuilderModule() {}
@@ -43,18 +43,37 @@ void EventBuilderModule::stop() {
 
 void EventBuilderModule::runner() {
   DEBUG("Running...");
-  while (m_run) {
-    daqling::utilities::Binary b0, b1;
-    while (!m_connections.get(0, b0) && m_run) {
-      std::this_thread::sleep_for(10ms);
-    }
-    while (!m_connections.get(1, b1) && m_run) {
-      std::this_thread::sleep_for(10ms);
-    }
 
-    b0 += b1;
-    INFO("Size of build event: " << b0.size());
-    m_connections.put(2, b0);
+  std::map<uint32_t, std::vector<daqling::utilities::Binary>> events;
+
+  while (m_run) {
+    bool received = false;
+    for (unsigned ch=0; ch<m_nreceivers; ch++) {
+      daqling::utilities::Binary b;
+      if(m_connections.get(ch, std::ref(b))) {
+        unsigned seq_number;
+        data_t *d = static_cast<data_t *>(b.data());
+        seq_number = d->header.seq_number;
+        events[seq_number].push_back(b);
+        received = true;
+        if (seq_number % 10000 == 0) {
+          INFO("sequence number " << seq_number);
+          INFO("Map elements: " << events.size());
+        }
+        if (events[seq_number].size() == m_nreceivers) {
+          DEBUG("complete event");
+          daqling::utilities::Binary out;
+          for ( auto& c : events[seq_number]) {
+            out += c;
+          }
+          m_connections.put(m_nreceivers, out);
+          events.erase(seq_number);
+        }
+      }
+    }
+    if (!received) {
+      std::this_thread::sleep_for(10ms);
+    }
   }
   DEBUG("Runner stopped");
 }
