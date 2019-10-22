@@ -23,10 +23,10 @@
 
 #include "Core/DAQProcess.hpp"
 
-class BoardReaderModule : public daqling::core::DAQProcess {
+class ReadoutInterfaceModule : public daqling::core::DAQProcess {
 public:
-  BoardReaderModule();
-  ~BoardReaderModule();
+  ReadoutInterfaceModule();
+  ~ReadoutInterfaceModule();
   void start(unsigned run_num);
   void stop();
 

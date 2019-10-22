@@ -3,10 +3,10 @@
   "group": "daq",
   "components": [
     {
-      "name": "boardreader01",
+      "name": "readoutinterface01",
       "host": "localhost",
       "port": 5555,
-      "type": "BoardReader",
+      "type": "ReadoutInterface",
       "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
         "board_id": 0,
@@ -25,10 +25,10 @@
       }
     },
     {
-      "name": "boardreader02",
+      "name": "readoutinterface02",
       "host": "localhost",
       "port": 5556,
-      "type": "BoardReader",
+      "type": "ReadoutInterface",
       "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
         "board_id": 1,
@@ -82,10 +82,10 @@
       }
     },
     {
-      "name": "filedatawriter01",
+      "name": "filewriter01",
       "host": "localhost",
       "port": 5558,
-      "type": "FileDataWriter",
+      "type": "FileWriter",
       "loglevel": {"core": "INFO", "module": "INFO"},
       "settings": {
         "filename_pattern": "/tmp/test-%D.%r.%c.%n.bin"

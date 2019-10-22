@@ -21,13 +21,13 @@
 #include <sstream>
 /// \endcond
 
-#include "FileDataWriterModule.hpp"
+#include "FileWriterModule.hpp"
 #include "Utils/Logging.hpp"
 
 using namespace std::chrono_literals;
 namespace daqutils = daqling::utilities;
 
-std::ofstream FileDataWriterModule::FileGenerator::next() {
+std::ofstream FileWriterModule::FileGenerator::next() {
 
   const auto handle_arg = [this](char c) -> std::string {
     switch (c) {
@@ -69,7 +69,7 @@ std::ofstream FileDataWriterModule::FileGenerator::next() {
   return std::ofstream(ss.str(), std::ios::binary);
 }
 
-bool FileDataWriterModule::FileGenerator::yields_unique(const std::string &pattern) {
+bool FileWriterModule::FileGenerator::yields_unique(const std::string &pattern) {
   std::map<char, bool> fields{{'n', false}, {'c', false}, {'D', false}, {'r', false}};
 
   for (auto c = pattern.cbegin(); c != pattern.cend(); c++) {
@@ -90,7 +90,7 @@ bool FileDataWriterModule::FileGenerator::yields_unique(const std::string &patte
   return std::all_of(fields.cbegin(), fields.cend(), [](const auto &f) { return f.second; });
 }
 
-FileDataWriterModule::FileDataWriterModule() : m_stopWriters{false} {
+FileWriterModule::FileWriterModule() : m_stopWriters{false} {
   DEBUG("");
 
   // Set up static resources...
@@ -98,9 +98,9 @@ FileDataWriterModule::FileDataWriterModule() : m_stopWriters{false} {
   setup();
 }
 
-FileDataWriterModule::~FileDataWriterModule() { DEBUG(""); }
+FileWriterModule::~FileWriterModule() { DEBUG(""); }
 
-void FileDataWriterModule::start(unsigned run_num) {
+void FileWriterModule::start(unsigned run_num) {
   m_start_completed.store(false);
   DAQProcess::start(run_num);
   DEBUG(" getState: " << getState());
@@ -122,13 +122,13 @@ void FileDataWriterModule::start(unsigned run_num) {
 
     // Start the context's consumer thread.
     std::get<ThreadContext>(it->second)
-        .consumer.set_work(&FileDataWriterModule::flusher, this, it->first,
+        .consumer.set_work(&FileWriterModule::flusher, this, it->first,
                            std::ref(std::get<PayloadQueue>(it->second)), m_buffer_size,
                            FileGenerator(m_pattern, it->first, m_run_number));
   }
   assert(m_channelContexts.size() == m_channels);
 
-  m_monitor_thread = std::thread(&FileDataWriterModule::monitor_runner, this);
+  m_monitor_thread = std::thread(&FileWriterModule::monitor_runner, this);
 
   if (m_statistics) {
     // Register statistical variables
@@ -147,7 +147,7 @@ void FileDataWriterModule::start(unsigned run_num) {
   m_start_completed.store(true);
 }
 
-void FileDataWriterModule::stop() {
+void FileWriterModule::stop() {
   DAQProcess::stop();
   DEBUG(" getState: " << this->getState());
   m_stopWriters.store(true);
@@ -157,7 +157,7 @@ void FileDataWriterModule::stop() {
   }
 }
 
-void FileDataWriterModule::runner() {
+void FileWriterModule::runner() {
   DEBUG(" Running...");
 
   while (!m_start_completed) {
@@ -195,8 +195,8 @@ void FileDataWriterModule::runner() {
   DEBUG(" Runner stopped");
 }
 
-void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq,
-                                   const size_t max_buffer_size, FileGenerator fg) const {
+void FileWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size,
+                               FileGenerator fg) const {
   size_t bytes_written = 0;
   std::ofstream out = fg.next();
   auto buffer = daqutils::Binary();
@@ -272,7 +272,7 @@ void FileDataWriterModule::flusher(const uint64_t chid, PayloadQueue &pq,
   }
 }
 
-void FileDataWriterModule::setup() {
+void FileWriterModule::setup() {
   // Read out required and optional configurations
   m_max_filesize = m_config.getSettings().value("max_filesize", 1 * daqutils::Constant::Giga);
   m_buffer_size = m_config.getSettings().value("buffer_size", 4 * daqutils::Constant::Kilo);
@@ -294,18 +294,18 @@ void FileDataWriterModule::setup() {
   DEBUG("setup finished");
 }
 
-void FileDataWriterModule::write() { INFO(" Should write..."); }
+void FileWriterModule::write() { INFO(" Should write..."); }
 
-bool FileDataWriterModule::write(uint64_t, daqling::utilities::Binary &) {
+bool FileWriterModule::write(uint64_t, daqling::utilities::Binary &) {
   INFO(" Should write...");
   return false;
 }
 
-void FileDataWriterModule::read() {}
+void FileWriterModule::read() {}
 
-void FileDataWriterModule::shutdown() {}
+void FileWriterModule::shutdown() {}
 
-void FileDataWriterModule::monitor_runner() {
+void FileWriterModule::monitor_runner() {
   while (m_run) {
     std::this_thread::sleep_for(1s);
     // XXX: is this really "throughput"?

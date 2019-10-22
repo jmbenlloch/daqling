@@ -34,10 +34,10 @@
 /**
  * Module for writing your acquired data to file.
  */
-class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::core::DataLogger {
+class FileWriterModule : public daqling::core::DAQProcess, public daqling::core::DataLogger {
 public:
-  FileDataWriterModule();
-  ~FileDataWriterModule();
+  FileWriterModule();
+  ~FileWriterModule();
 
   void start(unsigned run_num);
   void stop();

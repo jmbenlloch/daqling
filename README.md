@@ -37,7 +37,7 @@ Boost 1.70
 
     ansible-playbook install-boost-1_70.yml --ask-become
 
-Cassandra
+Cassandra (experimental)
 
     ansible-playbook install-cassandra.yml --ask-become
 
@@ -89,7 +89,7 @@ To include Boost 1.70 in the build it is necessary to:
 
 #### (Optional) Build the CassandraDataLogger
 
-To build the CassandraDataLogger it is necessary to:
+To build the (experimental) CassandraDataLogger it is necessary to:
 
 - have a Cassandra C++ driver installation under `/opt/cassandra-driver/` (optional Ansible playbook)
 - from a fresh terminal:
@@ -113,17 +113,17 @@ To include TBB 2019.0 in the build it is necessary to:
 
 ## Running the data acquisition system demo
 
-`daqinterface` is a command line tool that spawns and configures the components listed in the JSON configuration file passed as argument.
+`daqpy` is a command line tool that spawns and configures the components listed in the JSON configuration file passed as argument.
 
 It then allows to control the components via standard commands such as `start` (with optional run number), `stop`, as well as custom commands.
 
     source cmake/setup.sh
-    daqinterface configs/valid-config.json
+    daqpy configs/valid-config.json
     start [run_num]
     stop
     down
 
-`daqinterface -h` shows the help menu.
+`daqpy -h` shows the help menu.
 
 ## Development
 

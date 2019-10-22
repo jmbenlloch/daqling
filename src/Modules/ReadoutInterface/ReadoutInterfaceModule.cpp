@@ -20,32 +20,32 @@
 #include <random>
 /// \endcond
 
-#include "BoardReaderModule.hpp"
 #include "Common/DataFormat.hpp"
+#include "ReadoutInterfaceModule.hpp"
 
 using namespace std::chrono_literals;
 using namespace std::chrono;
 
-BoardReaderModule::BoardReaderModule() {
+ReadoutInterfaceModule::ReadoutInterfaceModule() {
   DEBUG("With config: " << m_config.dump());
 
   m_board_id = m_config.getSettings()["board_id"];
   m_delay_us = std::chrono::microseconds(m_config.getSettings()["delay_us"]);
 }
 
-BoardReaderModule::~BoardReaderModule() {}
+ReadoutInterfaceModule::~ReadoutInterfaceModule() {}
 
-void BoardReaderModule::start(unsigned run_num) {
+void ReadoutInterfaceModule::start(unsigned run_num) {
   DAQProcess::start(run_num);
   DEBUG("getState: " << this->getState());
 }
 
-void BoardReaderModule::stop() {
+void ReadoutInterfaceModule::stop() {
   DAQProcess::stop();
   DEBUG("getState: " << this->getState());
 }
 
-void BoardReaderModule::runner() {
+void ReadoutInterfaceModule::runner() {
   unsigned sequence_number = 0;
   microseconds timestamp;
 
