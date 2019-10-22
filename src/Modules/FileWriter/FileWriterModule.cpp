@@ -151,6 +151,12 @@ void FileWriterModule::stop() {
   DAQProcess::stop();
   DEBUG(" getState: " << this->getState());
   m_stopWriters.store(true);
+  for (auto & [ chid, ctx ] : m_channelContexts) {
+    while(!std::get<ThreadContext>(ctx).consumer.get_readiness()) {
+      std::this_thread::sleep_for(1ms);
+    }
+  }
+  m_channelContexts.clear();
 
   if (m_monitor_thread.joinable()) {
     m_monitor_thread.join();
