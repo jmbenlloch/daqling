@@ -20,12 +20,11 @@
 #include <random>
 /// \endcond
 
-#include "Common/DataFormat.hpp"
 #include "BoardReaderModule.hpp"
+#include "Common/DataFormat.hpp"
 
 using namespace std::chrono_literals;
 using namespace std::chrono;
-
 
 BoardReaderModule::BoardReaderModule() {
   DEBUG("With config: " << m_config.dump());
@@ -77,10 +76,10 @@ void BoardReaderModule::runner() {
     // print binary
     // INFO("\n" << binary);
 
-    m_connections.put(1, binary);
+    m_connections.put(0, binary);
 
     sequence_number++;
-    
+
     std::this_thread::sleep_for(m_delay_us);
   }
   DEBUG("Runner stopped");

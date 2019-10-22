@@ -19,12 +19,14 @@
 #include <chrono>
 /// \endcond
 
+#include "Common/DataFormat.hpp"
 #include "EventBuilderModule.hpp"
 
 using namespace std::chrono_literals;
 
 EventBuilderModule::EventBuilderModule() {
   DEBUG("With config: " << m_config.dump() << " getState: " << this->getState());
+  m_number_of_channels = m_config.getConnections()["receivers"].size();
 }
 
 EventBuilderModule::~EventBuilderModule() {}
@@ -42,18 +44,17 @@ void EventBuilderModule::stop() {
 void EventBuilderModule::runner() {
   DEBUG("Running...");
   while (m_run) {
-    daqling::utilities::Binary b1, b2;
+    daqling::utilities::Binary b0, b1;
+    while (!m_connections.get(0, b0) && m_run) {
+      std::this_thread::sleep_for(10ms);
+    }
     while (!m_connections.get(1, b1) && m_run) {
       std::this_thread::sleep_for(10ms);
     }
-    while (!m_connections.get(2, b2) && m_run) {
-      std::this_thread::sleep_for(10ms);
-    }
 
-    daqling::utilities::Binary b3(b1);
-    b3 += b2;
-    INFO("Size of build event: " << b3.size());
-    m_connections.put(3, b3);
+    b0 += b1;
+    INFO("Size of build event: " << b0.size());
+    m_connections.put(2, b0);
   }
   DEBUG("Runner stopped");
 }

@@ -20,6 +20,9 @@
 #include "Core/DAQProcess.hpp"
 
 class EventBuilderModule : public daqling::core::DAQProcess {
+
+  unsigned m_number_of_channels;
+
 public:
   EventBuilderModule();
   ~EventBuilderModule();

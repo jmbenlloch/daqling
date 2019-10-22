@@ -17,7 +17,6 @@
 
 #pragma once
 
-
 struct header_t {
   uint16_t payload_size;
   uint16_t source_id;

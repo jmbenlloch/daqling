@@ -109,7 +109,7 @@ void FileDataWriterModule::start(unsigned run_num) {
   unsigned int threadid = 11111;       // XXX: magic
   constexpr size_t queue_size = 10000; // XXX: magic
 
-  for (uint64_t chid = 1; chid <= m_channels; chid++) {
+  for (uint64_t chid = 0; chid < m_channels; chid++) {
     // For each channel, construct a context of a payload queue, a consumer thread, and a producer
     // thread.
     std::array<unsigned int, 2> tids = {threadid++, threadid++};
