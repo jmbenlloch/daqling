@@ -95,10 +95,54 @@ FileWriterModule::FileWriterModule() : m_stopWriters{false} {
 
   // Set up static resources...
   std::ios_base::sync_with_stdio(false);
-  setup();
 }
 
 FileWriterModule::~FileWriterModule() { DEBUG(""); }
+
+void FileWriterModule::configure() {
+  DAQProcess::configure();
+  // Read out required and optional configurations
+  m_max_filesize = m_config.getSettings().value("max_filesize", 1 * daqutils::Constant::Giga);
+  m_buffer_size = m_config.getSettings().value("buffer_size", 4 * daqutils::Constant::Kilo);
+  m_channels = m_config.getConnections()["receivers"].size();
+  m_pattern = m_config.getSettings()["filename_pattern"];
+  INFO("Configuration:");
+  INFO(" -> Maximum filesize: " << m_max_filesize << "B");
+  INFO(" -> Buffer size: " << m_buffer_size << "B");
+  INFO(" -> channels: " << m_channels);
+
+  if (!FileGenerator::yields_unique(m_pattern)) {
+    CRITICAL("Configured file name pattern '"
+             << m_pattern
+             << "' may not yield unique output file on rotation; your files may be silently "
+                "overwritten. Ensure the pattern contains all fields ('%c', '%n' and '%D').");
+    throw std::logic_error("invalid file name pattern");
+  }
+
+  DEBUG("setup finished");
+
+  if (m_statistics) {
+    // Contruct variables for metrics
+    for (uint64_t chid = 0; chid < m_channels; chid++) {
+      m_channelMetrics[chid];
+    }
+
+    std::string name = m_config.getName();
+    // Register statistical variables
+    for (auto & [ chid, metrics ] : m_channelMetrics) {
+      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
+          &metrics.bytes_written, fmt::format(name + "_BytesWritten_chid{}", chid),
+          daqling::core::metrics::RATE, daqling::core::metrics::SIZE);
+      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
+          &metrics.payload_queue_size, fmt::format(name + "_PayloadQueueSize_chid{}", chid),
+          daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
+      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
+          &metrics.payload_size, fmt::format(name + "_PayloadSize_chid{}", chid),
+          daqling::core::metrics::AVERAGE, daqling::core::metrics::SIZE);
+    }
+    DEBUG("Metrics are setup");
+  }
+}
 
 void FileWriterModule::start(unsigned run_num) {
   m_start_completed.store(false);
@@ -117,9 +161,6 @@ void FileWriterModule::start(unsigned run_num) {
         m_channelContexts.emplace(chid, std::forward_as_tuple(queue_size, std::move(tids)));
     assert(success);
 
-    // Contruct variables for metrics
-    m_channelMetrics[chid];
-
     // Start the context's consumer thread.
     std::get<ThreadContext>(it->second)
         .consumer.set_work(&FileWriterModule::flusher, this, it->first,
@@ -130,20 +171,6 @@ void FileWriterModule::start(unsigned run_num) {
 
   m_monitor_thread = std::thread(&FileWriterModule::monitor_runner, this);
 
-  if (m_statistics) {
-    // Register statistical variables
-    for (auto & [ chid, metrics ] : m_channelMetrics) {
-      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-          &metrics.bytes_written, fmt::format("DL_BytesWritten_chid{}", chid),
-          daqling::core::metrics::RATE, daqling::core::metrics::SIZE);
-      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-          &metrics.payload_queue_size, fmt::format("DL_PayloadQueueSize_chid{}", chid),
-          daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
-      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-          &metrics.payload_size, fmt::format("DL_PayloadSize_chid{}", chid),
-          daqling::core::metrics::AVERAGE, daqling::core::metrics::SIZE);
-    }
-  }
   m_start_completed.store(true);
 }
 
@@ -278,46 +305,12 @@ void FileWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const size
   }
 }
 
-void FileWriterModule::setup() {
-  // Read out required and optional configurations
-  m_max_filesize = m_config.getSettings().value("max_filesize", 1 * daqutils::Constant::Giga);
-  m_buffer_size = m_config.getSettings().value("buffer_size", 4 * daqutils::Constant::Kilo);
-  m_channels = m_config.getConnections()["receivers"].size();
-  m_pattern = m_config.getSettings()["filename_pattern"];
-  INFO("Configuration:");
-  INFO(" -> Maximum filesize: " << m_max_filesize << "B");
-  INFO(" -> Buffer size: " << m_buffer_size << "B");
-  INFO(" -> channels: " << m_channels);
-
-  if (!FileGenerator::yields_unique(m_pattern)) {
-    CRITICAL("Configured file name pattern '"
-             << m_pattern
-             << "' may not yield unique output file on rotation; your files may be silently "
-                "overwritten. Ensure the pattern contains all fields ('%c', '%n' and '%D').");
-    throw std::logic_error("invalid file name pattern");
-  }
-
-  DEBUG("setup finished");
-}
-
-void FileWriterModule::write() { INFO(" Should write..."); }
-
-bool FileWriterModule::write(uint64_t, daqling::utilities::Binary &) {
-  INFO(" Should write...");
-  return false;
-}
-
-void FileWriterModule::read() {}
-
-void FileWriterModule::shutdown() {}
-
 void FileWriterModule::monitor_runner() {
   std::map<uint64_t, unsigned long> prev_value;
   while (m_run) {
     std::this_thread::sleep_for(1s);
-    // XXX: is this really "throughput"?
     for (auto & [ chid, metrics ] : m_channelMetrics) {
-      INFO("Write throughput (channel "
+      INFO("Bytes written (channel "
            << chid
            << "): " << static_cast<double>(metrics.bytes_written - prev_value[chid]) / 1000000
            << " MBytes/s");
