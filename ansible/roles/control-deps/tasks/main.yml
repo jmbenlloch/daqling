@@ -1,5 +1,9 @@
 - name: Install pyzmq
-  command: pip3 install pyzmq
+  pip:
+    name: pyzmq
+    executable: pip3
 
 - name: Install jsonschema
-  command: pip3 install jsonschema
+  pip: 
+    name: jsonschema
+    executable: pip3 

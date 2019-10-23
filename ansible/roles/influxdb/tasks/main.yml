@@ -19,3 +19,12 @@
     daemon_reload: yes
   notify:
     - restart influxdb
+
+- name: Install influxdb python package
+  pip:
+    name: "influxdb"
+    
+- name: Create DAQlingMetrics database
+  influxdb_database:
+    hostname: "localhost"
+    database_name: "DAQlingMetrics"

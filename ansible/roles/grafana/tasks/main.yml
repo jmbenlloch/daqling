@@ -12,6 +12,47 @@
     - restart firewalld
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
+# - name: Create influxdb datasource
+#   grafana_datasource:
+#     name: "DAQlingMetrics"
+#     grafana_url: "http://localhost:3000"
+#     ds_type: "influxdb"
+#     ds_url: "http://localhost:8086"
+#     database: "DAQlingMetrics"
+#     time_interval: ">1s"
+
+- name: Copy influxdb datasource config
+  copy:
+    src: DAQlingMetrics.yaml
+    dest: /etc/grafana/provisioning/datasources
+    group: grafana
+
+# - name: Import Grafana dashboard
+#   grafana_dashboard:
+#     grafana_url: "http://localhost:3000"
+#     state: present
+#     path: Demo.json
+
+- name: Create /var/lib/grafana/dashboards folder
+  file:
+    path: /var/lib/grafana/dashboards
+    state: directory
+    owner: grafana
+    group: grafana
+
+- name: Copy dashboard
+  copy:
+    src: Demo.json
+    dest: /var/lib/grafana/dashboards
+    owner: grafana
+    group: grafana
+
+- name: Copy default dashboard provider config
+  copy:
+    src: default.yaml
+    dest: /etc/grafana/provisioning/dashboards
+    group: grafana
+
 - name: Enabling Grafana service
   systemd:
     name: grafana-server
