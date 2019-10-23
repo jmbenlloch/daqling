@@ -49,6 +49,7 @@ public:
     return (m_config["connections"]["receivers"].size() +
             m_config["connections"]["senders"].size());
   }
+  std::string getName() { return m_config["name"]; };
 
   template <typename T> void set(const std::string &key, const T &value) { m_config[key] = value; }
   template <typename T> T get(const std::string &key) { return m_config[key]; }
