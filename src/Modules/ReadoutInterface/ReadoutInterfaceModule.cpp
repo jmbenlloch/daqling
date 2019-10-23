@@ -60,8 +60,8 @@ void ReadoutInterfaceModule::runner() {
     const unsigned total_size = sizeof(header_t) + sizeof(char) * payload_size;
 
     DEBUG("sequence number " << sequence_number << "  >>  timestamp " << std::hex << "0x"
-                            << timestamp.count() << std::dec << "  >>  payload size "
-                            << payload_size);
+                             << timestamp.count() << std::dec << "  >>  payload size "
+                             << payload_size);
 
     std::unique_ptr<data_t> data(new data_t);
     data->header.payload_size = payload_size;

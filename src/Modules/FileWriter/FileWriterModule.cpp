@@ -152,7 +152,7 @@ void FileWriterModule::stop() {
   DEBUG(" getState: " << this->getState());
   m_stopWriters.store(true);
   for (auto & [ chid, ctx ] : m_channelContexts) {
-    while(!std::get<ThreadContext>(ctx).consumer.get_readiness()) {
+    while (!std::get<ThreadContext>(ctx).consumer.get_readiness()) {
       std::this_thread::sleep_for(1ms);
     }
   }
@@ -185,7 +185,8 @@ void FileWriterModule::runner() {
         }
 
         DEBUG(" Received " << pl.size() << "B payload on channel: " << chid);
-        while (!pq.write(pl) && m_run); // try until successful append
+        while (!pq.write(pl) && m_run)
+          ; // try until successful append
         if (m_statistics) {
           m_channelMetrics.at(chid).payload_size = pl.size();
         }
@@ -317,7 +318,9 @@ void FileWriterModule::monitor_runner() {
     // XXX: is this really "throughput"?
     for (auto & [ chid, metrics ] : m_channelMetrics) {
       INFO("Write throughput (channel "
-           << chid << "): " << static_cast<double>(metrics.bytes_written - prev_value[chid]) / 1000000 << " MBytes/s");
+           << chid
+           << "): " << static_cast<double>(metrics.bytes_written - prev_value[chid]) / 1000000
+           << " MBytes/s");
       prev_value[chid] = metrics.bytes_written;
     }
   }

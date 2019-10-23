@@ -48,9 +48,9 @@ void EventBuilderModule::runner() {
 
   while (m_run) {
     bool received = false;
-    for (unsigned ch=0; ch<m_nreceivers; ch++) {
+    for (unsigned ch = 0; ch < m_nreceivers; ch++) {
       daqling::utilities::Binary b;
-      if(m_connections.get(ch, std::ref(b))) {
+      if (m_connections.get(ch, std::ref(b))) {
         unsigned seq_number;
         data_t *d = static_cast<data_t *>(b.data());
         seq_number = d->header.seq_number;
@@ -63,7 +63,7 @@ void EventBuilderModule::runner() {
         if (events[seq_number].size() == m_nreceivers) {
           DEBUG("complete event");
           daqling::utilities::Binary out;
-          for ( auto& c : events[seq_number]) {
+          for (auto &c : events[seq_number]) {
             out += c;
           }
           m_connections.put(m_nreceivers, out);

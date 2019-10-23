@@ -66,7 +66,7 @@ public:
     if (delta_t < m_interval / 1000) {
       delta_t = m_interval;
       WARNING("delta_t parameter of registerVariable(...) function can not be smaller than "
-           "m_interval! Setting delta_t to m_interval value.");
+              "m_interval! Setting delta_t to m_interval value.");
     }
     std::shared_ptr<Metric<T, U>> metric(new Metric<T, U>(pointer, name, mtype, vtype, delta_t));
     std::shared_ptr<Metric_base> metric_base = std::dynamic_pointer_cast<Metric_base>(metric);
@@ -139,7 +139,7 @@ public:
     }
     if (m_influxDb) {
       DEBUG("Sending the metric: " << metric->m_name << " value: " << std::to_string(value)
-                                  << " to influxDB");
+                                   << " to influxDB");
       DEBUG(m_influxDb_uri + m_influxDb_name);
       auto r = cpr::Post(cpr::Url{m_influxDb_uri + m_influxDb_name},
                          cpr::Payload{{metric->m_name + " value", std::to_string(value)}});
