@@ -27,29 +27,23 @@
 /// \endcond
 
 #include "Core/DAQProcess.hpp"
-#include "Core/DataLogger.hpp"
 #include "Utils/Binary.hpp"
 #include "Utils/ProducerConsumerQueue.hpp"
 
 /**
  * Module for writing your acquired data to file.
  */
-class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::core::DataLogger {
+class FileWriterModule : public daqling::core::DAQProcess {
 public:
-  FileDataWriterModule();
-  ~FileDataWriterModule();
+  FileWriterModule();
+  ~FileWriterModule();
 
-  void start();
+  void configure();
+  void start(unsigned run_num);
   void stop();
   void runner();
 
   void monitor_runner();
-
-  void setup();
-  void write();
-  void read();
-  bool write(uint64_t keyId, daqling::utilities::Binary &payload);
-  void shutdown();
 
 private:
   struct ThreadContext {
@@ -63,16 +57,20 @@ private:
   struct Metrics {
     std::atomic<size_t> bytes_written = 0;
     std::atomic<size_t> payload_queue_size = 0;
-    std::atomic<size_t> payload_queue_bytes = 0;
+    std::atomic<size_t> payload_size = 0;
   };
+
+  size_t m_buffer_size;
+  std::string m_pattern;
+  std::atomic<bool> m_start_completed;
 
   /**
    * Output file generator with a printf-like filename pattern.
    */
   class FileGenerator {
   public:
-    FileGenerator(const std::string pattern, const uint64_t chid)
-        : m_pattern(pattern), m_chid(chid) {}
+    FileGenerator(const std::string pattern, const uint64_t chid, const unsigned run_number)
+        : m_pattern(pattern), m_chid(chid), m_run_number(run_number) {}
 
     /**
      * Generates the next output file in the sequence.
@@ -93,6 +91,7 @@ private:
     const std::string m_pattern;
     const uint64_t m_chid;
     unsigned m_filenum = 0;
+    const unsigned m_run_number;
   };
 
   // Configs

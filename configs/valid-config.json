@@ -1,21 +1,22 @@
 {
-  "version": 6,
+  "version": 7,
   "group": "daq",
   "components": [
     {
-      "name": "boardreader01",
+      "name": "readoutinterface01",
       "host": "localhost",
       "port": 5555,
-      "type": "BoardReader",
+      "type": "ReadoutInterface",
       "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
-        "board_id": 0
+        "board_id": 0,
+        "delay_us": 1000000
       },
       "connections": {
         "senders": [
           {
             "type": "pubsub",
-            "chid": 1,
+            "chid": 0,
             "transport": "tcp",
             "host": "*",
             "port": 8101
@@ -24,19 +25,20 @@
       }
     },
     {
-      "name": "boardreader02",
+      "name": "readoutinterface02",
       "host": "localhost",
       "port": 5556,
-      "type": "BoardReader",
+      "type": "ReadoutInterface",
       "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
-        "board_id": 1
+        "board_id": 1,
+        "delay_us": 1000000
       },
       "connections": {
         "senders": [
           {
             "type": "pair",
-            "chid": 1,
+            "chid": 0,
             "transport": "tcp",
             "host": "*",
             "port": 8102
@@ -47,7 +49,7 @@
     {
       "name": "eventbuilder01",
       "host": "localhost",
-      "port": 5557,
+      "port": 5560,
       "type": "EventBuilder",
       "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
@@ -56,14 +58,14 @@
         "receivers": [
           {
             "type": "pubsub",
-            "chid": 1,
+            "chid": 0,
             "transport": "tcp",
             "host": "localhost",
             "port": 8101
           },
           {
             "type": "pair",
-            "chid": 2,
+            "chid": 1,
             "transport": "tcp",
             "host": "localhost",
             "port": 8102
@@ -72,7 +74,7 @@
         "senders": [
           {
             "type": "pair",
-            "chid": 3,
+            "chid": 2,
             "transport": "ipc",
             "path": "/tmp/feed3"
           }
@@ -80,19 +82,19 @@
       }
     },
     {
-      "name": "filedatawriter01",
+      "name": "filewriter01",
       "host": "localhost",
-      "port": 5558,
-      "type": "FileDataWriter",
-      "loglevel": {"core": "INFO", "module": "DEBUG"},
+      "port": 5561,
+      "type": "FileWriter",
+      "loglevel": {"core": "INFO", "module": "INFO"},
       "settings": {
-        "filename_pattern": "/tmp/test-%D.%n.%c.bin"
+        "filename_pattern": "/tmp/test-%D.%r.%c.%n.bin"
       },
       "connections": {
         "receivers": [
           {
             "type": "pair",
-            "chid": 1,
+            "chid": 0,
             "transport": "ipc",
             "path": "/tmp/feed3"
           }

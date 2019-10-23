@@ -31,8 +31,6 @@
 
 #include "DAQProcess.hpp"
 
-#include "Utils/Logging.hpp"
-
 namespace daqling {
 namespace core {
 
@@ -78,6 +76,12 @@ public:
   bool load(std::string name);
 
   /**
+   * Unloads the loaded module.
+   * Returns whether the operation succeeded.
+   */
+  bool unload();
+
+  /**
    * Configures the loaded module.
    *
    * @warning May only be called after a successful `load`.
@@ -89,7 +93,7 @@ public:
    *
    * @warning May only be called after a successful `load`.
    */
-  void start() { m_dp.value()->start(); };
+  void start(unsigned run_num) { m_dp.value()->start(run_num); };
 
   /**
    * Stops the loaded module.

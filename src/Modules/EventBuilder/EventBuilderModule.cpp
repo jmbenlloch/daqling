@@ -19,41 +19,72 @@
 #include <chrono>
 /// \endcond
 
+#include "Common/DataFormat.hpp"
 #include "EventBuilderModule.hpp"
 
 using namespace std::chrono_literals;
 
 EventBuilderModule::EventBuilderModule() {
-  INFO("With config: " << m_config.dump() << " getState: " << this->getState());
+  DEBUG("With config: " << m_config.dump() << " getState: " << this->getState());
+  m_nreceivers = m_config.getConnections()["receivers"].size();
 }
 
 EventBuilderModule::~EventBuilderModule() {}
 
-void EventBuilderModule::start() {
-  DAQProcess::start();
-  INFO("getState: " << getState());
+void EventBuilderModule::configure() {
+  DAQProcess::configure();
+
+  if (m_statistics) {
+    std::string name = m_config.getName();
+    // Register statistical variables
+    m_statistics->registerVariable<std::atomic<size_t>, size_t>(
+        &eventmap_size, name + "_EventMap-Size", daqling::core::metrics::LAST_VALUE,
+        daqling::core::metrics::SIZE);
+  }
+}
+
+void EventBuilderModule::start(unsigned run_num) {
+  DAQProcess::start(run_num);
+  DEBUG("getState: " << getState());
 }
 
 void EventBuilderModule::stop() {
   DAQProcess::stop();
-  INFO("getState: " << this->getState());
+  DEBUG("getState: " << this->getState());
 }
 
 void EventBuilderModule::runner() {
-  INFO("Running...");
-  while (m_run) {
-    daqling::utilities::Binary b1, b2;
-    while (!m_connections.get(1, b1) && m_run) {
-      std::this_thread::sleep_for(10ms);
-    }
-    while (!m_connections.get(2, b2) && m_run) {
-      std::this_thread::sleep_for(10ms);
-    }
+  DEBUG("Running...");
 
-    daqling::utilities::Binary b3(b1);
-    b3 += b2;
-    INFO("Size of build event: " << b3.size());
-    m_connections.put(3, b3);
+  std::map<uint32_t, std::vector<daqling::utilities::Binary>> events;
+
+  while (m_run) {
+    bool received = false;
+    for (unsigned ch = 0; ch < m_nreceivers; ch++) {
+      daqling::utilities::Binary b;
+      if (m_connections.get(ch, std::ref(b))) {
+        unsigned seq_number;
+        data_t *d = static_cast<data_t *>(b.data());
+        seq_number = d->header.seq_number;
+        events[seq_number].push_back(b);
+        received = true;
+        if (m_statistics) {
+          eventmap_size = events.size();
+        }
+        if (events[seq_number].size() == m_nreceivers) {
+          DEBUG("complete event");
+          daqling::utilities::Binary out;
+          for (auto &c : events[seq_number]) {
+            out += c;
+          }
+          m_connections.put(m_nreceivers, out);
+          events.erase(seq_number);
+        }
+      }
+    }
+    if (!received) {
+      std::this_thread::sleep_for(10ms);
+    }
   }
-  INFO("Runner stopped");
+  DEBUG("Runner stopped");
 }

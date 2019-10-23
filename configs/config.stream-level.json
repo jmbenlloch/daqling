@@ -1,9 +1,9 @@
 [
   {
-    "name": "boardreader01",
+    "name": "readoutinterface01",
     "host": "host01",
     "port": 5555,
-    "type": "BoardReader",
+    "type": "ReadoutInterface",
     "stream_level": 0,
     "settings": {
       "some_int": 42,
@@ -22,10 +22,10 @@
     }
   },
   {
-    "name": "boardreader02",
+    "name": "readoutinterface02",
     "host": "host02",
     "port": 5556,
-    "type": "BoardReader",
+    "type": "ReadoutInterface",
     "stream_level": 0,
     "settings": {
       "some_int": 42,

@@ -22,8 +22,11 @@
  * Binary
  * Description:
  *   A convenient wrapper around a dynamically sized, continous memory area.
+ *   Based on the idea of the void* wrapper from CORAL
+ *   https://twiki.cern.ch/twiki/bin/view/Persistency/Coral
  */
 
+/// \cond
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -32,6 +35,7 @@
 #include <iostream>
 #include <optional>
 #include <vector>
+/// \endcond
 
 namespace daqling::utilities {
 

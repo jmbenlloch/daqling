@@ -20,11 +20,16 @@
 #include "Core/DAQProcess.hpp"
 
 class EventBuilderModule : public daqling::core::DAQProcess {
+
+  unsigned m_nreceivers;
+  std::atomic<size_t> eventmap_size;
+
 public:
   EventBuilderModule();
   ~EventBuilderModule();
 
-  void start();
+  void configure();
+  void start(unsigned run_num);
   void stop();
 
   void runner();

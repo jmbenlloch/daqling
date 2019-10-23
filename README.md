@@ -1,24 +1,22 @@
 # DAQling
 
-Software framework for development of modular and distributed data acquisition systems.
+A software framework for the development of modular and distributed data acquisition systems.
 
 ## Documentation
 
-WIP: Scattered documentation can be found at the following links:
+Detailed documentation can be found [here][codimd].
 
-- [CodiMD][codimd]
-- [Google documents][drive]
-- [Overleaf][overleaf]
+Subscribe to the "daqling-users" CERN e-group for updates.
+
+To contact the developers: daqling-developers@cern.ch (only for "daqling-users" members).
 
 [codimd]: <https://codimd.web.cern.ch/s/B1oArin-r>
-[drive]: <https://drive.google.com/drive/folders/1sMiRltFLZY9HFLqsrGpXrNlBZx4Yx3qN?usp=sharing>
-[overleaf]: <https://www.overleaf.com/9291872198hhwbjgmdstpv>
 
-## Install the framework
+## Host configuration and framework build
 
-### Run ansible-playbook to configure your CentOS7 host
+### Configure the CERN CentOS 7 host
 
-The playbook will set up your host with the system libraries and tools
+The Ansible playbook will set up the host with the system libraries and tools
 
     sudo yum install -y ansible
     source cmake/setup.sh
@@ -26,10 +24,6 @@ The playbook will set up your host with the system libraries and tools
     ansible-playbook set-up-host.yml --ask-become
 
 #### (Optional)
-
-Cassandra
-
-    ansible-playbook install-cassandra.yml --ask-become
 
 Web dependencies
 
@@ -43,6 +37,10 @@ Boost 1.70
 
     ansible-playbook install-boost-1_70.yml --ask-become
 
+Cassandra (experimental)
+
+    ansible-playbook install-cassandra.yml --ask-become
+
 ### Build
 
     source cmake/setup.sh
@@ -54,26 +52,32 @@ then:
     cmake3 ../
     make
 
-You can also do incremental compilation like:
+It is possible to build specified targets. `make help` will list the available ones.
 
-    make utilities
-    make core
+#### Advanced build options
 
-#### (Optional) Build the CassandraDataLogger
+The `ccmake` command:
 
-In order to build the CassandraDataLogger it is necessary to:
+    source cmake/setup.sh
+    cd build
+    ccmake3 ../
 
-- have a Cassandra C++ driver installation under `/opt/cassandra-driver/` (optional Ansible playbook)
-- from a fresh terminal:
+allows browsing available build options, such as selection of Modules to be built and Debug flags. E.g.:
 
-      source cmake/setup.sh
-      cd build
-      cmake3 ../ -DENABLE_CASSANDRA=1
-      make
+    ENABLE_SANITIZE [ON, OFF]
+    CMAKE_BUILD_TYPE [Debug, Release]
+
+To generate *Doxygen* documentation for DAQling:
+
+    source cmake/setup.sh
+    cd build
+    make doc
+
+After generation it is possible to browse the pages by opening `doxygen_html/index.html` with a browser.
 
 #### (Optional) Build with Boost 1.70
 
-In order to include Boost 1.70 in the build it is necessary to:
+To include Boost 1.70 in the build it is necessary to:
 
 - have a Boost 1.70 installation under `/opt/boost/` (optional Ansible playbook)
 - from a fresh terminal:
@@ -83,9 +87,21 @@ In order to include Boost 1.70 in the build it is necessary to:
       cmake3 ../ -DENABLE_BOOST=1
       make
 
+#### (Optional) Build the CassandraDataLogger
+
+To build the (experimental) CassandraDataLogger it is necessary to:
+
+- have a Cassandra C++ driver installation under `/opt/cassandra-driver/` (optional Ansible playbook)
+- from a fresh terminal:
+
+      source cmake/setup.sh
+      cd build
+      cmake3 ../ -DENABLE_CASSANDRA=1
+      make
+
 #### (Optional) Build with TBB 2019.0
 
-In order to include TBB 2019.0 in the build it is necessary to:
+To include TBB 2019.0 in the build it is necessary to:
 
 - have a TBB 2019.0 installation under `/opt/tbb-2019_U5/` with `include/` and `lib/` folders
 - from a fresh terminal:
@@ -95,27 +111,40 @@ In order to include TBB 2019.0 in the build it is necessary to:
       cmake3 ../ -DENABLE_TBB=1
       make
 
-## Running the demo
+## Running the data acquisition system demo
+
+`daqpy` is a command line tool that spawns and configures the components listed in the JSON configuration file passed as argument.
+
+It then allows to control the components via standard commands such as `start` (with optional run number), `stop`, as well as custom commands.
 
     source cmake/setup.sh
-    daqinterface configs/valid-config.json complete
-    start
+    daqpy configs/valid-config.json
+    start [run_num]
     stop
     down
 
-`daqinterface -h` shows the help menu.
+`daqpy -h` shows the help menu.
 
 ## Development
 
-In order to develop your own module, check the existing demonstration modules in `daqling/src/Modules` and `daqling/include/Modules` for guidance.
+To develop a custom module, the existing modules in `src/Modules` can provide guidance.
 
-Copy and adapt the template `src/Modules/NewModule.cpp` and `include/Modules/NewModule.hpp` and start developing your custom module.
+It is necessary to copy and rename the template folder `src/Modules/Dummy` and its files to start developing the new module.
 
-Finally add the new custom module to `src/Modules/CMakeLists.txt` in order to build it as part of the project.
+The custom module will be discovered and built by CMake as part of the project.
 
-The `dev` option of `daqinterface`
+### Run custom Modules
 
-    daqinterface invalid-config.json complete dev
+To run a newly created Module (e.g. `MyDummyModule`), it is necessary to add a corresponding entry in `components:` to a JSON configuration file. Note that the name of the Module needs to be specified in the `type:` field. E.g.:
 
-- skips the `json-config.schema` validation, therefore allowing to experiment with new fields in the configuration json files.
-- sets the process logging level to `DEBUG`.
+    {
+      "name": "mydummymodule01",
+      "host": "localhost",
+      "port": 5555,
+      "type": "MyDummyModule",
+      "loglevel": {"core": "INFO", "module": "DEBUG"},
+      "settings": {
+      },
+      "connections": {
+      }    
+    }

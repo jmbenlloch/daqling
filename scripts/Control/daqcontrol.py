@@ -83,9 +83,15 @@ class daqcontrol:
     if rv != b'Success':
       print("Error", p['name'], rv, rv1)
 
-  def startProcess(self, p):
-    req = json.dumps({'command': 'start'})
+  def unconfigureProcess(self, p):
+    req = json.dumps({'command': 'unconfigure'})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req)
+    if rv != b'Success':
+      print("Error", p['name'], rv, rv1)
+
+  def startProcess(self, p, arg="0"):
+    req = json.dumps({'command': 'start'})
+    rv, rv1 = self.handleRequest(p['host'], p['port'], req, arg)
     if rv != b'Success':
       print("Error", p['name'], rv, rv1)
 
@@ -101,7 +107,7 @@ class daqcontrol:
     if rv != b'Success':
       print("Error", p['name'], rv, rv1)
 
-  def customCommandProcess(self, p, *, command, args=None):
+  def customCommandProcess(self, p, command, args=None):
     req = json.dumps({'command': command})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req, args)
     if rv != b'Success':

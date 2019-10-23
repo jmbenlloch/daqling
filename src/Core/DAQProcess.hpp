@@ -27,7 +27,6 @@
 #include "Configuration.hpp"
 #include "ConnectionManager.hpp"
 #include "Statistics.hpp"
-#include "Utils/Logging.hpp"
 
 namespace daqling::core {
 
@@ -48,7 +47,9 @@ public:
     m_state = "ready";
   };
 
-  virtual void start() {
+  virtual void start(unsigned run_num) {
+    m_run_number = run_num;
+    DEBUG("run number " << m_run_number);
     m_run = true;
     m_state = "running";
     m_runner_thread = std::thread(&DAQProcess::runner, this);
@@ -85,9 +86,12 @@ public:
 
   bool setupStatistics() { // TODO
 
-    auto statsURI = m_config.getConfig()["settings"]["stats_uri"];
-    auto influxDbURI = m_config.getConfig()["settings"]["influxDb_uri"];
-    auto influxDbName = m_config.getConfig()["settings"]["influxDb_name"];
+    auto statsURI = m_config.getSettings()["stats_uri"];
+    auto influxDbURI = m_config.getSettings()["influxDb_uri"];
+    auto influxDbName = m_config.getSettings()["influxDb_name"];
+    std::string name = m_config.getConfig()["name"];
+    auto numConnections = m_config.getNumConnections();
+
     INFO("Setting up statistics on: " << statsURI);
     if ((statsURI == "" || statsURI == nullptr) && (influxDbURI == "" || influxDbURI == nullptr)) {
       INFO("No Statistics settings were provided... Running without stats.");
@@ -100,16 +104,17 @@ public:
           return false;
         }
       }
-
       m_statistics = std::make_unique<Statistics>(m_connections.getStatSocket());
-      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-          &m_connections.getQueueStat(1), "CHN0-QueueSizeGuess", daqling::core::metrics::LAST_VALUE,
-          daqling::core::metrics::SIZE);
-      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-          &m_connections.getMsgStat(1), "CHN0-NumMessages", daqling::core::metrics::LAST_VALUE,
-          daqling::core::metrics::SIZE);
+      for (unsigned ch = 0; ch < numConnections; ch++) {
+        m_statistics->registerVariable<std::atomic<size_t>, size_t>(
+            &m_connections.getQueueStat(0), name + "-ch" + std::to_string(ch) + "-QueueSizeGuess",
+            daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
+        m_statistics->registerVariable<std::atomic<size_t>, size_t>(
+            &m_connections.getMsgStat(0), name + "-ch" + std::to_string(ch) + "-NumMessages",
+            daqling::core::metrics::RATE, daqling::core::metrics::SIZE);
+      }
       if (statsURI != "" && statsURI != nullptr) {
-        m_statistics->setZQMpublishing(true);
+        m_statistics->setZMQpublishing(true);
         m_stats_on = true;
       }
       if (influxDbURI != "" && influxDbURI != nullptr) {
@@ -151,6 +156,7 @@ protected:
   std::string m_state;
   std::atomic<bool> m_run;
   std::thread m_runner_thread;
+  unsigned m_run_number;
 
 private:
   std::map<const std::string,

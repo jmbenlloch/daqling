@@ -17,18 +17,14 @@
 
 #pragma once
 
-#include "Core/DAQProcess.hpp"
+struct header_t {
+  uint16_t payload_size;
+  uint16_t source_id;
+  uint32_t seq_number;
+  uint64_t timestamp;
+} __attribute__((__packed__));
 
-class DummyModule : public daqling::core::DAQProcess {
-  static void foobar(const std::string &arg);
-
-public:
-  DummyModule();
-  ~DummyModule();
-
-  void configure(); // optional (configuration can be handled in the constructor)
-  void start(unsigned run_num);
-  void stop();
-
-  void runner();
-};
+struct data_t {
+  header_t header;
+  char payload[24000];
+} __attribute__((__packed__));

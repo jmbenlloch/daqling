@@ -60,3 +60,12 @@ bool PluginManager::load(std::string name) {
   m_loaded = true;
   return true;
 }
+
+bool PluginManager::unload() {
+  if (m_loaded) {
+    m_delete(*m_dp);
+    m_loaded = false;
+    return true;
+  }
+  return false;
+}

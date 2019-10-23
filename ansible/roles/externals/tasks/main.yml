@@ -54,5 +54,5 @@
     executable: /usr/bin/cmake3
 
     # Build libzmq with libsodium instead of the built-in tweetnacl.
-    # Fixed zmq::context_t dtor on daqinterface `down` command when libzmq curve security is enabled.
+    # Fixed zmq::context_t dtor on daqpy `down` command when libzmq curve security is enabled.
     cache_vars: {"WITH_LIBSODIUM": "ON"}

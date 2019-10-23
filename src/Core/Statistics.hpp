@@ -18,10 +18,7 @@
 #ifndef STATISTICS_HPP
 #define STATISTICS_HPP
 
-#include "Metric.hpp"
-#include "Utils/Logging.hpp"
-
-#include "zmq.hpp"
+/// \cond
 #include <atomic>
 #include <cpr/cpr.h>
 #include <ctime>
@@ -32,6 +29,11 @@
 #include <string>
 #include <thread>
 #include <vector>
+/// \endcond
+
+#include "Metric.hpp"
+#include "Utils/Logging.hpp"
+#include "Utils/zhelpers.hpp"
 
 namespace daqling {
 namespace core {
@@ -44,7 +46,7 @@ public:
 
   bool configure(unsigned interval);
 
-  void setZQMpublishing(bool zmq_publisher) { m_zmq_publisher = zmq_publisher; }
+  void setZMQpublishing(bool zmq_publisher) { m_zmq_publisher = zmq_publisher; }
   void setInfluxDBsending(bool influxDb) { m_influxDb = influxDb; }
   void setInfluxDBname(std::string influxDb_name) { m_influxDb_name = influxDb_name; }
   void setInfluxDBuri(std::string influxDb_uri) { m_influxDb_uri = influxDb_uri; }
@@ -63,8 +65,8 @@ public:
                         metrics::variable_type vtype, float delta_t = 1) {
     if (delta_t < m_interval / 1000) {
       delta_t = m_interval;
-      INFO("delta_t parameter of registerVariable(...) function can not be smaller than "
-           "m_interval! Setting delta_t to m_interval value.");
+      WARNING("delta_t parameter of registerVariable(...) function can not be smaller than "
+              "m_interval! Setting delta_t to m_interval value.");
     }
     std::shared_ptr<Metric<T, U>> metric(new Metric<T, U>(pointer, name, mtype, vtype, delta_t));
     std::shared_ptr<Metric_base> metric_base = std::dynamic_pointer_cast<Metric_base>(metric);
@@ -85,7 +87,7 @@ public:
   }
 
   template <class T, class U> void publishValue(Metric_base *m) {
-    INFO("publish value");
+    DEBUG("publish value");
     U value = 0;
     Metric<T, U> *metric = static_cast<Metric<T, U> *>(m);
     if (metric->m_mtype == metrics::AVERAGE) {
@@ -130,19 +132,19 @@ public:
       msg << metric->m_name << ": " << value;
       zmq::message_t message(msg.str().size());
       memcpy(message.data(), msg.str().data(), msg.str().size());
-      INFO(" MSG " << msg.str());
+      DEBUG(" MSG " << msg.str());
       bool rc = m_stat_socket->send(message);
       if (!rc)
         WARNING("Failed to publish metric: " << metric->m_name);
     }
     if (m_influxDb) {
-      INFO("Sending the metric: " << metric->m_name << " value: " << std::to_string(value)
-                                  << " to influxDB");
-      INFO(m_influxDb_uri + m_influxDb_name);
+      DEBUG("Sending the metric: " << metric->m_name << " value: " << std::to_string(value)
+                                   << " to influxDB");
+      DEBUG(m_influxDb_uri + m_influxDb_name);
       auto r = cpr::Post(cpr::Url{m_influxDb_uri + m_influxDb_name},
                          cpr::Payload{{metric->m_name + " value", std::to_string(value)}});
 
-      INFO("InfluxDB response: " << r.status_code << "\t" << r.text);
+      DEBUG("InfluxDB response: " << r.status_code << "\t" << r.text);
     }
   }
 

@@ -19,7 +19,6 @@
 #define DAQLING_CORE_CONNECTIONMANAGER_HPP
 
 /// \cond
-#include "Utils/zhelpers.hpp"
 #include <algorithm>
 #include <map>
 #include <memory>
@@ -30,8 +29,7 @@
 #include "Command.hpp"
 #include "Utils/Binary.hpp"
 #include "Utils/ProducerConsumerQueue.hpp"
-#include "Utils/ReusableThread.hpp"
-#include "Utils/Singleton.hpp"
+#include "Utils/zhelpers.hpp"
 
 #define MSGQ
 
@@ -48,10 +46,9 @@ namespace core {
 // template <class CT, class ST>
 class ConnectionManager : public daqling::utilities::Singleton<ConnectionManager> {
 public:
-  //
   ConnectionManager()
-      : m_is_cmd_setup{false}, m_is_stats_setup{false}, m_stop_cmd_handler{false}, m_stop_handlers{
-                                                                                       false} {}
+      : m_activeChannels{0}, m_is_cmd_setup{false}, m_is_stats_setup{false},
+        m_stop_cmd_handler{false}, m_stop_handlers{false} {}
   ~ConnectionManager() {
     m_stop_handlers = true;
     m_stop_cmd_handler = true;
@@ -65,7 +62,7 @@ public:
   typedef std::unique_ptr<MessageQueue> UniqueMessageQueue;
   typedef folly::ProducerConsumerQueue<std::string> StringQueue;
   typedef std::unique_ptr<StringQueue> UniqueStringQueue;
-  typedef std::map<uint64_t, std::atomic<size_t>> SizeStatMap;
+  typedef std::map<unsigned, std::atomic<size_t>> SizeStatMap;
 
   // Enums
   enum EDirection { SERVER, CLIENT, PUBLISHER, SUBSCRIBER };
@@ -73,9 +70,11 @@ public:
   // Functionalities
   bool setupCommandConnection(uint8_t ioT, std::string connStr);
   bool setupStatsConnection(uint8_t ioT, std::string connStr);
+  bool unsetStatsConnection();
 
   // Add a channel (sockets and queues)
-  bool addChannel(uint64_t chn, EDirection dir, const std::string &connStr, size_t queueSize);
+  bool addChannel(unsigned chn, EDirection dir, const std::string &connStr, size_t queueSize);
+  bool removeChannel(unsigned chn);
 
   // Getter/Putter for channels:
   /**
@@ -83,26 +82,26 @@ public:
    *
    * @return true when binary file is successfully passed
    */
-  bool get(uint64_t chn, daqling::utilities::Binary &bin);
-  void put(uint64_t chn, daqling::utilities::Binary &msgBin);
-  void putStr(uint64_t chn, const std::string &string);
-  std::string getStr(uint64_t chn);
+  bool get(unsigned chn, daqling::utilities::Binary &bin);
+  void put(unsigned chn, daqling::utilities::Binary &msgBin);
+  void putStr(unsigned chn, const std::string &string);
+  std::string getStr(unsigned chn);
 
   // Start/stop socket processors
   bool start();
   bool stop();
 
   // Utilities
-  size_t getNumOfChannels() { return m_activeChannels; } // Get the number of active channels.
-  std::atomic<size_t> &getQueueStat(uint64_t chn) { return m_pcqSizes[chn]; }
-  std::atomic<size_t> &getMsgStat(uint64_t chn) { return m_numMsgsHandled[chn]; }
+  unsigned getNumOfChannels() { return m_activeChannels; } // Get the number of active channels.
+  std::atomic<size_t> &getQueueStat(unsigned chn) { return m_pcqSizes[chn]; }
+  std::atomic<size_t> &getMsgStat(unsigned chn) { return m_numMsgsHandled[chn]; }
   const SizeStatMap &getStatsMap() { return std::ref(m_pcqSizes); }
   const SizeStatMap &getMsgStatsMap() { return std::ref(m_numMsgsHandled); }
   std::unique_ptr<zmq::socket_t> &getStatSocket() { return std::ref(m_stats_socket); }
 
   /*
-    bool connect(uint64_t chn, uint16_t tag) { return false; } // Connect/subscriber to given
-    channel. bool disconnect(uint64_t chn, uint16_t tag) { return false; } //
+    bool connect(unsigned chn, uint16_t tag) { return false; } // Connect/subscriber to given
+    channel. bool disconnect(unsigned chn, uint16_t tag) { return false; } //
     Disconnect/unsubscriber from a given channel. void start() {} // Starts the subscri threads.
     void stopSubscribers() {}  // Stops the subscriber threads.
     bool busy() { return false; } // are processor threads busy
@@ -113,13 +112,13 @@ private:
   size_t m_activeChannels;
 
   // Configuration:
-  std::vector<uint64_t> m_channels;
+  std::vector<unsigned> m_channels;
 
   // Queues
 #ifdef MSGQ
-  std::map<uint64_t, UniqueMessageQueue> m_pcqs; // Queues for elink RX.
+  std::map<unsigned, UniqueMessageQueue> m_pcqs; // Queues for elink RX.
 #else
-  // std::map<uint64_t, UniqueFrameQueue> m_pcqs;
+  // std::map<unsigned, UniqueFrameQueue> m_pcqs;
 #endif
 
   // Stats
@@ -137,14 +136,14 @@ private:
   std::unique_ptr<zmq::socket_t> m_stats_socket;
   std::atomic<bool> m_is_stats_setup;
   // Dataflow
-  std::map<uint64_t, std::unique_ptr<zmq::context_t>> m_contexts; // context descriptors
-  std::map<uint64_t, std::unique_ptr<zmq::socket_t>> m_sockets;   // sockets.
-  std::map<uint64_t, EDirection> m_directions;
+  std::map<unsigned, std::unique_ptr<zmq::context_t>> m_contexts; // context descriptors
+  std::map<unsigned, std::unique_ptr<zmq::socket_t>> m_sockets;   // sockets.
+  std::map<unsigned, EDirection> m_directions;
 
   // Threads
-  std::map<uint64_t, std::thread> m_handlers;
-  std::map<uint64_t, std::unique_ptr<daqling::utilities::ReusableThread>> m_processors;
-  std::map<uint64_t, std::function<void()>> m_functors;
+  std::map<unsigned, std::thread> m_handlers;
+  std::map<unsigned, std::unique_ptr<daqling::utilities::ReusableThread>> m_processors;
+  std::map<unsigned, std::function<void()>> m_functors;
 
   // Thread control
   std::atomic<bool> m_stop_cmd_handler;
@@ -156,10 +155,10 @@ private:
   std::mutex m_mtx_cleaning;
 
   // Internal
-  bool addSendHandler(uint64_t chn); // std::function<void()> task);
-  bool addReceiveHandler(uint64_t chn);
-  bool addPublishHandler(uint64_t chn);
-  bool addSubscribeHandler(uint64_t chn);
+  bool addSendHandler(unsigned chn); // std::function<void()> task);
+  bool addReceiveHandler(unsigned chn);
+  bool addPublishHandler(unsigned chn);
+  bool addSubscribeHandler(unsigned chn);
 };
 
 } // namespace core

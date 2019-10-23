@@ -42,7 +42,6 @@ def print_help():
 def signal_handler(sig, frame):
   print("Ctrl+C: shutting down")
   stop_check_threads()
-  spawnJoin(data['components'], dc.stopProcess)
   spawnJoin(data['components'], dc.shutdownProcess)
   if arg != 'configure':
     dc.removeProcesses(data['components'])
@@ -58,10 +57,10 @@ def stop_check_threads():
 debug = False
 
 arg = "complete"
-if len(sys.argv) <= 2:
+if len(sys.argv) <= 1:
   print_help()
   quit()
-else:
+elif len(sys.argv) == 3:
   arg = sys.argv[2]
 
 for o in sys.argv:
@@ -125,13 +124,19 @@ while(not dc.stop_check):
   command_threads = []
   if cmd == "config":
     spawnJoin(data['components'], dc.configureProcess)
+  if cmd == "unconfig":
+    spawnJoin(data['components'], dc.unconfigureProcess)
   elif cmd == "start":
-    spawnJoin(data['components'], dc.startProcess)
+    try:
+      sp = partial(dc.startProcess, arg=cmd_args[0])
+      spawnJoin(data['components'], sp)
+    except IndexError:
+      print("Run number not specified. Default to 0")
+      spawnJoin(data['components'], dc.startProcess)
   elif cmd == "stop":
     spawnJoin(data['components'], dc.stopProcess)
   elif cmd == "down":
     stop_check_threads()
-    spawnJoin(data['components'], dc.stopProcess)
     spawnJoin(data['components'], dc.shutdownProcess)
     if arg != 'configure':
       dc.removeProcesses(data['components'])

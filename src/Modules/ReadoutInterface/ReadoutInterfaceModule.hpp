@@ -23,15 +23,16 @@
 
 #include "Core/DAQProcess.hpp"
 
-class BoardReaderModule : public daqling::core::DAQProcess {
+class ReadoutInterfaceModule : public daqling::core::DAQProcess {
 public:
-  BoardReaderModule();
-  ~BoardReaderModule();
-  void start();
+  ReadoutInterfaceModule();
+  ~ReadoutInterfaceModule();
+  void start(unsigned run_num);
   void stop();
 
   void runner();
 
 private:
   unsigned m_board_id;
+  std::chrono::microseconds m_delay_us;
 };
