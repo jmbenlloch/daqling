@@ -11,7 +11,7 @@
       "settings": {
         "stats_uri": "tcp://*:6007",
         "influxDb_uri": "http://localhost:8086/write?db=",
-        "influxDb_name": "DAQmetrics"
+        "influxDb_name": "DAQlingMetrics"
       },
       "connections": {
       }
