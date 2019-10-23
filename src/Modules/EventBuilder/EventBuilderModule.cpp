@@ -31,6 +31,18 @@ EventBuilderModule::EventBuilderModule() {
 
 EventBuilderModule::~EventBuilderModule() {}
 
+void EventBuilderModule::configure() {
+  DAQProcess::configure();
+
+  if (m_statistics) {
+    std::string name = m_config.getName();
+    // Register statistical variables
+    m_statistics->registerVariable<std::atomic<size_t>, size_t>(
+        &eventmap_size, name + "_EventMap-Size", daqling::core::metrics::LAST_VALUE,
+        daqling::core::metrics::SIZE);
+  }
+}
+
 void EventBuilderModule::start(unsigned run_num) {
   DAQProcess::start(run_num);
   DEBUG("getState: " << getState());
@@ -56,9 +68,8 @@ void EventBuilderModule::runner() {
         seq_number = d->header.seq_number;
         events[seq_number].push_back(b);
         received = true;
-        if (seq_number % 10000 == 0) {
-          INFO("sequence number " << seq_number);
-          INFO("Map elements: " << events.size());
+        if (m_statistics) {
+          eventmap_size = events.size();
         }
         if (events[seq_number].size() == m_nreceivers) {
           DEBUG("complete event");
