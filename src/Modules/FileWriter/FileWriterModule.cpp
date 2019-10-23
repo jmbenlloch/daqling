@@ -140,8 +140,8 @@ void FileWriterModule::start(unsigned run_num) {
           &metrics.payload_queue_size, fmt::format("DL_PayloadQueueSize_chid{}", chid),
           daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
       m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-          &metrics.payload_queue_bytes, fmt::format("DL_PayloadQueueBytes_chid{}", chid),
-          daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
+          &metrics.payload_size, fmt::format("DL_PayloadSize_chid{}", chid),
+          daqling::core::metrics::AVERAGE, daqling::core::metrics::SIZE);
     }
   }
   m_start_completed.store(true);
@@ -179,16 +179,15 @@ void FileWriterModule::runner() {
         daqutils::Binary pl;
         while (!m_connections.get(chid, std::ref(pl)) && m_run) {
           if (m_statistics) {
-            m_channelMetrics.at(chid).payload_queue_size += pq.sizeGuess();
+            m_channelMetrics.at(chid).payload_queue_size = pq.sizeGuess();
           }
           std::this_thread::sleep_for(1ms);
         }
 
         DEBUG(" Received " << pl.size() << "B payload on channel: " << chid);
-        while (!pq.write(pl) && m_run)
-          ; // try until successful append
+        while (!pq.write(pl) && m_run); // try until successful append
         if (m_statistics) {
-          m_channelMetrics.at(chid).payload_queue_bytes += pl.size();
+          m_channelMetrics.at(chid).payload_size = pl.size();
         }
       }
     });
@@ -312,16 +311,14 @@ void FileWriterModule::read() {}
 void FileWriterModule::shutdown() {}
 
 void FileWriterModule::monitor_runner() {
+  std::map<uint64_t, unsigned long> prev_value;
   while (m_run) {
     std::this_thread::sleep_for(1s);
     // XXX: is this really "throughput"?
     for (auto & [ chid, metrics ] : m_channelMetrics) {
       INFO("Write throughput (channel "
-           << chid << "): " << static_cast<double>(metrics.bytes_written) / 1000000 << " MBytes/s");
-      if (!m_statistics) {
-        // We have to reset the variable ourselves
-        metrics.bytes_written = 0;
-      }
+           << chid << "): " << static_cast<double>(metrics.bytes_written - prev_value[chid]) / 1000000 << " MBytes/s");
+      prev_value[chid] = metrics.bytes_written;
     }
   }
 }

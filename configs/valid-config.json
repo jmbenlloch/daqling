@@ -49,7 +49,7 @@
     {
       "name": "eventbuilder01",
       "host": "localhost",
-      "port": 5557,
+      "port": 5560,
       "type": "EventBuilder",
       "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
@@ -84,7 +84,7 @@
     {
       "name": "filewriter01",
       "host": "localhost",
-      "port": 5558,
+      "port": 5561,
       "type": "FileWriter",
       "loglevel": {"core": "INFO", "module": "INFO"},
       "settings": {

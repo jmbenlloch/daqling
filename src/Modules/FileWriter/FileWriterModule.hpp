@@ -63,7 +63,7 @@ private:
   struct Metrics {
     std::atomic<size_t> bytes_written = 0;
     std::atomic<size_t> payload_queue_size = 0;
-    std::atomic<size_t> payload_queue_bytes = 0;
+    std::atomic<size_t> payload_size = 0;
   };
 
   size_t m_buffer_size;
