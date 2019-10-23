@@ -1,0 +1,21 @@
+{
+  "zmq_settings": {
+    "host" : "localhost",
+    "port" : "6007"
+  },
+  "influxDB_settings": {
+    "host" : "localhost",
+    "port" : "8086",
+    "name" : "DAQmetrics"
+  },
+  "redis_settings": {
+    "host" : "localhost",
+    "port" : "6379"
+  },
+  "metrics": [
+    "RandomMetric1-int",
+    "RandomMetric2-float",
+    "RandomMetric3-dobule",
+    "RandomMetric8-double_average"
+  ]     
+}

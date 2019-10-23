@@ -19,27 +19,92 @@ __version__ = "0.0.1"
 
 import sys
 import zmq
-
+import json
 import redis
+from influxdb import InfluxDBClient
 
-# initial copy from the ZMQ tutorials
 
-port = "5556"
-if len(sys.argv) > 1:
-    port =  sys.argv[1]
-    int(port)
-    
-if len(sys.argv) > 2:
-    port1 =  sys.argv[2]
-    int(port1)
+def print_help():
+  print("First argument must be a .json configuration file.")
 
-# Socket to talk to server
+
+########## main ########
+
+influxDB = True
+redis = True
+
+
+if len(sys.argv) <= 1:
+  print_help()
+  quit()
+
+for o in sys.argv:
+  if o == '-h':
+    print_help()
+    quit()
+
+with open(sys.argv[1]) as f:
+  data = json.load(f)
+f.close()
+
+
+#read ZMQ settings
+try:
+  data_zmq = data["zmq_settings"]
+except Exception as e: 
+  print(repr(e))
+  print("ZMQ settings have to be provided!")
+  quit()
+
+#setup ZMQ socket
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
 
-print("Collecting updates from weather server...")
-socket.connect ("tcp://localhost:%s" % port)
+socket.connect ("tcp://"+data_zmq["host"]+":"+data_zmq["port"])
 
-if len(sys.argv) > 2:
-    socket.connect ("tcp://localhost:%s" % port1)
+#read influxDB settings
+try:
+  data_influxDB = data["influxDB_settings"]
+except Exception as e:
+  influxDB = False 
+  print(repr(e))
+  print("influxDB settings not provided! Running without influxDB publishing.")
 
+#configure influxDb client:
+if influxDB == True:
+	client = InfluxDBClient(data_influxDB["host"], data_influxDB["port"], database=data_influxDB["name"])
+
+
+#read redis settings
+try:
+  data_redis = data["redis_settings"]
+except Exception as e:
+  redis = False 
+  print(repr(e))
+  print("Redis settings not provided! Running without redis publishing.")
+
+
+#read metrics configuration
+try:
+  data_metrics = data["metrics"]
+  for metric in data_metrics:
+    socket.setsockopt_string(zmq.SUBSCRIBE, metric)
+except Exception as e:
+  socket.setsockopt_string(zmq.SUBSCRIBE, "")
+  print("Metrics configuration not provided - subscribing all possible metrices!")
+
+
+while 1:
+  string = socket.recv()
+  print(string)
+  name = string.split(b':')[0].decode() 
+  json_body = [
+		{
+			"measurement": name,
+			"fields": {
+				"value": float(string.split()[1].decode())
+			}
+		}
+  ]
+  if influxDB == True:
+    client.write_points(json_body)  

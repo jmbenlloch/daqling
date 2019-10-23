@@ -44,10 +44,6 @@ void Statistics::start() {
   m_stat_thread = std::thread(&Statistics::CheckStatistics, this);
 }
 
-void Statistics::registerCoreMetric(std::string name, std::atomic<size_t> *metric) {
-  m_registered_metrics.insert(std::make_pair(name, metric));
-}
-
 void Statistics::CheckStatistics() {
   INFO("Statistics thread about to spawn...");
 
