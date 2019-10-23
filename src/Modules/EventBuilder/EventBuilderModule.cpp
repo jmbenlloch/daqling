@@ -24,7 +24,7 @@
 
 using namespace std::chrono_literals;
 
-EventBuilderModule::EventBuilderModule() {
+EventBuilderModule::EventBuilderModule() : eventmap_size{0} {
   DEBUG("With config: " << m_config.dump() << " getState: " << this->getState());
   m_nreceivers = m_config.getConnections()["receivers"].size();
 }
