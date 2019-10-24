@@ -19,27 +19,120 @@ __version__ = "0.0.1"
 
 import sys
 import zmq
-
+import json
 import redis
+import time
+from influxdb import InfluxDBClient
 
-# initial copy from the ZMQ tutorials
 
-port = "5556"
-if len(sys.argv) > 1:
-    port =  sys.argv[1]
-    int(port)
-    
-if len(sys.argv) > 2:
-    port1 =  sys.argv[2]
-    int(port1)
+def print_help():
+  print("First argument must be a .json configuration file.")
 
-# Socket to talk to server
+
+########## main ##########
+
+use_influxDB = True
+use_redis = True
+subscribe_all = False
+
+
+if len(sys.argv) <= 1:
+  print_help()
+  quit()
+
+for o in sys.argv:
+  if o == '-h':
+    print_help()
+    quit()
+
+with open(sys.argv[1]) as f:
+  data = json.load(f)
+f.close()
+
+
+#read ZMQ settings
+try:
+  data_zmq = data["zmq_settings"]
+except Exception as e: 
+  print(repr(e))
+  print("ZMQ settings have to be provided!")
+  quit()
+
+#setup ZMQ socket
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
 
-print("Collecting updates from weather server...")
-socket.connect ("tcp://localhost:%s" % port)
+socket.connect ("tcp://"+data_zmq["host"]+":"+data_zmq["port"])
 
-if len(sys.argv) > 2:
-    socket.connect ("tcp://localhost:%s" % port1)
 
+#read settings and configure influxDB
+try:
+  data_influxDB = data["influxDB_settings"]
+  client = InfluxDBClient(data_influxDB["host"], data_influxDB["port"], database=data_influxDB["name"])
+except Exception as e:
+  use_influxDB = False 
+  print(repr(e))
+  print("influxDB settings not provided! Running without influxDB publishing.")
+
+
+#read settings and configure redis
+try:
+  data_redis = data["redis_settings"]
+  r = redis.Redis(host=data_redis["host"], port=data_redis["port"])
+except Exception as e:
+  use_redis = False 
+  print(repr(e))
+  print("Redis settings not provided! Running without redis publishing.")
+
+
+#read metrics configuration
+#####################################
+# Metrics configuration
+#  "metrics": [
+#    "<metric_name>,<destination>",
+#    ...
+#  ]
+#  Possible destinations:
+#  - i - influxDB
+#  - r - Redis
+#  - b - both (influxDB and Redis)
+#  If <destination> not provided, 
+#  "i" option is default
+#####################################
+
+metric_dest = {}
+
+try:
+  data_metrics = data["metrics"]
+  for metric in data_metrics:
+    metric_split = metric.split(',',2)
+    if len(metric_split) == 1:
+      metric_dest[metric_split[0]] = "i"    
+    elif metric_split[1] in "irb":
+      metric_dest[metric_split[0]] = metric_split[1]
+    else:
+      print(metric_split[0]+" <destination> option not valid - setting destination to influxDB")
+      metric_dest[metric_split[0]] = "i"    
+    socket.setsockopt_string(zmq.SUBSCRIBE, metric_split[0])
+except Exception as e:
+  socket.setsockopt_string(zmq.SUBSCRIBE, "")
+  subscribe_all = True
+  print("Metrics configuration not provided - subscribing all possible metrices!")
+
+
+while 1:
+  string = socket.recv()
+  name = string.split(b':')[0].decode()
+  json_body = [
+		{
+			"measurement": name,
+			"fields": {
+				"value": float(string.split()[1].decode())
+			}
+		}
+  ]
+  if use_influxDB == True and (subscribe_all == True or metric_dest[name] == "i" or metric_dest[name] == "b"):
+    client.write_points(json_body)  
+  
+  if use_redis == True and (subscribe_all == True or metric_dest[name] == "r" or metric_dest[name] == "b"):
+    r.rpush(name, str(time.time())+':'+string.split()[1].decode())
