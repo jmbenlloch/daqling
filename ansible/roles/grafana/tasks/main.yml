@@ -53,10 +53,9 @@
     dest: /etc/grafana/provisioning/dashboards
     group: grafana
 
-- name: Enabling Grafana service
+- name: Enable and restart Grafana service
   systemd:
     name: grafana-server
     enabled: yes
     daemon_reload: yes
-  notify:
-    - restart grafana-server
+    state: restarted

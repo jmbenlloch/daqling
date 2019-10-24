@@ -3,15 +3,15 @@
     name: "{{ packages }}"
   vars:
     packages:
-    - git
-    - vim
-    - wget
+    # - git
+    # - vim
+    # - wget
     - cmake3
-    - mlocate
+    # - mlocate
     - graphviz
     - python36-pip
-    - centos-release-scl-rh
-    - llvm-toolset-7-clang
+    # - centos-release-scl-rh
+    # - llvm-toolset-7-clang
 
 - name: Updatedb
   shell: updatedb
