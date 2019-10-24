@@ -106,12 +106,12 @@ public:
       }
       m_statistics = std::make_unique<Statistics>(m_connections.getStatSocket());
       for (unsigned ch = 0; ch < numConnections; ch++) {
-        m_statistics->registerVariable<std::atomic<size_t>, size_t>(
+        m_statistics->registerMetric<std::atomic<size_t>>(
             &m_connections.getQueueStat(ch), name + "-ch" + std::to_string(ch) + "-QueueSizeGuess",
-            daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
-        m_statistics->registerVariable<std::atomic<size_t>, size_t>(
+            daqling::core::metrics::LAST_VALUE);
+        m_statistics->registerMetric<std::atomic<size_t>>(
             &m_connections.getMsgStat(ch), name + "-ch" + std::to_string(ch) + "-NumMessages",
-            daqling::core::metrics::RATE, daqling::core::metrics::SIZE);
+            daqling::core::metrics::RATE);
       }
       if (statsURI != "" && statsURI != nullptr) {
         m_statistics->setZMQpublishing(true);
