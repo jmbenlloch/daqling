@@ -54,25 +54,26 @@ public:
   void start();
 
   template <class T>
-  void registerMetric(T* pointer, std::string name, metrics::metric_type mtype, float delta_t=1) {
-    if(typeid(T) == typeid(std::atomic<int>)) 
-      registerVariable<T, int>(pointer, name, mtype, metrics::INT, delta_t); 
-    else if(typeid(T) == typeid(std::atomic<float>)) 
-      registerVariable<T, float>(pointer, name, mtype, metrics::FLOAT, delta_t); 
-    else if(typeid(T) == typeid(std::atomic<double>)) 
-      registerVariable<T, double>(pointer, name, mtype, metrics::DOUBLE, delta_t); 
-    else if(typeid(T) == typeid(std::atomic<bool>)) 
-      registerVariable<T, bool>(pointer, name, mtype, metrics::BOOL, delta_t); 
-    else if(typeid(T) == typeid(std::atomic<size_t>)) 
-      registerVariable<T, size_t>(pointer, name, mtype, metrics::SIZE, delta_t); 
-    else{  
-      WARNING("Failed to register metric "<<name<<": Unsupported metric type! Supported types:\n"
-               " - std::atomic<int>\n"
-               " - std::atomic<float>\n"
-               " - std::atomic<double>\n"
-               " - std::atomic<bool>\n"
-               " - std::atomic<size_t>");
-    } 
+  void registerMetric(T *pointer, std::string name, metrics::metric_type mtype, float delta_t = 1) {
+    if (typeid(T) == typeid(std::atomic<int>))
+      registerVariable<T, int>(pointer, name, mtype, metrics::INT, delta_t);
+    else if (typeid(T) == typeid(std::atomic<float>))
+      registerVariable<T, float>(pointer, name, mtype, metrics::FLOAT, delta_t);
+    else if (typeid(T) == typeid(std::atomic<double>))
+      registerVariable<T, double>(pointer, name, mtype, metrics::DOUBLE, delta_t);
+    else if (typeid(T) == typeid(std::atomic<bool>))
+      registerVariable<T, bool>(pointer, name, mtype, metrics::BOOL, delta_t);
+    else if (typeid(T) == typeid(std::atomic<size_t>))
+      registerVariable<T, size_t>(pointer, name, mtype, metrics::SIZE, delta_t);
+    else {
+      WARNING("Failed to register metric " << name
+                                           << ": Unsupported metric type! Supported types:\n"
+                                              " - std::atomic<int>\n"
+                                              " - std::atomic<float>\n"
+                                              " - std::atomic<double>\n"
+                                              " - std::atomic<bool>\n"
+                                              " - std::atomic<size_t>");
+    }
   }
 
   template <class T, class U>
