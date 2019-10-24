@@ -7,10 +7,11 @@
       "host": "localhost",
       "port": 5555,
       "type": "ReadoutInterface",
-      "loglevel": {"core": "INFO", "module": "DEBUG"},
+      "loglevel": {"core": "INFO", "module": "INFO"},
       "settings": {
         "board_id": 0,
-        "delay_us": 1000000
+        "delay_us": 100,
+        "stats_uri": "tcp://localhost:6007"
       },
       "connections": {
         "senders": [
@@ -29,10 +30,11 @@
       "host": "localhost",
       "port": 5556,
       "type": "ReadoutInterface",
-      "loglevel": {"core": "INFO", "module": "DEBUG"},
+      "loglevel": {"core": "INFO", "module": "INFO"},
       "settings": {
         "board_id": 1,
-        "delay_us": 1000000
+        "delay_us": 100,
+        "stats_uri": "tcp://localhost:6007"
       },
       "connections": {
         "senders": [
@@ -51,8 +53,9 @@
       "host": "localhost",
       "port": 5560,
       "type": "EventBuilder",
-      "loglevel": {"core": "INFO", "module": "DEBUG"},
+      "loglevel": {"core": "INFO", "module": "INFO"},
       "settings": {
+        "stats_uri": "tcp://localhost:6007"
       },
       "connections": {
         "receivers": [
@@ -88,7 +91,8 @@
       "type": "FileWriter",
       "loglevel": {"core": "INFO", "module": "INFO"},
       "settings": {
-        "filename_pattern": "/tmp/test-%D.%r.%c.%n.bin"
+        "filename_pattern": "/tmp/test-%D.%r.%c.%n.bin",
+        "stats_uri": "tcp://localhost:6007"
       },
       "connections": {
         "receivers": [

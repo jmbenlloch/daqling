@@ -118,7 +118,7 @@ To include TBB 2019.0 in the build it is necessary to:
 It then allows to control the components via standard commands such as `start` (with optional run number), `stop`, as well as custom commands.
 
     source cmake/setup.sh
-    daqpy configs/valid-config.json
+    daqpy configs/demo.json
     start [run_num]
     stop
     down
