@@ -29,10 +29,11 @@ def print_help():
   print("First argument must be a .json configuration file.")
 
 
-########## main ########
+########## main ##########
 
 use_influxDB = True
 use_redis = True
+subscribe_all = False
 
 
 if len(sys.argv) <= 1:
@@ -64,30 +65,25 @@ socket = context.socket(zmq.SUB)
 socket.connect ("tcp://"+data_zmq["host"]+":"+data_zmq["port"])
 
 
-#read influxDB settings
+#read settings and configure influxDB
 try:
   data_influxDB = data["influxDB_settings"]
+  client = InfluxDBClient(data_influxDB["host"], data_influxDB["port"], database=data_influxDB["name"])
 except Exception as e:
   use_influxDB = False 
   print(repr(e))
   print("influxDB settings not provided! Running without influxDB publishing.")
 
-#configure influxDb client
-if use_influxDB == True:
-	client = InfluxDBClient(data_influxDB["host"], data_influxDB["port"], database=data_influxDB["name"])
 
-
-#read redis settings
+#read settings and configure redis
 try:
   data_redis = data["redis_settings"]
+  r = redis.Redis(host=data_redis["host"], port=data_redis["port"])
 except Exception as e:
   use_redis = False 
   print(repr(e))
   print("Redis settings not provided! Running without redis publishing.")
 
-#configure Redis client
-if use_redis == True:
-  r = redis.Redis(host=data_redis["host"], port=data_redis["port"])
 
 #read metrics configuration
 #####################################
@@ -96,7 +92,7 @@ if use_redis == True:
 #    "<metric_name>,<destination>",
 #    ...
 #  ]
-#  Possible destimations:
+#  Possible destinations:
 #  - i - influxDB
 #  - r - Redis
 #  - b - both (influxDB and Redis)
@@ -120,6 +116,7 @@ try:
     socket.setsockopt_string(zmq.SUBSCRIBE, metric_split[0])
 except Exception as e:
   socket.setsockopt_string(zmq.SUBSCRIBE, "")
+  subscribe_all = True
   print("Metrics configuration not provided - subscribing all possible metrices!")
 
 
@@ -134,8 +131,8 @@ while 1:
 			}
 		}
   ]
-  if use_influxDB == True and (metric_dest[name] == "i" or metric_dest[name] == "b"):
+  if use_influxDB == True and (subscribe_all == True or metric_dest[name] == "i" or metric_dest[name] == "b"):
     client.write_points(json_body)  
   
-  if use_redis == True and (metric_dest[name] == "r" or metric_dest[name] == "b"):
-    r.rpush(name, str(time.time()*1000)+':'+string.split()[1].decode())
+  if use_redis == True and (subscribe_all == True or metric_dest[name] == "r" or metric_dest[name] == "b"):
+    r.rpush(name, str(time.time())+':'+string.split()[1].decode())
