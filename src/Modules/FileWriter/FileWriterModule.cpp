@@ -121,12 +121,12 @@ void FileWriterModule::configure() {
 
   DEBUG("setup finished");
 
-  if (m_statistics) {
-    // Contruct variables for metrics
-    for (uint64_t chid = 0; chid < m_channels; chid++) {
-      m_channelMetrics[chid];
-    }
+  // Contruct variables for metrics
+  for (uint64_t chid = 0; chid < m_channels; chid++) {
+    m_channelMetrics[chid];
+  }
 
+  if (m_statistics) {
     std::string name = m_config.getName();
     // Register statistical variables
     for (auto & [ chid, metrics ] : m_channelMetrics) {
