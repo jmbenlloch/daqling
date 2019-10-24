@@ -13,9 +13,9 @@
     "port" : "6379"
   },
   "metrics": [
-    "RandomMetric1-int",
-    "RandomMetric2-float",
-    "RandomMetric3-dobule",
-    "RandomMetric8-double_average"
+    "RandomMetric1-int,i",
+    "RandomMetric2-float,w",
+    "RandomMetric3-dobule,b",
+    "RandomMetric8-double_average,r"
   ]     
 }
