@@ -56,7 +56,27 @@ void EventBuilderModule::stop() {
 void EventBuilderModule::runner() {
   DEBUG("Running...");
 
-  std::map<uint32_t, std::vector<daqling::utilities::Binary>> events;
+  std::unordered_map<uint32_t, std::vector<daqling::utilities::Binary>> events;
+  daqling::utilities::ReusableThread rt(0);
+  folly::ProducerConsumerQueue<unsigned> complete_seq(1000);
+
+  std::thread t(
+      [&](folly::ProducerConsumerQueue<unsigned> &seq_queue) {
+        DEBUG("thread");
+        while (m_run) {
+          unsigned seq;
+          while (!seq_queue.read(seq))
+            ;
+          DEBUG("seq " << seq);
+          daqling::utilities::Binary out;
+          for (auto &c : events[seq]) {
+            out += c;
+          }
+          m_connections.put(m_nreceivers, out);
+          events.erase(seq);
+        }
+      },
+      this, complete_seq);
 
   while (m_run) {
     bool received = false;
@@ -73,12 +93,7 @@ void EventBuilderModule::runner() {
         }
         if (events[seq_number].size() == m_nreceivers) {
           DEBUG("complete event");
-          daqling::utilities::Binary out;
-          for (auto &c : events[seq_number]) {
-            out += c;
-          }
-          m_connections.put(m_nreceivers, out);
-          events.erase(seq_number);
+          complete_seq.write(seq_number);
         }
       }
     }
@@ -86,5 +101,6 @@ void EventBuilderModule::runner() {
       std::this_thread::sleep_for(10ms);
     }
   }
+  t.join();
   DEBUG("Runner stopped");
 }
