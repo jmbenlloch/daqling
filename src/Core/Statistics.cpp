@@ -24,6 +24,7 @@ Statistics::Statistics(std::unique_ptr<zmq::socket_t> &statSock, unsigned interv
   m_stop_thread = false;
   m_influxDb = false;
   m_zmq_publisher = false;
+  m_name = m_config.getName();
 }
 
 Statistics::~Statistics() {
@@ -42,10 +43,6 @@ bool Statistics::configure(unsigned interval) {
 void Statistics::start() {
   INFO("Start");
   m_stat_thread = std::thread(&Statistics::CheckStatistics, this);
-}
-
-void Statistics::registerCoreMetric(std::string name, std::atomic<size_t> *metric) {
-  m_registered_metrics.insert(std::make_pair(name, metric));
 }
 
 void Statistics::CheckStatistics() {

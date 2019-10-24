@@ -127,18 +127,17 @@ void FileWriterModule::configure() {
   }
 
   if (m_statistics) {
-    std::string name = m_config.getName();
     // Register statistical variables
     for (auto & [ chid, metrics ] : m_channelMetrics) {
-      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-          &metrics.bytes_written, fmt::format(name + "_BytesWritten_chid{}", chid),
-          daqling::core::metrics::RATE, daqling::core::metrics::SIZE);
-      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-          &metrics.payload_queue_size, fmt::format(name + "_PayloadQueueSize_chid{}", chid),
-          daqling::core::metrics::LAST_VALUE, daqling::core::metrics::SIZE);
-      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-          &metrics.payload_size, fmt::format(name + "_PayloadSize_chid{}", chid),
-          daqling::core::metrics::AVERAGE, daqling::core::metrics::SIZE);
+      m_statistics->registerMetric<std::atomic<size_t>>(&metrics.bytes_written,
+                                                        fmt::format("BytesWritten_chid{}", chid),
+                                                        daqling::core::metrics::RATE);
+      m_statistics->registerMetric<std::atomic<size_t>>(
+          &metrics.payload_queue_size, fmt::format("PayloadQueueSize_chid{}", chid),
+          daqling::core::metrics::LAST_VALUE);
+      m_statistics->registerMetric<std::atomic<size_t>>(&metrics.payload_size,
+                                                        fmt::format("PayloadSize_chid{}", chid),
+                                                        daqling::core::metrics::AVERAGE);
     }
     DEBUG("Metrics are setup");
   }

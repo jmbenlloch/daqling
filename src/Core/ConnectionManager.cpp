@@ -87,7 +87,7 @@ bool ConnectionManager::setupStatsConnection(uint8_t ioT, std::string connStr) {
   try {
     m_stats_context = std::make_unique<zmq::context_t>(ioT);
     m_stats_socket = std::make_unique<zmq::socket_t>(*(m_stats_context.get()), ZMQ_PUB);
-    m_stats_socket->bind(connStr);
+    m_stats_socket->connect(connStr);
     INFO(" Statistics are published on: " << connStr);
   } catch (std::exception &e) {
     ERROR(" Failed to add Stats publisher channel! ZMQ returned: " << e.what());

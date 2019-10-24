@@ -674,7 +674,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "eventbuilder01_EventMap-Size",
+          "measurement": "eventbuilder01-EventMap-Size",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -789,7 +789,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "filewriter01_BytesWritten_chid0",
+          "measurement": "filewriter01-BytesWritten_chid0",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -903,7 +903,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "filewriter01_PayloadSize_chid0",
+          "measurement": "filewriter01-PayloadSize_chid0",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -1017,7 +1017,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "filewriter01_PayloadQueueSize_chid0",
+          "measurement": "filewriter01-PayloadQueueSize_chid0",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -1089,7 +1089,7 @@
     "list": []
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1120,5 +1120,5 @@
   "timezone": "",
   "title": "DAQling demo",
   "uid": "ldySjqTZk",
-  "version": 6
+  "version": 9
 }

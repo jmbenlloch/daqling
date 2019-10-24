@@ -9,7 +9,7 @@
       "type": "MetricsSimulator",
       "loglevel": {"core": "INFO", "module": "DEBUG"},
       "settings": {
-        "stats_uri": "tcp://*:6007",
+        "stats_uri": "tcp://localhost:6007",
         "influxDb_uri": "http://localhost:8086/write?db=",
         "influxDb_name": "DAQlingMetrics"
       },
