@@ -89,7 +89,6 @@ public:
     auto statsURI = m_config.getSettings()["stats_uri"];
     auto influxDbURI = m_config.getSettings()["influxDb_uri"];
     auto influxDbName = m_config.getSettings()["influxDb_name"];
-    std::string name = m_config.getConfig()["name"];
     auto numConnections = m_config.getNumConnections();
 
     INFO("Setting up statistics on: " << statsURI);
@@ -107,10 +106,10 @@ public:
       m_statistics = std::make_unique<Statistics>(m_connections.getStatSocket());
       for (unsigned ch = 0; ch < numConnections; ch++) {
         m_statistics->registerMetric<std::atomic<size_t>>(
-            &m_connections.getQueueStat(ch), name + "-ch" + std::to_string(ch) + "-QueueSizeGuess",
+            &m_connections.getQueueStat(ch), "ch" + std::to_string(ch) + "-QueueSizeGuess",
             daqling::core::metrics::LAST_VALUE);
         m_statistics->registerMetric<std::atomic<size_t>>(
-            &m_connections.getMsgStat(ch), name + "-ch" + std::to_string(ch) + "-NumMessages",
+            &m_connections.getMsgStat(ch), "ch" + std::to_string(ch) + "-NumMessages",
             daqling::core::metrics::RATE);
       }
       if (statsURI != "" && statsURI != nullptr) {

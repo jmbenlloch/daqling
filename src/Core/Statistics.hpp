@@ -31,6 +31,7 @@
 #include <vector>
 /// \endcond
 
+#include "Configuration.hpp"
 #include "Metric.hpp"
 #include "Utils/Logging.hpp"
 #include "Utils/zhelpers.hpp"
@@ -55,6 +56,7 @@ public:
 
   template <class T>
   void registerMetric(T *pointer, std::string name, metrics::metric_type mtype, float delta_t = 1) {
+    name = m_name + "-" + name;
     if (typeid(T) == typeid(std::atomic<int>))
       registerVariable<T, int>(pointer, name, mtype, metrics::INT, delta_t);
     else if (typeid(T) == typeid(std::atomic<float>))
@@ -186,6 +188,9 @@ private:
 
   // Runner
   void CheckStatistics();
+
+  daqling::core::Configuration &m_config = daqling::core::Configuration::instance();
+  std::string m_name;
 };
 
 } // namespace core

@@ -35,9 +35,8 @@ void EventBuilderModule::configure() {
   DAQProcess::configure();
 
   if (m_statistics) {
-    std::string name = m_config.getName();
     // Register statistical variables
-    m_statistics->registerMetric<std::atomic<size_t>>(&eventmap_size, name + "_EventMap-Size",
+    m_statistics->registerMetric<std::atomic<size_t>>(&eventmap_size, "EventMap-Size",
                                                       daqling::core::metrics::LAST_VALUE);
   }
 }
