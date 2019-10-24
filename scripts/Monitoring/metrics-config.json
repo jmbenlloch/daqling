@@ -1,21 +1,21 @@
 {
   "zmq_settings": {
-    "host" : "localhost",
+    "host" : "*",
     "port" : "6007"
   },
   "influxDB_settings": {
     "host" : "localhost",
     "port" : "8086",
-    "name" : "DAQmetrics"
+    "name" : "DAQlingMetrics"
   },
   "redis_settings": {
     "host" : "localhost",
     "port" : "6379"
   },
   "metrics": [
-    "RandomMetric1-int,i",
-    "RandomMetric2-float,w",
-    "RandomMetric3-dobule,b",
-    "RandomMetric8-double_average,r"
+    "metricssimulator-RandomMetric1-int,i",
+    "metricssimulator-RandomMetric2-float,w",
+    "metricssimulator-RandomMetric3-dobule,b",
+    "metricssimulator-RandomMetric8-double_average,r"
   ]     
 }

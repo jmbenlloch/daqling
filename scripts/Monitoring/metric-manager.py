@@ -62,7 +62,7 @@ except Exception as e:
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
 
-socket.connect ("tcp://"+data_zmq["host"]+":"+data_zmq["port"])
+socket.bind("tcp://"+data_zmq["host"]+":"+data_zmq["port"])
 
 
 #read settings and configure influxDB
@@ -117,7 +117,7 @@ try:
 except Exception as e:
   socket.setsockopt_string(zmq.SUBSCRIBE, "")
   subscribe_all = True
-  print("Metrics configuration not provided - subscribing all possible metrices!")
+  print("Metrics configuration not provided - subscribing all possible metrics!")
 
 
 while 1:
