@@ -22,7 +22,12 @@
 - name: Install influxdb python package
   pip:
     name: "influxdb"
-    
+
+- name: Install influxdb python3 package
+  pip:
+    name: "influxdb"
+    executable: pip3
+
 - name: Create DAQlingMetrics database
   influxdb_database:
     hostname: "localhost"
