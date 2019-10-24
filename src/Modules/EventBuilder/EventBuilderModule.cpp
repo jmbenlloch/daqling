@@ -55,7 +55,7 @@ void EventBuilderModule::stop() {
 void EventBuilderModule::runner() {
   DEBUG("Running...");
 
-  std::map<uint32_t, std::vector<daqling::utilities::Binary>> events;
+  std::unordered_map<uint32_t, std::vector<daqling::utilities::Binary>> events;
 
   while (m_run) {
     bool received = false;
