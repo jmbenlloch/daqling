@@ -281,7 +281,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Number of messages per second",
+      "title": "Connection message rates",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -585,7 +585,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "QueueSize",
+      "title": "Connection queues",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -694,13 +694,49 @@
             ]
           ],
           "tags": []
+        },
+        {
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "eventbuilder01-CompleteEventQueue-SizeGuess",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": []
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "EventBuilder EventMap size",
+      "title": "EventBuilder event queues",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -815,7 +851,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "FileWriter Bytes written",
+      "title": "FileWriter bytes written",
       "tooltip": {
         "shared": true,
         "sort": 0,
