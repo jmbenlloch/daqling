@@ -37,13 +37,13 @@ class supervisor_wrapper:
   def getProcessState(self, name):
     return self.server.supervisor.getProcessInfo(self.group+":"+name)
 
-  def addProgramToGroup(self, name, exe, dir, env):
+  def addProgramToGroup(self, name, exe, dir, env, command=""):
     now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     user = getpass.getuser()
     log_file = "/log/"+name+"-"+user+"-"+now+".log"
     print("tail -f "+log_file)
     settings = {
-        'command': dir+exe,
+        'command': command+" "+dir+exe,
         'directory': dir,
         'autorestart': 'false',
         'startretries': '0',

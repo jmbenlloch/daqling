@@ -38,12 +38,12 @@ class daqcontrol:
         if sd.getProcessState(p['name'])['statename'] == 'RUNNING':
           try:
             print('Stop', sd.stopProcess(p['name']))
-          except:
-            print("Exception: cannot stop process",
+          except Exception as e:
+            print("Exception",str(e),": cannot stop process",
                   p['name'], "(probably already stopped)")
         print('Remove', sd.removeProcessFromGroup(p['name']))
-      except:
-        print("Exception: Couldn't get process state")
+      except Exception as e:
+        print("Exception",str(e),": Couldn't get process state")
 
   def addProcesses(self, components):
     log_files = []
@@ -54,8 +54,8 @@ class daqcontrol:
             p['name'], self.exe+" "+str(p['port'])+" "+p['loglevel']['core']+" "+p['loglevel']['module'], self.dir, self.lib_path)
         print("Add", rv)
         log_files.append(log_file)
-      except:
-        print("Exception:\n  cannot add program", p['name'], "(probably already added)")
+      except Exception as e:
+        print("Exception",str(e),": cannot add program", p['name'], "(probably already added)")
     return log_files
 
   def handleRequest(self, host, port, request, config=None):
@@ -73,7 +73,7 @@ class daqcontrol:
       # print(reply)
       return reply, False
     except:
-      print("Timeout occurred")
+      print("Exception: Timeout occurred")
       return b'', True
 
   def configureProcess(self, p):
