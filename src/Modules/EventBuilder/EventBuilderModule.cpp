@@ -24,7 +24,7 @@
 
 using namespace std::chrono_literals;
 
-EventBuilderModule::EventBuilderModule() : eventmap_size{0} {
+EventBuilderModule::EventBuilderModule() : m_eventmap_size{0}, m_complete_ev_size_guess{0} {
   DEBUG("With config: " << m_config.dump() << " getState: " << this->getState());
   m_nreceivers = m_config.getConnections()["receivers"].size();
 }
@@ -36,7 +36,10 @@ void EventBuilderModule::configure() {
 
   if (m_statistics) {
     // Register statistical variables
-    m_statistics->registerMetric<std::atomic<size_t>>(&eventmap_size, "EventMap-Size",
+    m_statistics->registerMetric<std::atomic<size_t>>(&m_eventmap_size, "EventMap-Size",
+                                                      daqling::core::metrics::LAST_VALUE);
+    m_statistics->registerMetric<std::atomic<size_t>>(&m_complete_ev_size_guess,
+                                                      "CompleteEventQueue-SizeGuess",
                                                       daqling::core::metrics::LAST_VALUE);
   }
 }
@@ -57,24 +60,23 @@ void EventBuilderModule::runner() {
   std::unordered_map<uint32_t, std::vector<daqling::utilities::Binary>> events;
   daqling::utilities::ReusableThread rt(0);
   folly::ProducerConsumerQueue<unsigned> complete_seq(1000);
+  std::mutex mtx;
 
-  std::thread t(
-      [&](folly::ProducerConsumerQueue<unsigned> &seq_queue) {
-        DEBUG("thread");
-        while (m_run) {
-          unsigned seq;
-          while (!seq_queue.read(seq))
-            ;
-          DEBUG("seq " << seq);
-          daqling::utilities::Binary out;
-          for (auto &c : events[seq]) {
-            out += c;
-          }
-          m_connections.put(m_nreceivers, out);
-          events.erase(seq);
-        }
-      },
-      this, complete_seq);
+  std::thread consumer{[&]() {
+    while (m_run) {
+      unsigned seq;
+      while (!complete_seq.read(seq) && m_run)
+        std::this_thread::sleep_for(10ms);
+      daqling::utilities::Binary out;
+      mtx.lock();
+      for (auto &c : events[seq]) {
+        out += c;
+      }
+      events.erase(seq);
+      mtx.unlock();
+      m_connections.put(m_nreceivers, out);
+    }
+  }};
 
   while (m_run) {
     bool received = false;
@@ -84,21 +86,23 @@ void EventBuilderModule::runner() {
         unsigned seq_number;
         data_t *d = static_cast<data_t *>(b.data());
         seq_number = d->header.seq_number;
+        mtx.lock();
         events[seq_number].push_back(b);
-        received = true;
-        if (m_statistics) {
-          eventmap_size = events.size();
-        }
         if (events[seq_number].size() == m_nreceivers) {
-          DEBUG("complete event");
           complete_seq.write(seq_number);
         }
+        if (m_statistics) {
+          m_eventmap_size = events.size();
+          m_complete_ev_size_guess = complete_seq.sizeGuess();
+        }
+        mtx.unlock();
+        received = true;
       }
     }
     if (!received) {
       std::this_thread::sleep_for(10ms);
     }
   }
-  t.join();
+  consumer.join();
   DEBUG("Runner stopped");
 }

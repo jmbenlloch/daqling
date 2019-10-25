@@ -22,7 +22,8 @@
 class EventBuilderModule : public daqling::core::DAQProcess {
 
   unsigned m_nreceivers;
-  std::atomic<size_t> eventmap_size;
+  std::atomic<size_t> m_eventmap_size;
+  std::atomic<size_t> m_complete_ev_size_guess;
 
 public:
   EventBuilderModule();
