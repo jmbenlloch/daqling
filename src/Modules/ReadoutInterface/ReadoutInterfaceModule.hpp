@@ -35,4 +35,5 @@ public:
 private:
   unsigned m_board_id;
   std::chrono::microseconds m_delay_us;
+  size_t m_min_payload, m_max_payload;
 };

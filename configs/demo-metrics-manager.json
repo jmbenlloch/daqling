@@ -11,6 +11,7 @@
       "settings": {
         "board_id": 0,
         "delay_us": 100,
+        "payload": {"min": 200, "max": 1500},
         "stats_uri": "tcp://localhost:6007"
       },
       "connections": {
@@ -34,6 +35,7 @@
       "settings": {
         "board_id": 1,
         "delay_us": 100,
+        "payload": {"min": 200, "max": 1500},
         "stats_uri": "tcp://localhost:6007"
       },
       "connections": {

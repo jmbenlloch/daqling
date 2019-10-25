@@ -31,6 +31,8 @@ ReadoutInterfaceModule::ReadoutInterfaceModule() {
 
   m_board_id = m_config.getSettings()["board_id"];
   m_delay_us = std::chrono::microseconds(m_config.getSettings()["delay_us"]);
+  m_min_payload = m_config.getSettings()["payload"]["min"];
+  m_max_payload = m_config.getSettings()["payload"]["max"];
 }
 
 ReadoutInterfaceModule::~ReadoutInterfaceModule() {}
@@ -51,7 +53,7 @@ void ReadoutInterfaceModule::runner() {
 
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<> dis(200, 1500);
+  std::uniform_int_distribution<> dis(m_min_payload, m_max_payload);
 
   DEBUG("Running...");
   while (m_run) {
