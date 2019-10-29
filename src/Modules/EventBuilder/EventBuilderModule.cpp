@@ -95,7 +95,8 @@ void EventBuilderModule::runner() {
         seq_number = d->header.seq_number;
         // check sequence number
         if (prev_seq[ch] + 1 != seq_number && seq_number != 0) {
-          ERROR("Sequence number for channel " << ch << " is broken! Previous = " << prev_seq[ch] << " while current = " << seq_number);
+          ERROR("Sequence number for channel " << ch << " is broken! Previous = " << prev_seq[ch]
+                                               << " while current = " << seq_number);
           throw;
         }
         prev_seq[ch] = seq_number;
