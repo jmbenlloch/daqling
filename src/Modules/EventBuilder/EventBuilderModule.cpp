@@ -74,9 +74,16 @@ void EventBuilderModule::runner() {
       }
       events.erase(seq);
       mtx.unlock();
-      m_connections.put(m_nreceivers, out);
+      while (!m_connections.put(m_nreceivers, out) && m_run) {
+        WARNING("put() failed. Trying again");
+        std::this_thread::sleep_for(1ms);
+      }
     }
   }};
+
+  // store previous sequence number per channel
+  std::vector<unsigned> prev_seq = {0};
+  prev_seq.reserve(m_nreceivers);
 
   while (m_run) {
     bool received = false;
@@ -86,6 +93,12 @@ void EventBuilderModule::runner() {
         unsigned seq_number;
         data_t *d = static_cast<data_t *>(b.data());
         seq_number = d->header.seq_number;
+        // check sequence number
+        if (prev_seq[ch] + 1 != seq_number && seq_number != 0) {
+          ERROR("Sequence number for channel " << ch << " is broken! Previous = " << prev_seq[ch] << " while current = " << seq_number);
+          throw;
+        }
+        prev_seq[ch] = seq_number;
         mtx.lock();
         events[seq_number].push_back(b);
         if (events[seq_number].size() == m_nreceivers) {
