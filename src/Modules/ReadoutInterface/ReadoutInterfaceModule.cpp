@@ -33,9 +33,17 @@ ReadoutInterfaceModule::ReadoutInterfaceModule() {
   m_delay_us = std::chrono::microseconds(m_config.getSettings()["delay_us"]);
   m_min_payload = m_config.getSettings()["payload"]["min"];
   m_max_payload = m_config.getSettings()["payload"]["max"];
+
+  m_pause = false;
+  registerCommand("pause", "paused", &ReadoutInterfaceModule::pause, this);
+  registerCommand("unpause", "running", &ReadoutInterfaceModule::unpause, this);
 }
 
 ReadoutInterfaceModule::~ReadoutInterfaceModule() {}
+
+void ReadoutInterfaceModule::pause() { m_pause = true; }
+
+void ReadoutInterfaceModule::unpause() { m_pause = false; }
 
 void ReadoutInterfaceModule::start(unsigned run_num) {
   DAQProcess::start(run_num);
@@ -57,6 +65,12 @@ void ReadoutInterfaceModule::runner() {
 
   DEBUG("Running...");
   while (m_run) {
+    if (m_pause) {
+      INFO("Paused at sequence number " << sequence_number);
+      while (m_pause && m_run) {
+        std::this_thread::sleep_for(10ms);
+      }
+    }
     timestamp = duration_cast<microseconds>(system_clock::now().time_since_epoch());
     const unsigned payload_size = static_cast<unsigned>(dis(gen));
     const unsigned total_size = sizeof(header_t) + sizeof(char) * payload_size;
