@@ -24,7 +24,6 @@
 #ifndef DAQLING_CORE_DAQPROCESS_HPP
 #define DAQLING_CORE_DAQPROCESS_HPP
 
-#include "Configuration.hpp"
 #include "ConnectionManager.hpp"
 #include "Statistics.hpp"
 

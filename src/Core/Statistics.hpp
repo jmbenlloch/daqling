@@ -33,7 +33,6 @@
 
 #include "Configuration.hpp"
 #include "Metric.hpp"
-#include "Utils/Logging.hpp"
 #include "Utils/zhelpers.hpp"
 
 namespace daqling {
