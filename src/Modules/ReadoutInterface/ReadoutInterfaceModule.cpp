@@ -78,7 +78,10 @@ void ReadoutInterfaceModule::runner() {
     // print binary
     // INFO("\n" << binary);
 
-    m_connections.put(0, binary);
+    while (!m_connections.put(0, binary) && m_run) {
+      WARNING("put() failed. Trying again");
+      std::this_thread::sleep_for(1ms);
+    };
 
     sequence_number++;
     if (sequence_number == UINT32_MAX) {

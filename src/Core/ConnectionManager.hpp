@@ -83,8 +83,8 @@ public:
    * @return true when binary file is successfully passed
    */
   bool get(unsigned chn, daqling::utilities::Binary &bin);
-  void put(unsigned chn, daqling::utilities::Binary &msgBin);
-  void putStr(unsigned chn, const std::string &string);
+  bool put(unsigned chn, daqling::utilities::Binary &msgBin);
+  bool putStr(unsigned chn, const std::string &string);
   std::string getStr(unsigned chn);
 
   // Start/stop socket processors
