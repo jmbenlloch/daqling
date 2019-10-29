@@ -218,7 +218,7 @@ bool ConnectionManager::addSubscribeHandler(unsigned chn) {
     while (!m_stop_handlers) {
       zmq::message_t msg;
       if (m_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) {
-        while (!m_pcqs[chn]->write(std::move(msg) && !m_stop_handlers)) {
+        while (!m_pcqs[chn]->write(std::move(msg)) && !m_stop_handlers) {
           WARNING("Waiting queue to allow write");
           std::this_thread::sleep_for(1ms);
         }
