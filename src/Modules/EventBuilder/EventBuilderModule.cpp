@@ -63,7 +63,7 @@ void EventBuilderModule::runner() {
   std::mutex mtx;
 
   std::thread consumer{[&]() {
-    while (m_run) {
+    while (m_run || complete_seq.sizeGuess() != 0) { // finish to process complete events
       unsigned seq;
       while (!complete_seq.read(seq) && m_run)
         std::this_thread::sleep_for(1ms);
