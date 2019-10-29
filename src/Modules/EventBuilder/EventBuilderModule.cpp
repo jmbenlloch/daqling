@@ -66,13 +66,17 @@ void EventBuilderModule::runner() {
     while (m_run) {
       unsigned seq;
       while (!complete_seq.read(seq) && m_run)
-        std::this_thread::sleep_for(10ms);
+        std::this_thread::sleep_for(1ms);
       daqling::utilities::Binary out;
       mtx.lock();
       for (auto &c : events[seq]) {
         out += c;
       }
       events.erase(seq);
+      if (m_statistics) {
+        m_eventmap_size = events.size();
+        m_complete_ev_size_guess = complete_seq.sizeGuess();
+      }
       mtx.unlock();
       while (!m_connections.put(m_nreceivers, out) && m_run) {
         WARNING("put() failed. Trying again");
@@ -105,16 +109,12 @@ void EventBuilderModule::runner() {
         if (events[seq_number].size() == m_nreceivers) {
           complete_seq.write(seq_number);
         }
-        if (m_statistics) {
-          m_eventmap_size = events.size();
-          m_complete_ev_size_guess = complete_seq.sizeGuess();
-        }
         mtx.unlock();
         received = true;
       }
     }
     if (!received) {
-      std::this_thread::sleep_for(10ms);
+      std::this_thread::sleep_for(1ms);
     }
   }
   consumer.join();
