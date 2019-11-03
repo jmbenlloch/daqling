@@ -24,7 +24,6 @@
 #ifndef DAQLING_CORE_DAQPROCESS_HPP
 #define DAQLING_CORE_DAQPROCESS_HPP
 
-#include "Configuration.hpp"
 #include "ConnectionManager.hpp"
 #include "Statistics.hpp"
 
@@ -86,9 +85,11 @@ public:
 
   bool setupStatistics() { // TODO
 
-    auto statsURI = m_config.getConfig()["settings"]["stats_uri"];
-    auto influxDbURI = m_config.getConfig()["settings"]["influxDb_uri"];
-    auto influxDbName = m_config.getConfig()["settings"]["influxDb_name"];
+    auto statsURI = m_config.getSettings()["stats_uri"];
+    auto influxDbURI = m_config.getSettings()["influxDb_uri"];
+    auto influxDbName = m_config.getSettings()["influxDb_name"];
+    auto numConnections = m_config.getNumConnections();
+
     INFO("Setting up statistics on: " << statsURI);
     if ((statsURI == "" || statsURI == nullptr) && (influxDbURI == "" || influxDbURI == nullptr)) {
       INFO("No Statistics settings were provided... Running without stats.");
@@ -101,14 +102,15 @@ public:
           return false;
         }
       }
-
       m_statistics = std::make_unique<Statistics>(m_connections.getStatSocket());
-      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-          &m_connections.getQueueStat(1), "CHN0-QueueSizeGuess", daqling::core::metrics::LAST_VALUE,
-          daqling::core::metrics::SIZE);
-      m_statistics->registerVariable<std::atomic<size_t>, size_t>(
-          &m_connections.getMsgStat(1), "CHN0-NumMessages", daqling::core::metrics::LAST_VALUE,
-          daqling::core::metrics::SIZE);
+      for (unsigned ch = 0; ch < numConnections; ch++) {
+        m_statistics->registerMetric<std::atomic<size_t>>(
+            &m_connections.getQueueStat(ch), "ch" + std::to_string(ch) + "-QueueSizeGuess",
+            daqling::core::metrics::LAST_VALUE);
+        m_statistics->registerMetric<std::atomic<size_t>>(
+            &m_connections.getMsgStat(ch), "ch" + std::to_string(ch) + "-NumMessages",
+            daqling::core::metrics::RATE);
+      }
       if (statsURI != "" && statsURI != nullptr) {
         m_statistics->setZMQpublishing(true);
         m_stats_on = true;

@@ -27,29 +27,23 @@
 /// \endcond
 
 #include "Core/DAQProcess.hpp"
-#include "Core/DataLogger.hpp"
 #include "Utils/Binary.hpp"
 #include "Utils/ProducerConsumerQueue.hpp"
 
 /**
  * Module for writing your acquired data to file.
  */
-class FileDataWriterModule : public daqling::core::DAQProcess, public daqling::core::DataLogger {
+class FileWriterModule : public daqling::core::DAQProcess {
 public:
-  FileDataWriterModule();
-  ~FileDataWriterModule();
+  FileWriterModule();
+  ~FileWriterModule();
 
+  void configure();
   void start(unsigned run_num);
   void stop();
   void runner();
 
   void monitor_runner();
-
-  void setup();
-  void write();
-  void read();
-  bool write(uint64_t keyId, daqling::utilities::Binary &payload);
-  void shutdown();
 
 private:
   struct ThreadContext {
@@ -63,7 +57,7 @@ private:
   struct Metrics {
     std::atomic<size_t> bytes_written = 0;
     std::atomic<size_t> payload_queue_size = 0;
-    std::atomic<size_t> payload_queue_bytes = 0;
+    std::atomic<size_t> payload_size = 0;
   };
 
   size_t m_buffer_size;

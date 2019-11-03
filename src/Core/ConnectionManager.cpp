@@ -87,7 +87,7 @@ bool ConnectionManager::setupStatsConnection(uint8_t ioT, std::string connStr) {
   try {
     m_stats_context = std::make_unique<zmq::context_t>(ioT);
     m_stats_socket = std::make_unique<zmq::socket_t>(*(m_stats_context.get()), ZMQ_PUB);
-    m_stats_socket->bind(connStr);
+    m_stats_socket->connect(connStr);
     INFO(" Statistics are published on: " << connStr);
   } catch (std::exception &e) {
     ERROR(" Failed to add Stats publisher channel! ZMQ returned: " << e.what());
@@ -172,7 +172,10 @@ bool ConnectionManager::addReceiveHandler(unsigned chn) {
     while (!m_stop_handlers) {
       zmq::message_t msg;
       if (m_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) {
-        m_pcqs[chn]->write(std::move(msg));
+        while (!m_pcqs[chn]->write(std::move(msg)) && !m_stop_handlers) {
+          WARNING("Waiting queue to allow write");
+          std::this_thread::sleep_for(1ms);
+        }
         m_numMsgsHandled[chn]++;
         // DEBUG("    -> wrote to queue");
       } else {
@@ -215,7 +218,10 @@ bool ConnectionManager::addSubscribeHandler(unsigned chn) {
     while (!m_stop_handlers) {
       zmq::message_t msg;
       if (m_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) {
-        m_pcqs[chn]->write(std::move(msg));
+        while (!m_pcqs[chn]->write(std::move(msg)) && !m_stop_handlers) {
+          WARNING("Waiting queue to allow write");
+          std::this_thread::sleep_for(1ms);
+        }
         m_numMsgsHandled[chn]++;
         // DEBUG("    -> wrote to queue");
       } else {
@@ -262,16 +268,16 @@ bool ConnectionManager::get(unsigned chn, daqling::utilities::Binary &bin) {
   return false;
 }
 
-void ConnectionManager::put(unsigned chn, daqling::utilities::Binary &msgBin) {
+bool ConnectionManager::put(unsigned chn, daqling::utilities::Binary &msgBin) {
   zmq::message_t message(msgBin.size());
   memcpy(message.data(), msgBin.data(), msgBin.size());
-  m_pcqs[chn]->write(std::move(message));
+  return m_pcqs[chn]->write(std::move(message));
 }
 
-void ConnectionManager::putStr(unsigned chn, const std::string &string) {
+bool ConnectionManager::putStr(unsigned chn, const std::string &string) {
   zmq::message_t message(string.size());
   memcpy(message.data(), string.data(), string.size());
-  m_pcqs[chn]->write(std::move(message));
+  return m_pcqs[chn]->write(std::move(message));
 }
 
 std::string ConnectionManager::getStr(unsigned chn) {

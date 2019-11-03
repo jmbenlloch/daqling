@@ -1,7 +1,7 @@
 export DAQ_CONFIG_DIR=$PWD/configs/
 export DAQ_BUILD_DIR=$PWD/build/
-di_path=$(find -name daqinterface.py | cut -c3-)
-alias daqinterface='python3 $PWD/$di_path'
+di_path=$(find -name daq.py | cut -c3-)
+alias daqpy='python3 $PWD/$di_path'
 
 echo "Custom compiler, installed by Ansible from OHPC."
 
@@ -19,4 +19,6 @@ export TBB_ROOT_DIR=/opt/tbb-2019_U5
 export BOOST_VERSION=1.70
 export BOOST_ROOT_DIR=/opt/boost
 
-source /opt/rh/llvm-toolset-7/enable
+if [ -f "/opt/rh/llvm-toolset-7/enable" ]; then
+  source /opt/rh/llvm-toolset-7/enable
+fi

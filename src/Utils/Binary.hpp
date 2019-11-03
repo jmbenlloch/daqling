@@ -22,6 +22,8 @@
  * Binary
  * Description:
  *   A convenient wrapper around a dynamically sized, continous memory area.
+ *   Based on the idea of the void* wrapper from CORAL
+ *   https://twiki.cern.ch/twiki/bin/view/Persistency/Coral
  */
 
 /// \cond

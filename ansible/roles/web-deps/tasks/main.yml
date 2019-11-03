@@ -1,38 +1,62 @@
 - name: Install gunicorn
-  command: pip3 install gunicorn
+  pip:
+    name: gunicorn
+    executable: pip3
 
 - name: Install gevent
-  command: pip3 install gevent
+  pip:
+    name: gevent
+    executable: pip3
 
 - name: Install redis client
-  command: pip3 install redis
+  pip:
+    name: redis
+    executable: pip3
 
 - name: Install flask
-  command: pip3 install Flask
+  pip:
+    name: Flask
+    executable: pip3
 
 - name: Install flask-redis
-  command: pip3 install Flask-Redis
+  pip:
+    name: Flask-Redis
+    executable: pip3
 
 - name: Install flask-caching
-  command: pip3 install Flask-Caching
+  pip:
+    name: Flask-Caching
+    executable: pip3
 
 - name: Install flask-restful
-  command: pip3 install Flask-Restful
+  pip:
+    name: Flask-Restful
+    executable: pip3
 
 - name: Install apispec
-  command: pip3 install apispec
+  pip:
+    name: apispec
+    executable: pip3
 
 - name: Install marshmallow
-  command: pip3 install marshmallow
+  pip:
+    name: marshmallow
+    executable: pip3
 
 - name: Install webargs
-  command: pip3 install webargs
+  pip:
+    name: webargs
+    executable: pip3
 
 - name: Install flask-apispec
-  command: pip3 install flask-apispec
+  pip:
+    name: flask-apispec
+    executable: pip3
 
 - name: Install flask-login
-  command: pip3 install flask-login
+  pip:
+    name: flask-login
+    executable: pip3
 
 - name: Open port 5000 on firewalld for Flask
   firewalld:

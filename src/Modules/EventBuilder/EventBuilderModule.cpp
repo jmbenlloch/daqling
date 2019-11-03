@@ -19,15 +19,30 @@
 #include <chrono>
 /// \endcond
 
+#include "Common/DataFormat.hpp"
 #include "EventBuilderModule.hpp"
 
 using namespace std::chrono_literals;
 
-EventBuilderModule::EventBuilderModule() {
+EventBuilderModule::EventBuilderModule() : m_eventmap_size{0}, m_complete_ev_size_guess{0} {
   DEBUG("With config: " << m_config.dump() << " getState: " << this->getState());
+  m_nreceivers = m_config.getConnections()["receivers"].size();
 }
 
 EventBuilderModule::~EventBuilderModule() {}
+
+void EventBuilderModule::configure() {
+  DAQProcess::configure();
+
+  if (m_statistics) {
+    // Register statistical variables
+    m_statistics->registerMetric<std::atomic<size_t>>(&m_eventmap_size, "EventMap-Size",
+                                                      daqling::core::metrics::LAST_VALUE);
+    m_statistics->registerMetric<std::atomic<size_t>>(&m_complete_ev_size_guess,
+                                                      "CompleteEventQueue-SizeGuess",
+                                                      daqling::core::metrics::LAST_VALUE);
+  }
+}
 
 void EventBuilderModule::start(unsigned run_num) {
   DAQProcess::start(run_num);
@@ -41,19 +56,67 @@ void EventBuilderModule::stop() {
 
 void EventBuilderModule::runner() {
   DEBUG("Running...");
-  while (m_run) {
-    daqling::utilities::Binary b1, b2;
-    while (!m_connections.get(1, b1) && m_run) {
-      std::this_thread::sleep_for(10ms);
-    }
-    while (!m_connections.get(2, b2) && m_run) {
-      std::this_thread::sleep_for(10ms);
-    }
 
-    daqling::utilities::Binary b3(b1);
-    b3 += b2;
-    INFO("Size of build event: " << b3.size());
-    m_connections.put(3, b3);
+  std::unordered_map<uint32_t, std::vector<daqling::utilities::Binary>> events;
+  daqling::utilities::ReusableThread rt(0);
+  folly::ProducerConsumerQueue<unsigned> complete_seq(1000);
+  std::mutex mtx;
+
+  std::thread consumer{[&]() {
+    while (m_run || complete_seq.sizeGuess() != 0) { // finish to process complete events
+      unsigned seq;
+      while (!complete_seq.read(seq) && m_run)
+        std::this_thread::sleep_for(1ms);
+      daqling::utilities::Binary out;
+      mtx.lock();
+      for (auto &c : events[seq]) {
+        out += c;
+      }
+      events.erase(seq);
+      if (m_statistics) {
+        m_eventmap_size = events.size();
+        m_complete_ev_size_guess = complete_seq.sizeGuess();
+      }
+      mtx.unlock();
+      while (!m_connections.put(m_nreceivers, out) && m_run) {
+        WARNING("put() failed. Trying again");
+        std::this_thread::sleep_for(1ms);
+      }
+    }
+  }};
+
+  // store previous sequence number per channel
+  std::vector<unsigned> prev_seq = {0};
+  prev_seq.reserve(m_nreceivers);
+
+  while (m_run) {
+    bool received = false;
+    for (unsigned ch = 0; ch < m_nreceivers; ch++) {
+      daqling::utilities::Binary b;
+      if (m_connections.get(ch, std::ref(b))) {
+        unsigned seq_number;
+        data_t *d = static_cast<data_t *>(b.data());
+        seq_number = d->header.seq_number;
+        // check sequence number
+        if (prev_seq[ch] + 1 != seq_number && seq_number != 0) {
+          ERROR("Sequence number for channel " << ch << " is broken! Previous = " << prev_seq[ch]
+                                               << " while current = " << seq_number);
+          throw;
+        }
+        prev_seq[ch] = seq_number;
+        mtx.lock();
+        events[seq_number].push_back(b);
+        if (events[seq_number].size() == m_nreceivers) {
+          complete_seq.write(seq_number);
+        }
+        mtx.unlock();
+        received = true;
+      }
+    }
+    if (!received) {
+      std::this_thread::sleep_for(1ms);
+    }
   }
+  consumer.join();
   DEBUG("Runner stopped");
 }

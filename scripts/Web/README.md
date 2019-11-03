@@ -25,17 +25,17 @@ To run the full metrics example:
 
 1. run the metrics publisher:
 
-    ./build/bin/test_metrics
+       ./build/bin/test_metrics
 
 2. run test server:
 
-    cd scripts/Web
-    python3 rest.py
+       cd scripts/Web
+       python3 rest.py
 
 3. run metrics subscriber:
 
-    cd scripts/Monitoring/
-    python3 metrics_sub.py
+       cd scripts/Monitoring/
+       python3 metrics_sub.py
 
 Go to URL:
 

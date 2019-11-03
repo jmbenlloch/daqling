@@ -3,7 +3,7 @@
     name: "{{ libraries }}"
   vars:
     libraries:
-    # - cereal-devel
+    - python-devel
     - boost-devel
     - spdlog-devel
     - cppzmq-devel

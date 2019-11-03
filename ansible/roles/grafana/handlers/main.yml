@@ -1,5 +1,0 @@
-- name: restart grafana-server
-  service:
-    name: grafana-server
-    #daemon_reload: yes
-    state: restarted

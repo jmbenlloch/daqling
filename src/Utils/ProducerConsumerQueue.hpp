@@ -33,7 +33,6 @@
 /// \endcond
 
 #include "Align.hpp"
-#include "Logging.hpp"
 
 namespace folly {
 
@@ -70,15 +69,9 @@ template <class T> struct ProducerConsumerQueue {
     if (!records_) {
       throw std::bad_alloc();
     }
-    // INFO("folly::ProducerConsumerQueue::ProducerConsumerQueue")
-    //  << "SPSC -> Queue<"<<type_name<T>()<<"> created! "
-    //  << "Size:" << size << " allocated:" << (sizeof(T)*size)/1024/1024 << "[MBytes] "
-    //  << sizeof(T)*size << "[Bytes]";
   }
 
   ~ProducerConsumerQueue() {
-    // INFO("folly::ProducerConsumerQueue::~ProducerConsumerQueue")
-    //  << "SPSC -> Flushing Queue<" <<type_name<T>()<<">! Population: " << sizeGuess();
     // We need to destruct anything that may still exist in our queue.
     // (No real synchronization needed at destructor time: only one
     // thread can be doing this.)
@@ -100,7 +93,6 @@ template <class T> struct ProducerConsumerQueue {
     auto const currentWrite = writeIndex_.load(std::memory_order_relaxed);
     auto nextRecord = currentWrite + 1;
     if (nextRecord == size_) {
-      // INFO("folly::ProducerConsumerQueue::write") << "*** write turnaround ***";
       nextRecord = 0;
     }
     // if (nextRecord == readIndex_.load(std::memory_order_acquire)) {
@@ -156,7 +148,6 @@ template <class T> struct ProducerConsumerQueue {
 
     auto nextRecord = currentRead + 1;
     if (nextRecord == size_) {
-      // INFO("folly::ProducerConsumerQueue::popFront()") <<"*** popFront turnaround ***" ;
       nextRecord = 0;
     }
 

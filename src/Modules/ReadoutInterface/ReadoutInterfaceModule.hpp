@@ -23,10 +23,13 @@
 
 #include "Core/DAQProcess.hpp"
 
-class BoardReaderModule : public daqling::core::DAQProcess {
+class ReadoutInterfaceModule : public daqling::core::DAQProcess {
+  void pause();
+  void unpause();
+
 public:
-  BoardReaderModule();
-  ~BoardReaderModule();
+  ReadoutInterfaceModule();
+  ~ReadoutInterfaceModule();
   void start(unsigned run_num);
   void stop();
 
@@ -34,4 +37,7 @@ public:
 
 private:
   unsigned m_board_id;
+  std::chrono::microseconds m_delay_us;
+  size_t m_min_payload, m_max_payload;
+  bool m_pause;
 };

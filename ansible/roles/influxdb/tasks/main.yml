@@ -12,10 +12,24 @@
     - restart firewalld
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
-- name: Enabling InfluxDB service
+- name: Enable and restart InfluxDB service
   systemd:
     name: influxdb
     enabled: yes
     daemon_reload: yes
-  notify:
-    - restart influxdb
+    state: restarted
+
+- name: Install influxdb python package
+  pip:
+    name: "influxdb"
+
+- name: Install influxdb python3 package
+  pip:
+    name: "influxdb"
+    executable: pip3
+
+- name: Create DAQlingMetrics database
+  influxdb_database:
+    hostname: "localhost"
+    database_name: "DAQlingMetrics"
+
