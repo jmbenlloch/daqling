@@ -73,7 +73,7 @@ public:
   bool unsetStatsConnection();
 
   // Add a channel (sockets and queues)
-  bool addChannel(unsigned chn, EDirection dir, const std::string &connStr, size_t queueSize);
+  bool addChannel(unsigned chn, EDirection dir, const std::string &connStr, size_t queueSize, unsigned filter=0, size_t filter_size=0);
   bool removeChannel(unsigned chn);
 
   // Getter/Putter for channels:

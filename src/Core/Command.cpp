@@ -74,9 +74,18 @@ bool daqling::core::Command::executeCommand(std::string &response) {
           ERROR("Unrecognized transport type");
           throw connection_failure();
         }
-        if (!cm.addChannel(it["chid"], dir, connStr.str(), 1000)) {
-          ERROR("addChannel failure!");
-          throw connection_failure();
+        if (it.contains("filter") && it.contains("filter_size")) {
+          if (!cm.addChannel(it["chid"], dir, connStr.str(), 1000, it["filter"],
+                             it["filter_size"])) {
+            ERROR("addChannel failure!");
+            throw connection_failure();
+          }
+
+        } else {
+          if (!cm.addChannel(it["chid"], dir, connStr.str(), 1000)) {
+            ERROR("addChannel failure!");
+            throw connection_failure();
+          }
         }
       }
 
