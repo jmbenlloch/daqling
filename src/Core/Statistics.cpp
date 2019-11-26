@@ -28,8 +28,10 @@ Statistics::Statistics(std::unique_ptr<zmq::socket_t> &statSock, unsigned interv
 }
 
 Statistics::~Statistics() {
+  std::unique_lock<std::mutex> lck(m_mtx);
   m_reg_metrics.clear();
   m_reg_metrics.shrink_to_fit();
+  lck.unlock();
   m_stop_thread = true;
   if (m_stat_thread.joinable())
     m_stat_thread.join();
@@ -49,7 +51,7 @@ void Statistics::CheckStatistics() {
   INFO("Statistics thread about to spawn...");
 
   while (!m_stop_thread) {
-
+    std::unique_lock<std::mutex> lck(m_mtx);
     for (auto &m : m_reg_metrics) {
       Metric_base *x = m.get();
       if (x->m_mtype == metrics::AVERAGE) {
@@ -112,6 +114,7 @@ void Statistics::CheckStatistics() {
         };
       }
     }
+    lck.unlock();
     std::this_thread::sleep_for(std::chrono::milliseconds(m_interval));
   }
 
