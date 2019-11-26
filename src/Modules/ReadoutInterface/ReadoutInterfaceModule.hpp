@@ -25,7 +25,7 @@
 
 class ReadoutInterfaceModule : public daqling::core::DAQProcess {
   void pause();
-  void unpause();
+  void resume();
 
 public:
   ReadoutInterfaceModule();

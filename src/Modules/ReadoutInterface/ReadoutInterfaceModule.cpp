@@ -36,14 +36,14 @@ ReadoutInterfaceModule::ReadoutInterfaceModule() {
 
   m_pause = false;
   registerCommand("pause", "paused", &ReadoutInterfaceModule::pause, this);
-  registerCommand("unpause", "running", &ReadoutInterfaceModule::unpause, this);
+  registerCommand("resume", "running", &ReadoutInterfaceModule::resume, this);
 }
 
 ReadoutInterfaceModule::~ReadoutInterfaceModule() {}
 
 void ReadoutInterfaceModule::pause() { m_pause = true; }
 
-void ReadoutInterfaceModule::unpause() { m_pause = false; }
+void ReadoutInterfaceModule::resume() { m_pause = false; }
 
 void ReadoutInterfaceModule::start(unsigned run_num) {
   DAQProcess::start(run_num);
