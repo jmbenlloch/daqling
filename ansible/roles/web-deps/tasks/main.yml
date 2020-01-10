@@ -33,6 +33,11 @@
     name: Flask-Restful
     executable: pip3
 
+- name: Install flask_scss
+  pip:
+    name: flask_scss
+    executable: pip3
+
 - name: Install apispec
   pip:
     name: apispec
