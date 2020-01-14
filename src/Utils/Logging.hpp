@@ -30,13 +30,14 @@
 #include <cassert>
 #include <memory>
 #include <sstream>
-#include <fstream>
+#include <iostream>
 /// \endcond
 
 #include "Common.hpp"
+#include "Utils/zhelpers.hpp"
 #include "hedley.h"
-#include "spdlog/spdlog.h"
 #include "spdlog/sinks/base_sink.h"
+#include "spdlog/spdlog.h"
 
 #undef SPDLOG_FUNCTION
 #define SPDLOG_FUNCTION __PRETTY_FUNCTION__
@@ -121,32 +122,34 @@ public:
   }
 };
 
-template<typename Mutex>
-class my_sink : public spdlog::sinks::base_sink <Mutex>
-{
- public:
-  my_sink() {
-    outfile.open("/tmp/new.txt", std::ofstream::out);
+template <typename Mutex> class zmq_sink : public spdlog::sinks::base_sink<Mutex> {
+public:
+  zmq_sink() {
+    m_context = std::make_unique<zmq::context_t>(1);
+    m_socket = std::make_unique<zmq::socket_t>(*(m_context.get()), ZMQ_PUB);
+    m_socket->connect("tcp://localhost:6542");
   }
 
-  std::ofstream outfile;
-
+private:
+  std::unique_ptr<zmq::context_t> m_context;
+  std::unique_ptr<zmq::socket_t> m_socket;
+  
 protected:
-    void sink_it_(const spdlog::details::log_msg& msg) override
-    {
-      fmt::memory_buffer formatted;
-      spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
-      outfile << fmt::to_string(formatted);
-    }
+  void sink_it_(const spdlog::details::log_msg &msg) override {
+    fmt::memory_buffer formatted;
+    spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
 
-    void flush_() override 
-    {
-      outfile << std::flush;
-    }
+    std::string str = fmt::to_string(formatted);
+    zmq::message_t message(str.size());
+    memcpy(message.data(), str.data(), str.size());
+    m_socket->send(message);
+  }
+
+  void flush_() override {}
 };
 
-using my_sink_mt = my_sink<std::mutex>;
-using my_sink_st = my_sink<spdlog::details::null_mutex>;
+using zmq_sink_mt = zmq_sink<std::mutex>;
+// using zmq_sink_st = my_sink<spdlog::details::null_mutex>;
 
 /**
  * Sets the log level of the logger instance.

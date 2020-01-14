@@ -39,8 +39,8 @@ int main(int argc, char **argv) {
 
   std::vector<spdlog::sink_ptr> sinks;
   sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
-  sinks.push_back(std::make_shared<daqling::utilities::my_sink_mt>());
-  
+  sinks.push_back(std::make_shared<daqling::utilities::zmq_sink_mt>());
+
   auto core_logger = std::make_shared<spdlog::logger>("core", begin(sinks), end(sinks));
   auto module_logger = std::make_shared<spdlog::logger>("module", begin(sinks), end(sinks));
 
@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
   // Parse and set log level for both logers
   auto core_ctx = std::make_tuple(core_logger, std::string(argv[2]), spdlog::level::info);
   auto module_ctx = std::make_tuple(module_logger, std::string(argv[3]), spdlog::level::debug);
-  for (auto[logger, supplied_lvl, default_lvl] : {core_ctx, module_ctx}) {
+  for (auto [logger, supplied_lvl, default_lvl] : {core_ctx, module_ctx}) {
     std::transform(supplied_lvl.begin(), supplied_lvl.end(), supplied_lvl.begin(), ::tolower);
 
     if (auto lvl = spdlog::level::from_str(supplied_lvl);
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
   // Update sink pattern if we are debug logging
   for (auto sink : sinks) {
     sink->set_pattern(sink_pattern(core_logger->level() <= spdlog::level::debug ||
-                                        module_logger->level() <= spdlog::level::debug));
+                                   module_logger->level() <= spdlog::level::debug));
   }
   int port = atoi(argv[1]);
   daqling::core::Core c(port, "tcp", "*");
