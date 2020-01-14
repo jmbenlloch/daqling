@@ -30,11 +30,13 @@
 #include <cassert>
 #include <memory>
 #include <sstream>
+#include <fstream>
 /// \endcond
 
 #include "Common.hpp"
 #include "hedley.h"
 #include "spdlog/spdlog.h"
+#include "spdlog/sinks/base_sink.h"
 
 #undef SPDLOG_FUNCTION
 #define SPDLOG_FUNCTION __PRETTY_FUNCTION__
@@ -118,6 +120,33 @@ public:
     return m_module_logger;
   }
 };
+
+template<typename Mutex>
+class my_sink : public spdlog::sinks::base_sink <Mutex>
+{
+ public:
+  my_sink() {
+    outfile.open("/tmp/new.txt", std::ofstream::out);
+  }
+
+  std::ofstream outfile;
+
+protected:
+    void sink_it_(const spdlog::details::log_msg& msg) override
+    {
+      fmt::memory_buffer formatted;
+      spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
+      outfile << fmt::to_string(formatted);
+    }
+
+    void flush_() override 
+    {
+      outfile << std::flush;
+    }
+};
+
+using my_sink_mt = my_sink<std::mutex>;
+using my_sink_st = my_sink<spdlog::details::null_mutex>;
 
 /**
  * Sets the log level of the logger instance.
