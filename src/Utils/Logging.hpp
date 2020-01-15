@@ -50,7 +50,7 @@
 #define LOG(LEVEL, MSG)                                                                            \
   do {                                                                                             \
     std::ostringstream writer;                                                                     \
-    writer << "[" << __METHOD_NAME__ << "] " << MSG;                                               \
+    writer << MSG;                                               \
     SPDLOG_LOGGER_CALL(daqling::utilities::Logger::instance(), LEVEL, writer.str());               \
   } while (0)
 
@@ -149,7 +149,12 @@ protected:
 };
 
 using zmq_sink_mt = zmq_sink<std::mutex>;
-// using zmq_sink_st = my_sink<spdlog::details::null_mutex>;
+
+static std::string sink_pattern() {
+  std::ostringstream pattern;
+  pattern << "[%Y-%m-%d %T.%e] [%n] [%l] [%@] [%!]  %v";
+  return pattern.str();
+}
 
 /**
  * Sets the log level of the logger instance.

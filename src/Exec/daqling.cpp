@@ -25,12 +25,6 @@
 using namespace std::chrono_literals;
 using logger = daqling::utilities::Logger;
 
-static std::string sink_pattern(const bool debug) {
-  std::ostringstream pattern;
-  pattern << "[%Y-%m-%d %T.%e] [%n] [%l] [%t]" << (debug ? " [%@]" : "") << " %v";
-  return pattern.str();
-}
-
 int main(int argc, char **argv) {
   if (argc < 4) {
     std::cerr << "Usage: " << argv[0] << " <command-port> <core-log-level> <module-log-level>\n";
@@ -46,7 +40,7 @@ int main(int argc, char **argv) {
 
   // Set default sink pattern
   for (auto sink : sinks) {
-    sink->set_pattern(sink_pattern(false));
+    sink->set_pattern(daqling::utilities::sink_pattern());
   }
 
   // Assign the logger globals, allowing us to use logging macros.
@@ -73,11 +67,6 @@ int main(int argc, char **argv) {
     }
   }
 
-  // Update sink pattern if we are debug logging
-  for (auto sink : sinks) {
-    sink->set_pattern(sink_pattern(core_logger->level() <= spdlog::level::debug ||
-                                   module_logger->level() <= spdlog::level::debug));
-  }
   int port = atoi(argv[1]);
   daqling::core::Core c(port, "tcp", "*");
 
