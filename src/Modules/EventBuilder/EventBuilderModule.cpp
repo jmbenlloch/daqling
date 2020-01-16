@@ -68,7 +68,7 @@ void EventBuilderModule::runner() {
       while (!complete_seq.read(seq) && m_run)
         std::this_thread::sleep_for(1ms);
       daqling::utilities::Binary out;
-      mtx.lock();
+      std::unique_lock<std::mutex> lck(mtx);
       for (auto &c : events[seq]) {
         out += c;
       }
@@ -77,7 +77,7 @@ void EventBuilderModule::runner() {
         m_eventmap_size = events.size();
         m_complete_ev_size_guess = complete_seq.sizeGuess();
       }
-      mtx.unlock();
+      lck.unlock();
       while (!m_connections.put(m_nreceivers, out) && m_run) {
         WARNING("put() failed. Trying again");
         std::this_thread::sleep_for(1ms);
@@ -104,12 +104,12 @@ void EventBuilderModule::runner() {
           throw;
         }
         prev_seq[ch] = seq_number;
-        mtx.lock();
+        std::unique_lock<std::mutex> lck(mtx);
         events[seq_number].push_back(b);
         if (events[seq_number].size() == m_nreceivers) {
           complete_seq.write(seq_number);
         }
-        mtx.unlock();
+        lck.unlock();
         received = true;
       }
     }

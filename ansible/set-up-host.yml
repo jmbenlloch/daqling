@@ -10,7 +10,7 @@
     - twiddler
     - { role: openhpc, tags: minimal }
     # - cvmfs
-    - control-deps
+    - { role: control-deps, tags: minimal }
     - { role: externals, tags: minimal }
   environment:
     LD_LIBRARY_PATH: "{{ lookup('env','LD_LIBRARY_PATH') }}" 

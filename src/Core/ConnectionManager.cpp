@@ -105,7 +105,7 @@ bool ConnectionManager::unsetStatsConnection() {
 }
 
 bool ConnectionManager::addChannel(unsigned chn, EDirection dir, const std::string &connStr,
-                                   size_t queueSize) {
+                                   size_t queueSize, unsigned filter, size_t filter_size) {
   // subscriber socket is an exception, as it can be connected to multiple endpoints
   if (m_sockets.find(chn) != m_sockets.end()) {
     if (dir == EDirection::SUBSCRIBER) {
@@ -144,7 +144,7 @@ bool ConnectionManager::addChannel(unsigned chn, EDirection dir, const std::stri
     } else if (dir == EDirection::SUBSCRIBER) {
       m_sockets[chn] = std::make_unique<zmq::socket_t>(*(m_contexts[chn].get()), ZMQ_SUB);
       m_sockets[chn]->connect(connStr.c_str());
-      m_sockets[chn]->setsockopt(ZMQ_SUBSCRIBE, "", 0); // TODO add a tag?
+      m_sockets[chn]->setsockopt(ZMQ_SUBSCRIBE, &filter, filter_size);
       INFO(" Adding SUBSCRIBER channel for: [" << chn << "] connect: " << connStr);
     }
   } catch (std::exception &e) {

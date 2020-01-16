@@ -80,9 +80,13 @@ print("Configuration Version:", data['version'])
 validate(instance=data, schema=schema)
 
 group = data['group']
-dir = env['DAQ_BUILD_DIR']
-exe = "bin/daqling"
-lib_path = 'LD_LIBRARY_PATH='+env['LD_LIBRARY_PATH']
+if 'path' in data.keys():
+  dir = data['path']
+else:
+  dir = env['DAQ_BUILD_DIR']
+print("Using path "+dir)
+exe = "/bin/daqling"
+lib_path = 'LD_LIBRARY_PATH='+env['LD_LIBRARY_PATH']+':'+dir+'/lib/'
 
 if arg == "configure":
   dc = daqcontrol.daqcontrol(group, lib_path, dir, exe, False)

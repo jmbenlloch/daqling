@@ -87,6 +87,7 @@ public:
     }
     std::shared_ptr<Metric<T, U>> metric(new Metric<T, U>(pointer, name, mtype, vtype, delta_t));
     std::shared_ptr<Metric_base> metric_base = std::dynamic_pointer_cast<Metric_base>(metric);
+    std::lock_guard<std::mutex> lck(m_mtx);
     m_reg_metrics.push_back(metric_base);
   }
 
@@ -169,6 +170,7 @@ private:
   // Thread control
   std::thread m_stat_thread;
   std::atomic<bool> m_stop_thread;
+  std::mutex m_mtx;
 
   // Config for data publishing
   std::atomic<bool> m_influxDb;
