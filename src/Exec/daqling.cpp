@@ -30,10 +30,11 @@ int main(int argc, char **argv) {
     std::cerr << "Usage: " << argv[0] << " <command-port> <core-log-level> <module-log-level>\n";
     return EXIT_FAILURE;
   }
+  int port = atoi(argv[1]);
 
   std::vector<spdlog::sink_ptr> sinks;
   sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
-  sinks.push_back(std::make_shared<daqling::utilities::zmq_sink_mt>());
+  sinks.push_back(std::make_shared<daqling::utilities::zmq_sink_mt>(port));
 
   auto core_logger = std::make_shared<spdlog::logger>("core", begin(sinks), end(sinks));
   auto module_logger = std::make_shared<spdlog::logger>("module", begin(sinks), end(sinks));
@@ -67,7 +68,6 @@ int main(int argc, char **argv) {
     }
   }
 
-  int port = atoi(argv[1]);
   daqling::core::Core c(port, "tcp", "*");
 
   c.setupCommandPath();
