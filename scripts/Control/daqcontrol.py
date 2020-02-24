@@ -73,7 +73,7 @@ class daqcontrol:
       # print(reply)
       return reply, False
     except:
-      print("Exception: Timeout occurred")
+      print("Exception: handleRequest timeout", request)
       return b'', True
 
   def configureProcess(self, p):
@@ -81,37 +81,37 @@ class daqcontrol:
     config = json.dumps(p)
     rv, rv1 = self.handleRequest(p['host'], p['port'], req, config)
     if rv != b'Success':
-      print("Error", p['name'], rv, rv1)
+      print("Error configureProcess", p['name'], "rv", rv, "timeout:", rv1)
 
   def unconfigureProcess(self, p):
     req = json.dumps({'command': 'unconfigure'})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("Error", p['name'], rv, rv1)
+      print("Error unconfigure error", p['name'], "rv", rv, "timeout:", rv1)
 
   def startProcess(self, p, arg="0"):
     req = json.dumps({'command': 'start'})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req, arg)
     if rv != b'Success':
-      print("Error", p['name'], rv, rv1)
+      print("Error startProcess error", p['name'], "rv", rv, "timeout:", rv1)
 
   def stopProcess(self, p):
     req = json.dumps({'command': 'stop'})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("Error", p['name'], rv, rv1)
+      print("Error stopProcess error", p['name'], "rv", rv, "timeout:", rv1)
 
   def shutdownProcess(self, p):
     req = json.dumps({'command': 'shutdown'})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("Error", p['name'], rv, rv1)
+      print("Error shutdown error", p['name'], "rv", rv, "timeout:", rv1)
 
   def customCommandProcess(self, p, command, args=None):
     req = json.dumps({'command': command})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req, args)
     if rv != b'Success':
-      print("Error", p['name'], rv, rv1)
+      print("Error", command, p['name'], "rv", rv, "timeout:", rv1)
 
   def getStatus(self, p):
       sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
