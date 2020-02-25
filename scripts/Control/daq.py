@@ -104,6 +104,13 @@ if arg == 'add' or arg == 'complete':
   if arg == 'add':
     quit()
 
+# spawn status check threads
+threads = []
+for p in data['components']:
+  t = threading.Thread(target=dc.statusCheck, args=(p,))
+  t.start()
+  threads.append(t)
+
 if arg == 'configure' or arg == 'complete':
   threads = []
   for p in data['components']:
@@ -112,13 +119,6 @@ if arg == 'configure' or arg == 'complete':
     threads.append(t)
   for t in threads:
     t.join()
-
-# spawn status check threads
-threads = []
-for p in data['components']:
-  t = threading.Thread(target=dc.statusCheck, args=(p,))
-  t.start()
-  threads.append(t)
 
 signal.signal(signal.SIGINT, signal_handler)
 

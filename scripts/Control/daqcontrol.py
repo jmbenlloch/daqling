@@ -31,31 +31,38 @@ class daqcontrol:
     self.stop_check = False
     self.use_supervisor = use_supervisor
 
+  def removeProcess(self, component):
+    sd = supervisor_wrapper.supervisor_wrapper(component['host'], self.group)
+    try:
+      if sd.getProcessState(component['name'])['statename'] == 'RUNNING':
+        try:
+          print('Stop', sd.stopProcess(component['name']))
+        except Exception as e:
+          print("Exception",str(e),": cannot stop process",
+                component['name'], "(probably already stopped)")
+      print('Remove', sd.removeProcessFromGroup(component['name']))
+    except Exception as e:
+      print("Exception",str(e),": Couldn't get process state")
+
   def removeProcesses(self, components):
     for p in components:
-      sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
-      try:
-        if sd.getProcessState(p['name'])['statename'] == 'RUNNING':
-          try:
-            print('Stop', sd.stopProcess(p['name']))
-          except Exception as e:
-            print("Exception",str(e),": cannot stop process",
-                  p['name'], "(probably already stopped)")
-        print('Remove', sd.removeProcessFromGroup(p['name']))
-      except Exception as e:
-        print("Exception",str(e),": Couldn't get process state")
+      self.removeProcess(p)
+
+  def addProcess(self, component):
+    sd = supervisor_wrapper.supervisor_wrapper(component['host'], self.group)
+    try:
+      rv, log_file = sd.addProgramToGroup(
+          component['name'], self.exe+" "+str(component['port'])+" "+component['loglevel']['core']+" "+component['loglevel']['module'], self.dir, self.lib_path)
+      print("Add", rv)
+      return log_file
+    except Exception as e:
+      print("Exception",str(e),": cannot add program", p['name'], "(probably already added)")
+
 
   def addProcesses(self, components):
     log_files = []
     for p in components:
-      sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
-      try:
-        rv, log_file = sd.addProgramToGroup(
-            p['name'], self.exe+" "+str(p['port'])+" "+p['loglevel']['core']+" "+p['loglevel']['module'], self.dir, self.lib_path)
-        print("Add", rv)
-        log_files.append(log_file)
-      except Exception as e:
-        print("Exception",str(e),": cannot add program", p['name'], "(probably already added)")
+      log_files.append(self.addProcess(p))
     return log_files
 
   def handleRequest(self, host, port, request, config=None):
@@ -73,7 +80,7 @@ class daqcontrol:
       # print(reply)
       return reply, False
     except:
-      # print("Exception: Timeout occurred")
+      print("Exception: handleRequest timeout", request)
       return b'', True
 
   def configureProcess(self, p):
@@ -81,37 +88,37 @@ class daqcontrol:
     config = json.dumps(p)
     rv, rv1 = self.handleRequest(p['host'], p['port'], req, config)
     if rv != b'Success':
-      print("configure", p['name'], "returned", rv, "| Timeout:", rv1)
+      print("configureProcess", p['name'], "rv:", rv, "timeout:", rv1)
 
   def unconfigureProcess(self, p):
     req = json.dumps({'command': 'unconfigure'})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("unconfigure", p['name'], "returned", rv, "| Timeout:", rv1)
+      print("unconfigure", p['name'], "rv:", rv, "timeout:", rv1)
 
   def startProcess(self, p, arg="0"):
     req = json.dumps({'command': 'start'})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req, arg)
     if rv != b'Success':
-      print("start", p['name'], "returned", rv, "| Timeout:", rv1)
+      print("startProcess", p['name'], "rv:", rv, "timeout:", rv1)
 
   def stopProcess(self, p):
     req = json.dumps({'command': 'stop'})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("stop", p['name'], "returned", rv, "| Timeout:", rv1)
+      print("stopProcess", p['name'], "rv:", rv, "timeout:", rv1)
 
   def shutdownProcess(self, p):
     req = json.dumps({'command': 'shutdown'})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("shutdown", p['name'], "returned", rv, "| Timeout:", rv1)
+      print("shutdown", p['name'], "rv:", rv, "timeout:", rv1)
 
   def customCommandProcess(self, p, command, args=None):
     req = json.dumps({'command': command})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req, args)
     if rv != b'Success':
-      print(command, p['name'], "returned", rv, "| Timeout:", rv1)
+      print(command, p['name'], "rv:", rv, "timeout:", rv1)
 
   def getStatus(self, p):
       sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
@@ -127,7 +134,7 @@ class daqcontrol:
       if state == 'RUNNING':
         status, timeout = self.handleRequest(p['host'], p['port'], req)
         if status == b'':
-          print("status", p['name'], "returned", status, "| Timeout:", timeout)
+          print("status", p['name'], "rv:", status, "timeout:", timeout)
       elif state != 'NOT_ADDED':
         status = b'added'
       return status, timeout
