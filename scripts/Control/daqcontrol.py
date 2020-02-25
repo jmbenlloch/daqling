@@ -80,7 +80,7 @@ class daqcontrol:
       # print(reply)
       return reply, False
     except:
-      print("Exception: handleRequest timeout", request)
+      # print("Exception: handleRequest timeout", request)
       return b'', True
 
   def configureProcess(self, p):
