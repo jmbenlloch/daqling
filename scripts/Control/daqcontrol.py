@@ -88,37 +88,37 @@ class daqcontrol:
     config = json.dumps(p)
     rv, rv1 = self.handleRequest(p['host'], p['port'], req, config)
     if rv != b'Success':
-      print("Error configureProcess", p['name'], "rv", rv, "timeout:", rv1)
+      print("configureProcess", p['name'], "rv:", rv, "timeout:", rv1)
 
   def unconfigureProcess(self, p):
     req = json.dumps({'command': 'unconfigure'})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("Error unconfigure error", p['name'], "rv", rv, "timeout:", rv1)
+      print("unconfigure", p['name'], "rv:", rv, "timeout:", rv1)
 
   def startProcess(self, p, arg="0"):
     req = json.dumps({'command': 'start'})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req, arg)
     if rv != b'Success':
-      print("Error startProcess error", p['name'], "rv", rv, "timeout:", rv1)
+      print("startProcess", p['name'], "rv:", rv, "timeout:", rv1)
 
   def stopProcess(self, p):
     req = json.dumps({'command': 'stop'})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("Error stopProcess error", p['name'], "rv", rv, "timeout:", rv1)
+      print("stopProcess", p['name'], "rv:", rv, "timeout:", rv1)
 
   def shutdownProcess(self, p):
     req = json.dumps({'command': 'shutdown'})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
-      print("Error shutdown error", p['name'], "rv", rv, "timeout:", rv1)
+      print("shutdown", p['name'], "rv:", rv, "timeout:", rv1)
 
   def customCommandProcess(self, p, command, args=None):
     req = json.dumps({'command': command})
     rv, rv1 = self.handleRequest(p['host'], p['port'], req, args)
     if rv != b'Success':
-      print("Error", command, p['name'], "rv", rv, "timeout:", rv1)
+      print(command, p['name'], "rv:", rv, "timeout:", rv1)
 
   def getStatus(self, p):
       sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
@@ -133,6 +133,8 @@ class daqcontrol:
           status = b'not_added'
       if state == 'RUNNING':
         status, timeout = self.handleRequest(p['host'], p['port'], req)
+        if status == b'':
+          print("status", p['name'], "rv:", status, "timeout:", timeout)
       elif state != 'NOT_ADDED':
         status = b'added'
       return status, timeout
