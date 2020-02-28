@@ -1,7 +1,5 @@
 # DAQling
 
-
-BEST README
 A software framework for the development of modular and distributed data acquisition systems.
 
 ## Documentation
