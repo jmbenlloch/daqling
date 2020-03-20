@@ -33,7 +33,9 @@
 /// \endcond
 
 #include "Common.hpp"
+#include "Utils/zhelpers.hpp"
 #include "hedley.h"
+#include "spdlog/sinks/base_sink.h"
 #include "spdlog/spdlog.h"
 
 #undef SPDLOG_FUNCTION
@@ -47,7 +49,7 @@
 #define LOG(LEVEL, MSG)                                                                            \
   do {                                                                                             \
     std::ostringstream writer;                                                                     \
-    writer << "[" << __METHOD_NAME__ << "] " << MSG;                                               \
+    writer << MSG;                                                                                 \
     SPDLOG_LOGGER_CALL(daqling::utilities::Logger::instance(), LEVEL, writer.str());               \
   } while (0)
 
@@ -118,6 +120,45 @@ public:
     return m_module_logger;
   }
 };
+
+template <typename Mutex> class zmq_sink : public spdlog::sinks::base_sink<Mutex> {
+public:
+  zmq_sink(int port) : m_port(port) {
+    m_context = std::make_unique<zmq::context_t>(1);
+    m_socket = std::make_unique<zmq::socket_t>(*(m_context.get()), ZMQ_PUB);
+    m_socket->connect("tcp://localhost:6542");
+  }
+
+private:
+  std::unique_ptr<zmq::context_t> m_context;
+  std::unique_ptr<zmq::socket_t> m_socket;
+  int m_port;
+
+protected:
+  void sink_it_(const spdlog::details::log_msg &msg) override {
+    fmt::memory_buffer formatted;
+    spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
+
+    zmq::message_t topic(sizeof(int));
+    memcpy(topic.data(), &m_port, sizeof(int));
+    m_socket->send(topic, ZMQ_SNDMORE);
+
+    std::string str = fmt::to_string(formatted);
+    zmq::message_t message(str.size());
+    memcpy(message.data(), str.data(), str.size());
+    m_socket->send(message);
+  }
+
+  void flush_() override {}
+};
+
+using zmq_sink_mt = zmq_sink<std::mutex>;
+
+static std::string sink_pattern() {
+  std::ostringstream pattern;
+  pattern << "[%Y-%m-%d %T.%e] [%n] [%l] [%@] [%!]  %v";
+  return pattern.str();
+}
 
 /**
  * Sets the log level of the logger instance.

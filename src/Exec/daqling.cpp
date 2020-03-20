@@ -25,24 +25,24 @@
 using namespace std::chrono_literals;
 using logger = daqling::utilities::Logger;
 
-static std::string sink_pattern(const bool debug) {
-  std::ostringstream pattern;
-  pattern << "[%Y-%m-%d %T.%e] [%n] [%l] [%t]" << (debug ? " [%@]" : "") << " %v";
-  return pattern.str();
-}
-
 int main(int argc, char **argv) {
   if (argc < 4) {
     std::cerr << "Usage: " << argv[0] << " <command-port> <core-log-level> <module-log-level>\n";
     return EXIT_FAILURE;
   }
+  int port = atoi(argv[1]);
 
-  auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-  auto core_logger = std::make_shared<spdlog::logger>("core", stdout_sink);
-  auto module_logger = std::make_shared<spdlog::logger>("module", stdout_sink);
+  std::vector<spdlog::sink_ptr> sinks;
+  sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+  sinks.push_back(std::make_shared<daqling::utilities::zmq_sink_mt>(port));
+
+  auto core_logger = std::make_shared<spdlog::logger>("core", begin(sinks), end(sinks));
+  auto module_logger = std::make_shared<spdlog::logger>("module", begin(sinks), end(sinks));
 
   // Set default sink pattern
-  stdout_sink->set_pattern(sink_pattern(false));
+  for (auto sink : sinks) {
+    sink->set_pattern(daqling::utilities::sink_pattern());
+  }
 
   // Assign the logger globals, allowing us to use logging macros.
   logger::set_instance(core_logger);
@@ -68,11 +68,6 @@ int main(int argc, char **argv) {
     }
   }
 
-  // Update sink pattern if we are debug logging
-  stdout_sink->set_pattern(sink_pattern(core_logger->level() <= spdlog::level::debug ||
-                                        module_logger->level() <= spdlog::level::debug));
-
-  int port = atoi(argv[1]);
   daqling::core::Core c(port, "tcp", "*");
 
   c.setupCommandPath();

@@ -14,6 +14,11 @@
     name: mongodb-org
     state: latest 
 
+- name: Copy over mongod config
+  copy:
+    src: mongod.conf
+    dest: /etc/mongod.conf
+
 - name: Install SELinux policy compiler
   yum:
     name: checkpolicy
