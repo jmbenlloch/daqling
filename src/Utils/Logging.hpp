@@ -123,7 +123,7 @@ public:
 
 template <typename Mutex> class zmq_sink : public spdlog::sinks::base_sink<Mutex> {
 public:
-  zmq_sink(int port) : m_port(port) {
+  zmq_sink(std::string name) : m_name(name) {
     m_context = std::make_unique<zmq::context_t>(1);
     m_socket = std::make_unique<zmq::socket_t>(*(m_context.get()), ZMQ_PUB);
     m_socket->connect("tcp://localhost:6542");
@@ -132,15 +132,15 @@ public:
 private:
   std::unique_ptr<zmq::context_t> m_context;
   std::unique_ptr<zmq::socket_t> m_socket;
-  int m_port;
+  std::string m_name;
 
 protected:
   void sink_it_(const spdlog::details::log_msg &msg) override {
     fmt::memory_buffer formatted;
     spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
 
-    zmq::message_t topic(sizeof(int));
-    memcpy(topic.data(), &m_port, sizeof(int));
+    zmq::message_t topic(m_name.size());
+    memcpy(topic.data(), m_name.data(), m_name.size());
     m_socket->send(topic, ZMQ_SNDMORE);
 
     std::string str = fmt::to_string(formatted);
