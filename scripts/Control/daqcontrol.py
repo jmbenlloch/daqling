@@ -60,7 +60,7 @@ class daqcontrol:
       print("Add", rv)
       return log_file
     except Exception as e:
-      print("Exception",str(e),": cannot add program", p['name'], "(probably already added)")
+      print("Exception",str(e),": cannot add program", component['name'], "(probably already added)")
 
 
   def addProcesses(self, components):
