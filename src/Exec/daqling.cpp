@@ -26,11 +26,11 @@ using namespace std::chrono_literals;
 using logger = daqling::utilities::Logger;
 
 int main(int argc, char **argv) {
-  if (argc < 4) {
-    std::cerr << "Usage: " << argv[0] << " <command-port> <core-log-level> <module-log-level>\n";
+  if (argc < 5) {
+    std::cerr << "Usage: " << argv[0] << " <name> <command-port> <core-log-level> <module-log-level>\n";
     return EXIT_FAILURE;
   }
-  int port = atoi(argv[1]);
+  int port = atoi(argv[2]);
 
   std::vector<spdlog::sink_ptr> sinks;
   sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
@@ -49,8 +49,8 @@ int main(int argc, char **argv) {
   logger::set_module_instance(module_logger);
 
   // Parse and set log level for both logers
-  auto core_ctx = std::make_tuple(core_logger, std::string(argv[2]), spdlog::level::info);
-  auto module_ctx = std::make_tuple(module_logger, std::string(argv[3]), spdlog::level::debug);
+  auto core_ctx = std::make_tuple(core_logger, std::string(argv[3]), spdlog::level::info);
+  auto module_ctx = std::make_tuple(module_logger, std::string(argv[4]), spdlog::level::debug);
   for (auto[logger, supplied_lvl, default_lvl] : {core_ctx, module_ctx}) {
     std::transform(supplied_lvl.begin(), supplied_lvl.end(), supplied_lvl.begin(), ::tolower);
 

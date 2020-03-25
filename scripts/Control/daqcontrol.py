@@ -51,8 +51,12 @@ class daqcontrol:
   def addProcess(self, component):
     sd = supervisor_wrapper.supervisor_wrapper(component['host'], self.group)
     try:
+      name = component['name']
+      port = component['port']
+      loglvl_core = component['loglevel']['core']
+      loglvl_module = component['loglevel']['module']
       rv, log_file = sd.addProgramToGroup(
-          component['name'], self.exe+" "+str(component['port'])+" "+component['loglevel']['core']+" "+component['loglevel']['module'], self.dir, self.lib_path)
+          name, self.exe+" "+name+" "+str(port)+" "+loglvl_core+" "+loglvl_module, self.dir, self.lib_path)
       print("Add", rv)
       return log_file
     except Exception as e:
