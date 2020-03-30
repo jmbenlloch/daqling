@@ -22,51 +22,58 @@ from time import sleep
 
 
 class daqcontrol:
-  def __init__(self, group, lib_path, dir, exe, use_supervisor = True):
+  def __init__(self, group, use_supervisor=True):
     self.group = group
-    self.lib_path = lib_path
-    self.dir = dir
-    self.exe = exe
     self.context = zmq.Context()
     self.stop_check = False
     self.use_supervisor = use_supervisor
 
-  def removeProcess(self, component):
-    sd = supervisor_wrapper.supervisor_wrapper(component['host'], self.group)
+  def removeProcess(self, host, name):
+    sw = supervisor_wrapper.supervisor_wrapper(host, self.group)
     try:
-      if sd.getProcessState(component['name'])['statename'] == 'RUNNING':
+      if sw.getProcessState(name)['statename'] == 'RUNNING':
         try:
-          print('Stop', sd.stopProcess(component['name']))
+          print('Stop', sw.stopProcess(name))
         except Exception as e:
           print("Exception",str(e),": cannot stop process",
-                component['name'], "(probably already stopped)")
-      print('Remove', sd.removeProcessFromGroup(component['name']))
+                name, "(probably already stopped)")
+      print('Remove', sw.removeProcessFromGroup(name))
     except Exception as e:
       print("Exception",str(e),": Couldn't get process state")
 
   def removeProcesses(self, components):
     for p in components:
-      self.removeProcess(p)
+      self.removeProcess(p['host'], p['name'])
 
-  def addProcess(self, component):
-    sd = supervisor_wrapper.supervisor_wrapper(component['host'], self.group)
+  def addProcess(self, host, name, exe, dir, lib_path="", command=""):
+    sw = supervisor_wrapper.supervisor_wrapper(host, self.group)
     try:
-      name = component['name']
-      port = component['port']
-      loglvl_core = component['loglevel']['core']
-      loglvl_module = component['loglevel']['module']
-      rv, log_file = sd.addProgramToGroup(
-          name, self.exe+" "+name+" "+str(port)+" "+loglvl_core+" "+loglvl_module, self.dir, self.lib_path)
+      rv, log_file = sw.addProgramToGroup(name, exe, dir, lib_path, command)
       print("Add", rv)
       return log_file
     except Exception as e:
-      print("Exception",str(e),": cannot add program", component['name'], "(probably already added)")
+      print("Exception",str(e),": cannot add program", name, "(probably already added)")
 
 
-  def addProcesses(self, components):
+  def addComponents(self, components, exe, dir, lib_path):
     log_files = []
     for p in components:
-      log_files.append(self.addProcess(p))
+      name = p['name']
+      port = p['port']
+      loglvl_core = p['loglevel']['core']
+      loglvl_module = p['loglevel']['module']
+      full_exe = exe+" "+name+" "+str(port)+" "+loglvl_core+" "+loglvl_module
+      log_files.append(self.addProcess(p['host'], name, full_exe, dir, lib_path=lib_path))
+    return log_files
+
+  def addScripts(self, scripts, script_dir):
+    log_files = []
+    for s in scripts:
+      name = s['name']
+      command = s['command']
+      exe = s['executable']
+      dir = script_dir+s['directory']
+      log_files.append(self.addProcess(s['host'], name, exe, dir, command=command))
     return log_files
 
   def handleRequest(self, host, port, request, config=None):
@@ -125,13 +132,13 @@ class daqcontrol:
       print(command, p['name'], "rv:", rv, "timeout:", rv1)
 
   def getStatus(self, p):
-      sd = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
+      sw = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
       req = json.dumps({'command': 'status'})
       state = "RUNNING"
       timeout = False
       if self.use_supervisor:
         try:
-          state = sd.getProcessState(p['name'])['statename']
+          state = sw.getProcessState(p['name'])['statename']
         except:
           state = 'NOT_ADDED'
           status = b'not_added'
