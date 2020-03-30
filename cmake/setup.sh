@@ -1,5 +1,6 @@
 export DAQ_CONFIG_DIR=$PWD/configs/
 export DAQ_BUILD_DIR=$PWD/build/
+export DAQ_SCRIPT_DIR=$PWD/scripts/
 di_path=$(find -name daq.py | cut -c3-)
 alias daqpy='python3 $PWD/$di_path'
 

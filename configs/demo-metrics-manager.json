@@ -1,6 +1,15 @@
 {
   "version": 7,
   "group": "daq",
+  "scripts": [
+    {
+      "name": "metric-manager",
+      "host": "localhost",
+      "executable": "metric-manager.py metrics-config.json",
+      "command": "python3",
+      "directory": "Monitoring/"
+    }
+  ],
   "components": [
     {
       "name": "readoutinterface01",

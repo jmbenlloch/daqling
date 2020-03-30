@@ -45,6 +45,8 @@ def signal_handler(sig, frame):
   spawnJoin(data['components'], dc.shutdownProcess)
   if arg != 'configure':
     dc.removeProcesses(data['components'])
+    if add_scripts:
+      dc.removeProcesses(data['scripts'])
   quit()
   
 def stop_check_threads():
@@ -76,6 +78,10 @@ with open(env['DAQ_CONFIG_DIR']+'json-config.schema') as f:
   schema = json.load(f)
 f.close()
 
+add_scripts = False
+if "scripts" in data:
+  add_scripts = True
+
 print("Configuration Version:", data['version'])
 validate(instance=data, schema=schema)
 
@@ -85,22 +91,26 @@ if 'path' in data.keys():
 else:
   dir = env['DAQ_BUILD_DIR']
 print("Using path "+dir)
+scripts_dir = env['DAQ_SCRIPT_DIR']
 exe = "/bin/daqling"
 lib_path = 'LD_LIBRARY_PATH='+env['LD_LIBRARY_PATH']+':'+dir+'/lib/'
 
 if arg == "configure":
-  dc = daqcontrol.daqcontrol(group, lib_path, dir, exe, False)
+  dc = daqcontrol.daqcontrol(group, False)
 else:
-  dc = daqcontrol.daqcontrol(group, lib_path, dir, exe)
-
+  dc = daqcontrol.daqcontrol(group)
 
 if arg == "remove":
   dc.removeProcesses(data['components'])
+  if add_scripts:
+    dc.removeProcesses(data['scripts'])
   quit()
 
 if arg == 'add' or arg == 'complete':
-  log_files = dc.addProcesses(data['components'])
+  log_files = dc.addComponents(data['components'], exe, dir, lib_path)
   # print(log_files)
+  if add_scripts:
+    dc.addScripts(data['scripts'], scripts_dir)
   if arg == 'add':
     quit()
 
@@ -142,6 +152,8 @@ while(not dc.stop_check):
   elif cmd == "down":
     stop_check_threads()
     spawnJoin(data['components'], dc.shutdownProcess)
+    if add_scripts:
+      dc.removeProcesses(data['scripts'])
     if arg != 'configure':
       dc.removeProcesses(data['components'])
   elif cmd == "command":

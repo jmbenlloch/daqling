@@ -43,11 +43,11 @@
             "properties": {
               "core": {
                 "type": "string",
-                "enum": ["DEBUG", "INFO"]
+                "enum": ["DEBUG", "INFO", "WARNING"]
               },
               "module": {
                 "type": "string",
-                "enum": ["DEBUG", "INFO"]
+                "enum": ["DEBUG", "INFO", "WARNING"]
               }
             },
             "required": ["core", "module"]
