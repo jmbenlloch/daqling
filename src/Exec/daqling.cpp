@@ -27,7 +27,8 @@ using logger = daqling::utilities::Logger;
 
 int main(int argc, char **argv) {
   if (argc < 5) {
-    std::cerr << "Usage: " << argv[0] << " <name> <command-port> <core-log-level> <module-log-level>\n";
+    std::cerr << "Usage: " << argv[0]
+              << " <name> <command-port> <core-log-level> <module-log-level>\n";
     return EXIT_FAILURE;
   }
 
