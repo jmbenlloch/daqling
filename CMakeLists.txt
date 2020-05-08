@@ -76,15 +76,16 @@ if (ENABLE_TBB)
   set(tbb_version $ENV{TBB_VERSION})
   set(TBB_ROOT_DIR $ENV{TBB_ROOT_DIR})
   find_package(TBB ${tbb_version} EXACT REQUIRED)
-  include_directories(${TBB_INCLUDE_DIRS})
+  include_directories(SYSTEM ${TBB_INCLUDE_DIRS})
   link_directories(${TBB_ROOT_DIR}/lib)
+  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} tbb)
 endif (ENABLE_TBB)
 
 if (ENABLE_BOOST)
   set(boost_version $ENV{BOOST_VERSION})
   set(BOOST_ROOT $ENV{BOOST_ROOT_DIR})
   find_package(Boost ${boost_version} EXACT REQUIRED COMPONENTS system filesystem regex)
-  include_directories(${Boost_INCLUDE_DIRS})
+  include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 endif (ENABLE_BOOST)
 
 set(BUILD_TESTS OFF) # disable zmq tests
@@ -99,7 +100,7 @@ set(BUILD_SHARED_LIBS ON)
 ########################
 
 set(DAQLING_LIBRARIES "")
-set(DAQLING_DEPS_LIBRARIES Threads::Threads cpr curl)
+set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} Threads::Threads cpr curl)
 
 if(CERN_ENVIRONMENT)
   include_directories(SYSTEM /opt/spdlog/include)
