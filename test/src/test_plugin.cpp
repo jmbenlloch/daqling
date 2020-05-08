@@ -25,13 +25,19 @@
 
 #include "Core/DAQProcess.hpp"
 #include "Utils/Logging.hpp"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 using namespace std::chrono_literals;
+using logger = daqling::utilities::Logger;
 
 using CreateFunc = daqling::core::DAQProcess *(void);
 using DestroyFunc = void(daqling::core::DAQProcess *);
 
 int main(int argc, char **argv) {
+  auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+  auto logger = std::make_shared<spdlog::logger>("my_logger", sink);
+  logger::set_instance(logger);
+
   if (argc == 1) {
     ERROR("No plugin name entered");
     return 1;

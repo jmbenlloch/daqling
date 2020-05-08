@@ -16,10 +16,11 @@
  */
 
 #include "Utils/Logging.hpp"
+#include "spdlog/sinks/stdout_color_sinks.h"
 #include "tbb/flow_graph.h"
 
-using namespace daqling;
 using namespace tbb::flow;
+using logger = daqling::utilities::Logger;
 
 struct body {
   std::string my_name;
@@ -27,7 +28,11 @@ struct body {
   void operator()(continue_msg) const { printf("%s\n", my_name.c_str()); }
 };
 
-int main(int argc, char **argv) {
+int main(int, char **) {
+  auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+  auto logger = std::make_shared<spdlog::logger>("my_logger", sink);
+  logger::set_instance(logger);
+
   INFO("WOOF WOOF -> Test basic TBB FlowGraph");
 
   graph g;
