@@ -28,6 +28,14 @@ class daqcontrol:
     self.stop_check = False
     self.use_supervisor = use_supervisor
 
+  ## returns a map of process names and process ids
+  def getAllNameProcessID(self, host):
+    sw = supervisor_wrapper.supervisor_wrapper(host, self.group)
+    try:
+      return {info['name']: info['pid'] for info in sw.getAllProcessInfoInGroup()}
+    except Exception as e:
+      print("Exception", str(e))
+
   def removeProcess(self, host, name):
     sw = supervisor_wrapper.supervisor_wrapper(host, self.group)
     try:
