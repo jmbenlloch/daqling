@@ -25,8 +25,8 @@ class supervisor_wrapper:
     self.host = host
     self.server = ServerProxy('http://'+host+':9001/RPC2')
 
-  def getAllProcessInfo(self):
-    return self.server.supervisor.getAllProcessInfo()
+  def getAllProcessInfoInGroup(self):
+    return [info for info in self.server.supervisor.getAllProcessInfo() if info['group'] == self.group]
 
   def startProcess(self, name):
     return self.server.supervisor.startProcess(self.group+":"+name)
