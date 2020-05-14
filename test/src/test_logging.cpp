@@ -17,10 +17,14 @@
 
 #include "Core/ConnectionManager.hpp"
 #include "Utils/Logging.hpp"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
-using namespace daqling;
+using logger = daqling::utilities::Logger;
 
 int main(int, char **) {
+  auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+  auto logger = std::make_shared<spdlog::logger>("my_logger", sink);
+  logger::set_instance(logger);
 
   INFO("WOOF WOOF");
   WARNING("Ugh!" << 12345 << "bof bof" << '\n');

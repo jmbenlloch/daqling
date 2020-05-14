@@ -26,7 +26,7 @@ from influxdb import InfluxDBClient
 
 
 def print_help():
-  print("First argument must be a .json configuration file.")
+  print("First argument must be a .json configuration file.", flush=True)
 
 
 ########## main ##########
@@ -54,8 +54,8 @@ f.close()
 try:
   data_zmq = data["zmq_settings"]
 except Exception as e: 
-  print(repr(e))
-  print("ZMQ settings have to be provided!")
+  print(repr(e), flush=True)
+  print("ZMQ settings have to be provided!", flush=True)
   quit()
 
 #setup ZMQ socket
@@ -71,8 +71,8 @@ try:
   client = InfluxDBClient(data_influxDB["host"], data_influxDB["port"], database=data_influxDB["name"])
 except Exception as e:
   use_influxDB = False 
-  print(repr(e))
-  print("influxDB settings not provided! Running without influxDB publishing.")
+  print(repr(e), flush=True)
+  print("influxDB settings not provided! Running without influxDB publishing.", flush=True)
 
 
 #read settings and configure redis
@@ -81,8 +81,8 @@ try:
   r = redis.Redis(host=data_redis["host"], port=data_redis["port"])
 except Exception as e:
   use_redis = False 
-  print(repr(e))
-  print("Redis settings not provided! Running without redis publishing.")
+  print(repr(e), flush=True)
+  print("Redis settings not provided! Running without redis publishing.", flush=True)
 
 
 #read metrics configuration
@@ -111,13 +111,13 @@ try:
     elif metric_split[1] in "irb":
       metric_dest[metric_split[0]] = metric_split[1]
     else:
-      print(metric_split[0]+" <destination> option not valid - setting destination to influxDB")
+      print(metric_split[0]+" <destination> option not valid - setting destination to influxDB", flush=True)
       metric_dest[metric_split[0]] = "i"    
     socket.setsockopt_string(zmq.SUBSCRIBE, metric_split[0])
 except Exception as e:
   socket.setsockopt_string(zmq.SUBSCRIBE, "")
   subscribe_all = True
-  print("Metrics configuration not provided - subscribing all possible metrics!")
+  print("Metrics configuration not provided - subscribing all possible metrics!", flush=True)
 
 
 while 1:
