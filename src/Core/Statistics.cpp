@@ -24,7 +24,11 @@ Statistics::Statistics(std::unique_ptr<zmq::socket_t> &statSock, unsigned interv
   m_stop_thread = false;
   m_influxDb = false;
   m_zmq_publisher = false;
-  m_name = m_config.getName();
+  try {
+    m_name = m_config.getName();
+  } catch (const std::exception &) {
+    m_name = "";
+  }
 }
 
 Statistics::~Statistics() {

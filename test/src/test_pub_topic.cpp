@@ -15,7 +15,6 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Utils/Logging.hpp"
 #include "Utils/zhelpers.hpp"
 #include <chrono>
 #include <thread>
