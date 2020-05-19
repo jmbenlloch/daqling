@@ -65,7 +65,8 @@ void MetricsSimulatorModule::stop() {
 
 void MetricsSimulatorModule::runner() {
   INFO("Running...");
-  srand(time(nullptr));
+  // downcast is fine here, but this RNG should be modified to use std random.
+  srand(static_cast<unsigned int>(time(nullptr)));
   while (m_run) {
     m_metric1 += 4;
     m_metric6 = rand() % 10 + 1;

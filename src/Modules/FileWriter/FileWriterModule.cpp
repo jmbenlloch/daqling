@@ -158,6 +158,7 @@ void FileWriterModule::start(unsigned run_num) {
     std::array<unsigned int, 2> tids = {threadid++, threadid++};
     const auto & [ it, success ] =
         m_channelContexts.emplace(chid, std::forward_as_tuple(queue_size, std::move(tids)));
+    DEBUG(" success: " << success);
     assert(success);
 
     // Start the context's consumer thread.
@@ -178,6 +179,7 @@ void FileWriterModule::stop() {
   DEBUG(" getState: " << this->getState());
   m_stopWriters.store(true);
   for (auto & [ chid, ctx ] : m_channelContexts) {
+    DEBUG(" stopping context[" << chid << "]");
     while (!std::get<ThreadContext>(ctx).consumer.get_readiness()) {
       std::this_thread::sleep_for(1ms);
     }
