@@ -19,6 +19,7 @@ import supervisor_wrapper
 import zmq
 import json
 from time import sleep
+from xmlrpc.client import ServerProxy
 
 
 class daqcontrol:
@@ -84,64 +85,63 @@ class daqcontrol:
       log_files.append(self.addProcess(s['host'], name, exe, dir, command=command))
     return log_files
 
-  def handleRequest(self, host, port, request, config=None):
-    socket = self.context.socket(zmq.REQ)
-    socket.setsockopt(zmq.LINGER, 0)
-    socket.RCVTIMEO = 2000
-    socket.connect("tcp://"+host+":"+str(port))
-    if config == None:
-      socket.send_string(request)
-    else:
-      socket.send_string(request, zmq.SNDMORE)
-      socket.send_string(config)
-    try:
-      reply = socket.recv()
-      # print(reply)
-      return reply, False
-    except:
-      # print("Exception: handleRequest timeout", request)
-      return b'', True
+  def handleRequest(self, host, port, request, arg=None, arg2=None):
+    proxy = ServerProxy("http://"+host+":"+str(port)+"/RPC2")
+    if request == "status":
+      return proxy.status(), False
+    elif request == "configure":
+      return proxy.configure(arg), False
+    elif request == "unconfigure":
+      return proxy.unconfigure(), False
+    elif request == "start":
+      return proxy.start(int(arg)), False
+    elif request == "stop":
+      return proxy.stop(), False
+    elif request == "shutdown":
+      return proxy.down(), False
+    elif request == "custom":
+      return proxy.custom(arg, arg2), False
 
   def configureProcess(self, p):
-    req = json.dumps({'command': 'configure'})
+    req = 'configure'
     config = json.dumps(p)
     rv, rv1 = self.handleRequest(p['host'], p['port'], req, config)
     if rv != b'Success':
       print("configureProcess", p['name'], "rv:", rv, "timeout:", rv1)
 
   def unconfigureProcess(self, p):
-    req = json.dumps({'command': 'unconfigure'})
+    req = 'unconfigure'
     rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
       print("unconfigure", p['name'], "rv:", rv, "timeout:", rv1)
 
-  def startProcess(self, p, arg="0"):
-    req = json.dumps({'command': 'start'})
-    rv, rv1 = self.handleRequest(p['host'], p['port'], req, arg)
+  def startProcess(self, p, run_num="0"):
+    req = 'start'
+    rv, rv1 = self.handleRequest(p['host'], p['port'], req, run_num)
     if rv != b'Success':
       print("startProcess", p['name'], "rv:", rv, "timeout:", rv1)
 
   def stopProcess(self, p):
-    req = json.dumps({'command': 'stop'})
+    req = 'stop'
     rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
       print("stopProcess", p['name'], "rv:", rv, "timeout:", rv1)
 
   def shutdownProcess(self, p):
-    req = json.dumps({'command': 'shutdown'})
+    req = 'shutdown'
     rv, rv1 = self.handleRequest(p['host'], p['port'], req)
     if rv != b'Success':
       print("shutdown", p['name'], "rv:", rv, "timeout:", rv1)
 
-  def customCommandProcess(self, p, command, args=None):
-    req = json.dumps({'command': command})
-    rv, rv1 = self.handleRequest(p['host'], p['port'], req, args)
+  def customCommandProcess(self, p, command, arg=None):
+    req = 'custom'
+    rv, rv1 = self.handleRequest(p['host'], p['port'], req, command, arg)
     if rv != b'Success':
       print(command, p['name'], "rv:", rv, "timeout:", rv1)
 
   def getStatus(self, p):
       sw = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
-      req = json.dumps({'command': 'status'})
+      req = 'status'
       state = "RUNNING"
       timeout = False
       if self.use_supervisor:

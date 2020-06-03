@@ -29,21 +29,15 @@ namespace core {
 
 class Core {
 public:
-  Core(int port, std::string protocol, std::string address)
-      : m_port{port}, m_protocol{protocol}, m_address{address} {};
-  ~Core(){};
+  Core(unsigned port) : m_port{port} {};
 
-  bool setupCommandPath();
+  void setupCommandServer();
   bool getShouldStop();
   std::mutex *getMutex() { return m_command.getMutex(); };
   std::condition_variable *getCondVar() { return m_command.getCondVar(); };
 
 private:
-  int m_port;
-  std::string m_protocol;
-  std::string m_address;
-
-  std::thread m_cmdHandler;
+  unsigned m_port;
 
   // ZMQ ConnectionManager
   daqling::core::ConnectionManager &m_connections = daqling::core::ConnectionManager::instance();

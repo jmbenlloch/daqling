@@ -46,16 +46,8 @@ namespace core {
 // template <class CT, class ST>
 class ConnectionManager : public daqling::utilities::Singleton<ConnectionManager> {
 public:
-  ConnectionManager()
-      : m_activeChannels{0}, m_is_cmd_setup{false}, m_is_stats_setup{false},
-        m_stop_cmd_handler{false}, m_stop_handlers{false} {}
-  ~ConnectionManager() {
-    m_stop_handlers = true;
-    m_stop_cmd_handler = true;
-    if (m_cmd_handler.joinable()) {
-      m_cmd_handler.join();
-    }
-  }
+  ConnectionManager() : m_activeChannels{0}, m_is_stats_setup{false}, m_stop_handlers{false} {}
+  ~ConnectionManager() { m_stop_handlers = true; }
 
   // Custom types
   typedef folly::ProducerConsumerQueue<zmq::message_t> MessageQueue;
@@ -68,7 +60,6 @@ public:
   enum EDirection { SERVER, CLIENT, PUBLISHER, SUBSCRIBER };
 
   // Functionalities
-  bool setupCommandConnection(uint8_t ioT, std::string connStr);
   bool setupStatsConnection(uint8_t ioT, std::string connStr);
   bool unsetStatsConnection();
 
@@ -127,11 +118,6 @@ private:
   SizeStatMap m_numMsgsHandled;
 
   // Network library handling
-  // Command
-  std::thread m_cmd_handler;
-  std::unique_ptr<zmq::context_t> m_cmd_context;
-  std::unique_ptr<zmq::socket_t> m_cmd_socket;
-  std::atomic<bool> m_is_cmd_setup;
   // Statistics
   std::unique_ptr<zmq::context_t> m_stats_context;
   std::unique_ptr<zmq::socket_t> m_stats_socket;
@@ -147,7 +133,6 @@ private:
   std::map<unsigned, std::function<void()>> m_functors;
 
   // Thread control
-  std::atomic<bool> m_stop_cmd_handler;
   std::atomic<bool> m_stop_handlers;
   std::atomic<bool> m_stop_processors;
   std::atomic<bool> m_cpu_lock;

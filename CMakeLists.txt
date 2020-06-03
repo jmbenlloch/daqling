@@ -146,6 +146,9 @@ else()
   set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} libzmq)
 endif()
 
+# https://cmake.org/cmake/help/v3.0/module/FindXMLRPC.html
+find_package(XMLRPC REQUIRED c++2 abyss-server)
+set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} ${XMLRPC_LIBRARIES})
 
 find_package(CURL QUIET REQUIRED)
 

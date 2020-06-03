@@ -31,10 +31,8 @@ using namespace std::chrono_literals;
 PluginManager::PluginManager() : m_create{}, m_delete{}, m_dp{}, m_loaded{false} {}
 
 PluginManager::~PluginManager() {
-  if (m_handle) {
-    m_delete(*m_dp);
-    dlclose(*m_handle);
-    m_loaded = false;
+  if (m_loaded) {
+    unload();
   }
 }
 
@@ -64,6 +62,7 @@ bool PluginManager::load(std::string name) {
 bool PluginManager::unload() {
   if (m_loaded) {
     m_delete(*m_dp);
+    dlclose(*m_handle);
     m_loaded = false;
     return true;
   }
