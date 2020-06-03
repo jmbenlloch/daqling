@@ -6,8 +6,8 @@ alias daqpy='python3 $PWD/$di_path'
 
 echo "Custom compiler, installed by Ansible from OHPC."
 
-export LD_LIBRARY_PATH=/opt/ohpc/pub/compiler/gcc/8.3.0/lib64/:/usr/local/lib64/:$LD_LIBRARY_PATH
-export PATH=/opt/ohpc/pub/compiler/gcc/8.3.0/bin:$PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/ohpc/pub/compiler/gcc/8.3.0/lib64/:/usr/local/lib64/:/usr/local/lib/
+export PATH=$PATH:/opt/ohpc/pub/compiler/gcc/8.3.0/bin
 
 # Export package specific environmental variables
 

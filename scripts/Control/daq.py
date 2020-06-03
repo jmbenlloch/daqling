@@ -24,7 +24,7 @@ from functools import partial
 import daqcontrol
 import threading
 import zmq
-
+from time import sleep
 
 def spawnJoin(list, func):
   threads = []
@@ -127,6 +127,8 @@ if add_scripts:
     socket.connect("tcp://"+host+":6100")
     socket.send_pyobj(name_pids)
 
+sleep(0.5) # allow time for daqling executables to boot
+
 # spawn status check threads
 threads = []
 for p in data['components']:
@@ -155,7 +157,7 @@ while(not dc.stop_check):
     spawnJoin(data['components'], dc.unconfigureProcess)
   elif cmd == "start":
     try:
-      sp = partial(dc.startProcess, arg=cmd_args[0])
+      sp = partial(dc.startProcess, run_num=cmd_args[0])
       spawnJoin(data['components'], sp)
     except IndexError:
       print("Run number not specified. Default to 0")
@@ -164,14 +166,16 @@ while(not dc.stop_check):
     spawnJoin(data['components'], dc.stopProcess)
   elif cmd == "down":
     stop_check_threads()
+    sleep(0.5) # allow time for statusCheck threads to join
     spawnJoin(data['components'], dc.shutdownProcess)
     if add_scripts:
       dc.removeProcesses(data['scripts'])
     if arg != 'configure':
+      sleep(2) # allow time for daqling executables to exit
       dc.removeProcesses(data['components'])
   elif cmd == "command":
     try:
-      ccp = partial(dc.customCommandProcess, command=cmd_args[0], args=' '.join(cmd_args[1:]))
+      ccp = partial(dc.customCommandProcess, command=cmd_args[0], arg=' '.join(cmd_args[1:]))
       spawnJoin(data['components'], ccp)
     except IndexError:
       print("Missing required command argument")
