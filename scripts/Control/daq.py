@@ -75,7 +75,7 @@ with open(sys.argv[1]) as f:
   data = json.load(f)
 f.close()
 
-with open(env['DAQ_CONFIG_DIR']+'json-config.schema') as f:
+with open(env['DAQ_CONFIG_DIR']+'config-schema.json') as f:
   schema = json.load(f)
 f.close()
 
