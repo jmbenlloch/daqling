@@ -15,10 +15,6 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \cond
-#include <cstdlib>
-/// \endcond
-
 #include "Core/Core.hpp"
 #include "spdlog/sinks/stdout_color_sinks.h"
 

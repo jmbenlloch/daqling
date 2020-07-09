@@ -19,13 +19,18 @@ from xmlrpc.client import ServerProxy
 import datetime
 import getpass
 
+## Supervisor wrapper class
+#  Wraps the XML-RPC client calls in order to control Twiddler and Supervisor.
 class supervisor_wrapper:
+  ## Constructor
+  #  @param host The targeted host were the supervisor daemon is running
+  #  @param group The registered group to which to add processes
   def __init__(self, host, group):
     self.group = group
     self.host = host
     self.server = ServerProxy('http://'+host+':9001/RPC2')
 
-  def getAllProcessInfoInGroup(self):
+  def getAllProcessInfo(self):
     return [info for info in self.server.supervisor.getAllProcessInfo() if info['group'] == self.group]
 
   def startProcess(self, name):
@@ -37,11 +42,17 @@ class supervisor_wrapper:
   def getProcessState(self, name):
     return self.server.supervisor.getProcessInfo(self.group+":"+name)
 
-  def addProgramToGroup(self, name, exe, dir, env, command=""):
+  ## Add program
+  #  Adds a program, sets the log name with date and time.
+  #  Execution of the added program is automatic.
+  #  @param exe The executable to spawn, with relative path from dir
+  #  @param dir The absolute path of the directory from which exe is evaluated
+  #  @param env The environment variables to pass to the executable
+  #  @param command The command to use to run a script (example: python3)
+  def addProgram(self, name, exe, dir, env, command=""):
     now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     user = getpass.getuser()
     log_file = "/log/"+name+"-"+user+"-"+now+".log"
-    print("tail -f "+log_file)
     settings = {
         'command': command+" "+dir+exe,
         'directory': dir,
@@ -57,5 +68,5 @@ class supervisor_wrapper:
     }
     return (self.server.twiddler.addProgramToGroup(self.group, name, settings), (self.host, log_file))
 
-  def removeProcessFromGroup(self, name):
+  def removeProcess(self, name):
     return self.server.twiddler.removeProcessFromGroup(self.group, name)

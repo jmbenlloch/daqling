@@ -21,19 +21,26 @@ from os import environ as env
 import json
 from jsonschema import validate
 from functools import partial
-import daqcontrol
+from daqcontrol import daqcontrol
+import concurrent.futures
 import threading
 import zmq
 from time import sleep
 
 def spawnJoin(list, func):
-  threads = []
-  for p in list:
-    t = threading.Thread(target=func, args=(p,))
-    t.start()
-    threads.append(t)
-  for t in threads:
-    t.join()
+  futures = []
+  rvs = []
+  with concurrent.futures.ThreadPoolExecutor() as executor:
+    for p in list:
+      f = executor.submit(func, p)
+      futures.append(f)
+    for f in futures:
+      try:
+        rvs.append(f.result())
+      except Exception as e:
+        print(e)
+        rvs.append(e)
+  return rvs
 
 
 def print_help():
@@ -42,20 +49,49 @@ def print_help():
 
 def signal_handler(sig, frame):
   print("Ctrl+C: shutting down")
-  stop_check_threads()
+  sc.stop_check_threads()
   spawnJoin(data['components'], dc.shutdownProcess)
   if arg != 'configure':
-    dc.removeProcesses(data['components'])
+    try:
+      dc.removeProcesses(data['components'])
+    except Exception as e:
+      print(e)
     if add_scripts:
-      dc.removeProcesses(data['scripts'])
+      try:
+        dc.removeProcesses(data['components'])
+      except Exception as e:
+        print(e)
   quit()
-  
-def stop_check_threads():
-  dc.stop_check = True
-  for t in threads:
-    t.join()
 
-########## main ########
+
+class statusChecker():
+  def __init__(self, dc):
+    self.stop_check = False
+    self.status_check_threads = []
+    self.dc = dc
+
+  def statusCheck(self, p):
+    status = ""
+    while(not self.stop_check):
+      sleep(0.5)
+      new_status = self.dc.getStatus(p)
+      if new_status != status:
+        print(p['name'], "in status", new_status)
+        status = new_status
+
+  def startChecker(self, components):
+    for p in components:
+      t = threading.Thread(target=self.statusCheck, args=(p,))
+      t.start()
+      self.status_check_threads.append(t)
+
+
+  def stop_check_threads(self):
+    self.stop_check = True
+    for t in self.status_check_threads:
+      t.join()
+
+## Main
 
 debug = False
 
@@ -75,17 +111,18 @@ with open(sys.argv[1]) as f:
   data = json.load(f)
 f.close()
 
-with open(env['DAQ_CONFIG_DIR']+'config-schema.json') as f:
-  schema = json.load(f)
-f.close()
-
 add_scripts = False
 if "scripts" in data:
   add_scripts = True
 
+# open schema and validate the configuration
+with open(env['DAQ_CONFIG_DIR']+'config-schema.json') as f:
+  schema = json.load(f)
+f.close()
 print("Configuration Version:", data['version'])
 validate(instance=data, schema=schema)
 
+# define required parameters from configuration
 group = data['group']
 if 'path' in data.keys():
   dir = data['path']
@@ -96,25 +133,41 @@ scripts_dir = env['DAQ_SCRIPT_DIR']
 exe = "/bin/daqling"
 lib_path = 'LD_LIBRARY_PATH='+env['LD_LIBRARY_PATH']+':'+dir+'/lib/'
 
+# instanciate a daqcontrol object
 if arg == "configure":
-  dc = daqcontrol.daqcontrol(group, False)
+  dc = daqcontrol(group, False)
 else:
-  dc = daqcontrol.daqcontrol(group)
+  dc = daqcontrol(group)
 
 if arg == "remove":
-  dc.removeProcesses(data['components'])
+  try:
+    dc.removeProcesses(data['components'])
+  except Exception as e:
+    print(e)
   if add_scripts:
-    dc.removeProcesses(data['scripts'])
+    try:
+      dc.removeProcesses(data['scripts'])
+    except Exception as e:
+      print(e)
   quit()
 
 if arg == 'add' or arg == 'complete':
-  log_files = dc.addComponents(data['components'], exe, dir, lib_path)
-  # print(log_files)
+  log_files = []
+  try:
+    log_files = dc.addComponents(data['components'], exe, dir, lib_path)
+  except Exception as e:
+    print(e)
   if add_scripts:
-    dc.addScripts(data['scripts'], scripts_dir)
+    try:
+      log_files = log_files + dc.addScripts(data['scripts'], scripts_dir)
+    except Exception as e:
+      print(e)
+  for l in log_files:
+    print("Host:", l[0], "\n", "tail -f", l[1])
   if arg == 'add':
     quit()
 
+# add scripts
 if add_scripts:
   # get the set of hosts
   component_hosts = {c['host'] for c in data['components']}
@@ -122,61 +175,63 @@ if add_scripts:
   context = zmq.Context()
   # loop on hosts, get the Name+PID dictionary and send it to psutil-manager
   for host in component_hosts.union(script_hosts):
-    name_pids = dc.getAllNameProcessID(host)
-    socket = context.socket(zmq.PAIR)
-    socket.connect("tcp://"+host+":6100")
-    socket.send_pyobj(name_pids)
+    try:
+      name_pids = dc.getAllNameProcessID(host)
+      socket = context.socket(zmq.PAIR)
+      socket.connect("tcp://"+host+":6100")
+      socket.send_pyobj(name_pids)
+    except Exception as e:
+      print(e)
 
 sleep(0.5) # allow time for daqling executables to boot
 
 # spawn status check threads
-threads = []
-for p in data['components']:
-  t = threading.Thread(target=dc.statusCheck, args=(p,))
-  t.start()
-  threads.append(t)
+sc = statusChecker(dc)
+sc.startChecker(data['components'])
 
 if arg == 'configure' or arg == 'complete':
-  threads = []
-  for p in data['components']:
-    t = threading.Thread(target=dc.configureProcess, args=(p,))
-    t.start()
-    threads.append(t)
-  for t in threads:
-    t.join()
+  print(spawnJoin(data['components'], dc.configureProcess))
 
 signal.signal(signal.SIGINT, signal_handler)
 
-while(not dc.stop_check):
+# user input loop
+while(not sc.stop_check):
   cmd, *cmd_args = input("(config) | start | stop | down | command <cmd>\n").split(' ')
   print("Executing", cmd, ' '.join(cmd_args))
   command_threads = []
   if cmd == "config":
-    spawnJoin(data['components'], dc.configureProcess)
+    print(spawnJoin(data['components'], dc.configureProcess))
   if cmd == "unconfig":
-    spawnJoin(data['components'], dc.unconfigureProcess)
+    print(spawnJoin(data['components'], dc.unconfigureProcess))
   elif cmd == "start":
     try:
       sp = partial(dc.startProcess, run_num=cmd_args[0])
-      spawnJoin(data['components'], sp)
+      print(spawnJoin(data['components'], sp))
     except IndexError:
       print("Run number not specified. Default to 0")
-      spawnJoin(data['components'], dc.startProcess)
+      print(spawnJoin(data['components'], dc.startProcess))
+    except Exception as e:
+      print(e)
   elif cmd == "stop":
-    spawnJoin(data['components'], dc.stopProcess)
+    print(spawnJoin(data['components'], dc.stopProcess))
   elif cmd == "down":
-    stop_check_threads()
-    sleep(0.5) # allow time for statusCheck threads to join
-    spawnJoin(data['components'], dc.shutdownProcess)
+    sc.stop_check_threads()
+    print(spawnJoin(data['components'], dc.shutdownProcess))
     if add_scripts:
-      dc.removeProcesses(data['scripts'])
+      try:
+        dc.removeProcesses(data['scripts'])
+      except Exception as e:
+        print(e)
     if arg != 'configure':
       sleep(2) # allow time for daqling executables to exit
-      dc.removeProcesses(data['components'])
+      try:
+        dc.removeProcesses(data['components'])
+      except Exception as e:
+        print(e)
   elif cmd == "command":
     try:
       ccp = partial(dc.customCommandProcess, command=cmd_args[0], arg=' '.join(cmd_args[1:]))
-      spawnJoin(data['components'], ccp)
+      print(spawnJoin(data['components'], ccp))
     except IndexError:
       print("Missing required command argument")
 

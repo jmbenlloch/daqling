@@ -1,7 +1,10 @@
 export DAQ_CONFIG_DIR=$PWD/configs/
 export DAQ_BUILD_DIR=$PWD/build/
-di_path=$(find -name daq.py | cut -c3-)
-alias daqpy='python3 $PWD/$di_path'
+export DAQ_SCRIPT_DIR=$PWD/scripts/
+daqpy_path=$(find -name daq.py | cut -c3-)
+alias daqpy='python3 $PWD/$daqpy_path'
+daqtree_path=$(find -name daqtree.py | cut -c3-)
+alias daqtree='python3 $PWD/$daqtree_path'
 
 echo "Custom compiler, installed by Ansible from OHPC."
 
