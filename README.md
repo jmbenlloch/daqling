@@ -33,14 +33,6 @@ Redis
 
     ansible-playbook install-redis.yml --ask-become
 
-Boost 1.70
-
-    ansible-playbook install-boost-1_70.yml --ask-become
-
-Cassandra (experimental)
-
-    ansible-playbook install-cassandra.yml --ask-become
-
 ### Build
 
     source cmake/setup.sh
@@ -54,7 +46,7 @@ then:
 
 It is possible to build specified targets. `make help` will list the available ones.
 
-#### Advanced build options
+#### Additional build options
 
 The `ccmake` command:
 
@@ -75,45 +67,10 @@ To generate *Doxygen* documentation for DAQling:
 
 After generation it is possible to browse the pages by opening `doxygen_html/index.html` with a browser.
 
-#### (Optional) Build with Boost 1.70
-
-To include Boost 1.70 in the build it is necessary to:
-
-- have a Boost 1.70 installation under `/opt/boost/` (optional Ansible playbook)
-- from a fresh terminal:
-
-      source cmake/setup.sh
-      cd build
-      cmake3 ../ -DENABLE_BOOST=1
-      make
-
-#### (Optional) Build the CassandraDataLogger
-
-To build the (experimental) CassandraDataLogger it is necessary to:
-
-- have a Cassandra C++ driver installation under `/opt/cassandra-driver/` (optional Ansible playbook)
-- from a fresh terminal:
-
-      source cmake/setup.sh
-      cd build
-      cmake3 ../ -DENABLE_CASSANDRA=1
-      make
-
-#### (Optional) Build with TBB 2019.0
-
-To include TBB 2019.0 in the build it is necessary to:
-
-- have a TBB 2019.0 installation under `/opt/tbb-2019_U5/` with `include/` and `lib/` folders
-- from a fresh terminal:
-
-      source cmake/setup.sh
-      cd build
-      cmake3 ../ -DENABLE_TBB=1
-      make
-
 ## Running the data acquisition system demo
 
 `daqpy` is a command line tool that spawns and configures the components listed in the JSON configuration file passed as argument.
+It showcases the use of the `daqcontrol` library, which can be used in any other Python control tool.
 
 It then allows to control the components via standard commands such as `start` (with optional run number), `stop`, as well as custom commands.
 
@@ -124,6 +81,30 @@ It then allows to control the components via standard commands such as `start` (
     down
 
 `daqpy -h` shows the help menu.
+
+### (NEW) DAQ control tree
+
+`daqtree` is a command line tool that allows to control the data acquisition system as a "control tree", with advanced Finite State Machine (FSM) options.
+It showcases the use of the `nodetree` and `daqcontrol` libraries, which can be used in any other Python control tool.
+
+    source cmake/setup.sh
+    daqtree configs/demo-dict.json
+
+`daqtree -h` shows the help menu.
+
+The `render` command allows to print the current status of the control tree. The render will print the tree structure with the name of the node, the status and its key flags:
+- Included [`True`/`False`]. Nodes can be excluded or included from the controlled tree with `<node> exclude` and `<node> include`. Excluded nodes will not participate to the parent's status and will not receive commands from the parent node.
+- Inconsistent [`True`/`False`]. If the children of a node are in different state, the Inconsistent flag is raised.
+
+The control of the system is granular:
+- commands can be issued to any node in the tree (for example to `readoutinterface01` only).
+- the full FSM of the control system can be navigated (as opposed to `daqpy`).
+
+                  ---add-->         ---boot-->           --configure-->         --start-->
+      (not_added)           (added)             (booted)                (ready)            (running)
+                  <-remove-         <-shutdown-          <-unconfigure-         <--stop--- 
+
+More details on the JSON configuration required by `daqtree` can be found in the `configs/README.md`.
 
 ## Development
 
