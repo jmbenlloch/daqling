@@ -89,6 +89,12 @@ if (ENABLE_BOOST)
 endif (ENABLE_BOOST)
 
 set(BUILD_TESTS OFF) # disable zmq tests
+if(DEFINED BUILD_WITH_CPR)
+  set(BUILD_WITH_CPR ${BUILD_WITH_CPR})
+else()
+  set(BUILD_WITH_CPR ON)
+  add_compile_definitions(BUILD_WITH_CPR)
+endif()
 set(USE_SYSTEM_CURL ON)
 set(BUILD_CPR_TESTS OFF)
 set(ZMQ_BUILD_TESTS OFF)
@@ -100,16 +106,23 @@ set(BUILD_SHARED_LIBS ON)
 ########################
 
 set(DAQLING_LIBRARIES "")
-set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} Threads::Threads cpr curl)
+if(BUILD_WITH_CPR)
+  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} Threads::Threads cpr curl)
+else()
+  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} Threads::Threads ) #cpr curl)
+endif()
 
 if(CERN_ENVIRONMENT)
   include_directories(SYSTEM /opt/spdlog/include)
   include_directories(SYSTEM /opt/json/single_include)
-  include_directories(SYSTEM /opt/cpr/include)
+  if(BUILD_WITH_CPR)
+    include_directories(SYSTEM /opt/cpr/include)
+  endif()
   include_directories(SYSTEM /opt/libzmq/include)
   include_directories(SYSTEM /opt/hedley)
-
-  link_directories(/opt/cpr/build/lib)
+  if(BUILD_WITH_CPR)
+    link_directories(/opt/cpr/build/lib)
+  endif()
   link_directories(/opt/libzmq/build/lib)
 
   set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} zmq)
@@ -119,11 +132,13 @@ else()
   set(WITH_LIBSODIUM ON)
 
   add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/zmq)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/cpr)
+  if(BUILD_WITH_CPR)
+    add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/cpr)
+    include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cpr/include)
+  endif()
 
   include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/spdlog/include)
   include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/json/single_include)
-  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cpr/include)
   include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/zmq/include)
   include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cppzmq)
   include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/hedley)
@@ -131,6 +146,9 @@ else()
   set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} libzmq)
 endif()
 
+# https://cmake.org/cmake/help/v3.0/module/FindXMLRPC.html
+find_package(XMLRPC REQUIRED c++2 abyss-server)
+set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} ${XMLRPC_LIBRARIES})
 
 find_package(CURL QUIET REQUIRED)
 

@@ -61,7 +61,8 @@ void ReadoutInterfaceModule::runner() {
 
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<> dis(m_min_payload, m_max_payload);
+  std::uniform_int_distribution<> dis(static_cast<int>(m_min_payload),
+                                      static_cast<int>(m_max_payload));
 
   DEBUG("Running...");
   while (m_run) {

@@ -25,11 +25,9 @@
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
-bool Core::setupCommandPath() {
-  std::string connStr(m_protocol + "://" + m_address + ":" + std::to_string(m_port));
-  INFO(" BINDING COMMAND SOCKET : " << connStr);
-  bool rv = m_connections.setupCommandConnection(1, connStr);
-  return rv;
+void Core::setupCommandServer() {
+  INFO("Starting XML-RPC Server on port: " << m_port);
+  m_command.setupServer(m_port);
 }
 
 bool Core::getShouldStop() { return m_command.getShouldStop(); }
