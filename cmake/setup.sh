@@ -1,13 +1,15 @@
 export DAQ_CONFIG_DIR=$PWD/configs/
 export DAQ_BUILD_DIR=$PWD/build/
 export DAQ_SCRIPT_DIR=$PWD/scripts/
-di_path=$(find -name daq.py | cut -c3-)
-alias daqpy='python3 $PWD/$di_path'
+daqpy_path=$(find -name daq.py | cut -c3-)
+alias daqpy='python3 $PWD/$daqpy_path'
+daqtree_path=$(find -name daqtree.py | cut -c3-)
+alias daqtree='python3 $PWD/$daqtree_path'
 
 echo "Custom compiler, installed by Ansible from OHPC."
 
-export LD_LIBRARY_PATH=/opt/ohpc/pub/compiler/gcc/8.3.0/lib64/:/usr/local/lib64/:$LD_LIBRARY_PATH
-export PATH=/opt/ohpc/pub/compiler/gcc/8.3.0/bin:$PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/ohpc/pub/compiler/gcc/8.3.0/lib64/:/usr/local/lib64/:/usr/local/lib/
+export PATH=$PATH:/opt/ohpc/pub/compiler/gcc/8.3.0/bin
 
 # Export package specific environmental variables
 

@@ -21,6 +21,9 @@
 #include "Utils/Logging.hpp"
 #include "Utils/ReusableThread.hpp"
 #include "Utils/Singleton.hpp"
+#include <xmlrpc-c/base.hpp>
+#include <xmlrpc-c/registry.hpp>
+#include <xmlrpc-c/server_abyss.hpp>
 
 namespace daqling {
 namespace core {
@@ -32,25 +35,23 @@ class Command : public daqling::utilities::Singleton<Command> {
 public:
   Command()
       : m_should_stop{false}, m_handled(false), m_command{""}, m_argument{""}, m_response{""} {}
-  ~Command() {}
+  ~Command() {
+    m_server_p->terminate();
+    m_cmd_handler.join();
+  }
 
-  //    std::string getResponse() { return m_response; }
-  //    bool getHandled() { return m_handled; }
+  void setupServer(unsigned port);
 
-  bool executeCommand(std::string &response);
-  bool handleCommand();
-
-  bool getHandled() { return m_handled; }
-  void setHandled(bool handled) { m_handled = handled; }
-  std::string getCommand() { return m_command; }
-  void setCommand(std::string command) { m_command = command; }
-  std::string getArgument() { return m_argument; }
-  void setArgument(std::string argument) { m_argument = argument; }
-  std::string getResponse() { return m_response; }
-  void setResponse(std::string response) { m_response = response; }
   bool getShouldStop() { return m_should_stop; }
   std::mutex *getMutex() { return &m_mtx; }
   std::condition_variable *getCondVar() { return &m_cv; }
+
+  void stop_and_notify() {
+    DEBUG("Shutting down...");
+    std::lock_guard<std::mutex> lk(m_mtx);
+    m_should_stop = true;
+    m_cv.notify_one();
+  }
 
 private:
   bool m_should_stop;
@@ -60,15 +61,10 @@ private:
   std::string m_response;
   std::mutex m_mtx;
   std::condition_variable m_cv;
-
-  std::vector<std::function<void()>> m_commandFunctors;
-
-  void stop_and_notify() {
-    WARNING("Shutting down...");
-    std::lock_guard<std::mutex> lk(m_mtx);
-    m_should_stop = true;
-    m_cv.notify_one();
-  }
+  std::thread m_cmd_handler;
+  xmlrpc_c::registry m_registry;
+  std::map<std::string, xmlrpc_c::methodPtr> m_method_pointers;
+  std::unique_ptr<xmlrpc_c::serverAbyss> m_server_p;
 };
 
 } // namespace core

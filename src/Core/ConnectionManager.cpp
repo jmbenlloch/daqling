@@ -31,54 +31,6 @@
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
-bool ConnectionManager::setupCommandConnection(uint8_t ioT, std::string connStr) {
-  if (m_is_cmd_setup) {
-    INFO(" Command is already online... Won't do anything.");
-    return false;
-  }
-  try {
-    m_cmd_context = std::make_unique<zmq::context_t>(ioT);
-    m_cmd_socket = std::make_unique<zmq::socket_t>(*(m_cmd_context.get()), ZMQ_REP);
-    m_cmd_socket->bind(connStr);
-    INFO(" Command is connected on: " << connStr);
-  } catch (std::exception &e) {
-    ERROR(" Failed to add Command channel! ZMQ returned: " << e.what());
-    return false;
-  }
-  m_cmd_handler = std::thread([&]() {
-    Command &cmd = Command::instance();
-    zmq::message_t cmdMsg;
-    while (!m_stop_cmd_handler) {
-      // INFO(m_className << " CMD_THREAD: Going for RECV poll...");
-      if (m_cmd_socket->recv(&cmdMsg, ZMQ_DONTWAIT)) {
-        const std::string cmdStr(static_cast<char *>(cmdMsg.data()), cmdMsg.size());
-        DEBUG(m_className << " CMD_THREAD: Got CMD: " << cmdStr);
-        cmd.setCommand(cmdStr);
-        int more;
-        size_t more_size = sizeof(int);
-        m_cmd_socket->getsockopt(ZMQ_RCVMORE, &more, &more_size);
-        DEBUG("getsockopt RCVMORE " << more);
-        if (more) {
-          zmq::message_t configMsg;
-          m_cmd_socket->recv(&configMsg, ZMQ_DONTWAIT);
-          const std::string argumentStr(static_cast<char *>(configMsg.data()), configMsg.size());
-          DEBUG("======== RECEIVE MORE " << argumentStr);
-          cmd.setArgument(argumentStr);
-        }
-
-        cmd.handleCommand();
-        s_send(*(m_cmd_socket.get()), cmd.getResponse());
-      } else {
-        // INFO(m_className << " Sleeping a second...");
-        std::this_thread::sleep_for(1ms);
-      }
-    }
-  });
-  utilities::setThreadName(m_cmd_handler, "cmd", 0);
-  m_is_cmd_setup = true;
-  return true;
-}
-
 bool ConnectionManager::setupStatsConnection(uint8_t ioT, std::string connStr) {
   if (m_is_stats_setup) {
     INFO(" Statistics socket is already online... Won't do anything.");
@@ -314,7 +266,6 @@ bool ConnectionManager::start() {
 
 bool ConnectionManager::stop() {
   m_stop_handlers.store(true);
-  std::this_thread::sleep_for(100ms); // allow time to stop
   for (auto &tIt : m_handlers) {
     tIt.second.join();
   }

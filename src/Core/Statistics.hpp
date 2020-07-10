@@ -20,7 +20,6 @@
 
 /// \cond
 #include <atomic>
-#include <cpr/cpr.h>
 #include <ctime>
 #include <iostream>
 #include <map>
@@ -29,6 +28,9 @@
 #include <string>
 #include <thread>
 #include <vector>
+#ifdef BUILD_WITH_CPR
+#include <cpr/cpr.h>
+#endif
 /// \endcond
 
 #include "Configuration.hpp"
@@ -159,10 +161,13 @@ public:
       DEBUG("Sending the metric: " << metric->m_name << " value: " << std::to_string(value)
                                    << " to influxDB");
       DEBUG(m_influxDb_uri + m_influxDb_name);
+#ifdef BUILD_WITH_CPR
       auto r = cpr::Post(cpr::Url{m_influxDb_uri + m_influxDb_name},
                          cpr::Payload{{metric->m_name + " value", std::to_string(value)}});
-
       DEBUG("InfluxDB response: " << r.status_code << "\t" << r.text);
+#else
+      ERROR("Failed to publish over HTTP. The library is not built with CURL support!");
+#endif
     }
   }
 

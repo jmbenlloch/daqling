@@ -15,10 +15,6 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \cond
-#include <cstdlib>
-/// \endcond
-
 #include "Core/Core.hpp"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
@@ -69,19 +65,17 @@ int main(int argc, char **argv) {
     }
   }
 
-  int port = atoi(argv[2]);
-  daqling::core::Core c(port, "tcp", "*");
+  unsigned port = strtoul(argv[2], NULL, 0);
+  daqling::core::Core c(port);
 
-  c.setupCommandPath();
+  c.setupCommandServer();
 
   std::mutex *mtx = c.getMutex();
   std::condition_variable *cv = c.getCondVar();
-
   std::unique_lock<std::mutex> lk(*mtx);
 
   cv->wait(lk, [&] { return c.getShouldStop(); });
   lk.unlock();
-  std::this_thread::sleep_for(100ms); // allow time for command handler to stop
 
   return EXIT_SUCCESS;
 }

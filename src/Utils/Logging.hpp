@@ -33,10 +33,10 @@
 /// \endcond
 
 #include "Common.hpp"
-#include "Utils/zhelpers.hpp"
 #include "hedley.h"
 #include "spdlog/sinks/base_sink.h"
 #include "spdlog/spdlog.h"
+#include "zhelpers.hpp"
 
 #undef SPDLOG_FUNCTION
 #define SPDLOG_FUNCTION __PRETTY_FUNCTION__
@@ -67,6 +67,8 @@
 namespace daqling::utilities {
 using LoggerType = std::shared_ptr<spdlog::logger>;
 
+struct instance_already_set : public std::exception {};
+
 class Logger {
 private:
   static bool m_module_logger_set; // may only be set once
@@ -77,12 +79,13 @@ public:
   /**
    * Sets the current logger instance.
    *
-   * @warning May only be called if no logger is already set.
-   * @todo Replace assertion with an exception throw
+   * @warning Throws instance_already_set exception if logger is already set.
    */
   HEDLEY_PRIVATE
   static void set_instance(LoggerType logger) {
-    assert(!m_logger);
+    if (m_logger) {
+      throw instance_already_set();
+    }
     m_logger = logger;
   }
 
@@ -127,6 +130,11 @@ public:
     m_context = std::make_unique<zmq::context_t>(1);
     m_socket = std::make_unique<zmq::socket_t>(*(m_context.get()), ZMQ_PUB);
     m_socket->connect("tcp://localhost:6542");
+  }
+
+  ~zmq_sink() {
+    m_socket->close();
+    m_context->close();
   }
 
 private:

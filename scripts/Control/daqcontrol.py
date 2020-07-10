@@ -15,54 +15,79 @@
  along with DAQling. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import supervisor_wrapper
+from supervisor_wrapper import supervisor_wrapper
 import zmq
 import json
 from time import sleep
+from xmlrpc.client import ServerProxy
 
-
+## DAQ control class
+#  Handles communication with Supervisor and the Command XML-RPC server of DAQling processes.
 class daqcontrol:
+  ## Constructor
+  #  @param group The Supervisor registered group to which to add processes
+  #  @use_supervisor If False doesn't rely on Supervisor to spawn and check the process status
   def __init__(self, group, use_supervisor=True):
     self.group = group
     self.context = zmq.Context()
-    self.stop_check = False
     self.use_supervisor = use_supervisor
 
-  ## returns a map of process names and process ids
+  ## Get all names and process IDs
+  #  Returns a map of process names and correspondent process IDs.
   def getAllNameProcessID(self, host):
-    sw = supervisor_wrapper.supervisor_wrapper(host, self.group)
+    sw = supervisor_wrapper(host, self.group)
     try:
-      return {info['name']: info['pid'] for info in sw.getAllProcessInfoInGroup()}
+      return {info['name']: info['pid'] for info in sw.getAllProcessInfo()}
     except Exception as e:
-      print("Exception", str(e))
+      raise Exception(e)
 
+  ## Remove a single process
   def removeProcess(self, host, name):
-    sw = supervisor_wrapper.supervisor_wrapper(host, self.group)
+    sw = supervisor_wrapper(host, self.group)
     try:
       if sw.getProcessState(name)['statename'] == 'RUNNING':
         try:
-          print('Stop', sw.stopProcess(name))
+          sw.stopProcess(name)
         except Exception as e:
-          print("Exception",str(e),": cannot stop process",
+          raise Exception(e, ": cannot stop process",
                 name, "(probably already stopped)")
-      print('Remove', sw.removeProcessFromGroup(name))
+      sw.removeProcess(name)
     except Exception as e:
-      print("Exception",str(e),": Couldn't get process state")
+      raise Exception(e, ": Couldn't get process state")
 
+  ## Removes multiple processes
+  #  @param components The JSON array of components to remove
   def removeProcesses(self, components):
     for p in components:
       self.removeProcess(p['host'], p['name'])
 
+  ## Add a single process
+  #  @param exe The executable to spawn, with relative path from dir
+  #  @param dir The absolute path of the directory from which exe is evaluated
+  #  @param lib_path The LD_LIBRARY_PATH to pass to the executable
+  #  @param command The command to use to run a script (example: python3)
   def addProcess(self, host, name, exe, dir, lib_path="", command=""):
-    sw = supervisor_wrapper.supervisor_wrapper(host, self.group)
+    sw = supervisor_wrapper(host, self.group)
     try:
-      rv, log_file = sw.addProgramToGroup(name, exe, dir, lib_path, command)
-      print("Add", rv)
+      _, log_file = sw.addProgram(name, exe, dir, lib_path, command)
       return log_file
     except Exception as e:
-      print("Exception",str(e),": cannot add program", name, "(probably already added)")
+      raise Exception(e, ": cannot add program", name, "(probably already added)")
 
+  ## Boot a single process
+  #  Executes a process if it has been already added.
+  def bootProcess(self, host, name):
+    sw = supervisor_wrapper(host, self.group)
+    try:
+      sw.startProcess(name)
+    except Exception as e:
+      raise Exception(e, ": cannot start program", name, "(probably already started)")
 
+  ## Adds multiple components (processes)
+  #  @param components The JSON array of components to add
+  #  @param exe The executable to spawn, with relative path from dir
+  #  @param dir The absolute path of the directory from which exe is evaluated
+  #  @param lib_path The LD_LIBRARY_PATH to pass to the executable
   def addComponents(self, components, exe, dir, lib_path):
     log_files = []
     for p in components:
@@ -74,6 +99,9 @@ class daqcontrol:
       log_files.append(self.addProcess(p['host'], name, full_exe, dir, lib_path=lib_path))
     return log_files
 
+  ## Adds multiple scripts (processes)
+  #  @param scripts The JSON array of scripts to add
+  #  @param script_dir The absolute path of the directory from which the relative paths are evaluated
   def addScripts(self, scripts, script_dir):
     log_files = []
     for s in scripts:
@@ -84,88 +112,46 @@ class daqcontrol:
       log_files.append(self.addProcess(s['host'], name, exe, dir, command=command))
     return log_files
 
-  def handleRequest(self, host, port, request, config=None):
-    socket = self.context.socket(zmq.REQ)
-    socket.setsockopt(zmq.LINGER, 0)
-    socket.RCVTIMEO = 2000
-    socket.connect("tcp://"+host+":"+str(port))
-    if config == None:
-      socket.send_string(request)
-    else:
-      socket.send_string(request, zmq.SNDMORE)
-      socket.send_string(config)
-    try:
-      reply = socket.recv()
-      # print(reply)
-      return reply, False
-    except:
-      # print("Exception: handleRequest timeout", request)
-      return b'', True
+  ## Handles XML-RPC requests
+  def handleRequest(self, host, port, request, *args):
+    proxy = ServerProxy("http://"+host+":"+str(port)+"/RPC2")
+    return getattr(proxy, request)(*args)
 
   def configureProcess(self, p):
-    req = json.dumps({'command': 'configure'})
+    req = 'configure'
     config = json.dumps(p)
-    rv, rv1 = self.handleRequest(p['host'], p['port'], req, config)
-    if rv != b'Success':
-      print("configureProcess", p['name'], "rv:", rv, "timeout:", rv1)
+    return self.handleRequest(p['host'], p['port'], req, config)
 
   def unconfigureProcess(self, p):
-    req = json.dumps({'command': 'unconfigure'})
-    rv, rv1 = self.handleRequest(p['host'], p['port'], req)
-    if rv != b'Success':
-      print("unconfigure", p['name'], "rv:", rv, "timeout:", rv1)
+    req = 'unconfigure'
+    return self.handleRequest(p['host'], p['port'], req)
 
-  def startProcess(self, p, arg="0"):
-    req = json.dumps({'command': 'start'})
-    rv, rv1 = self.handleRequest(p['host'], p['port'], req, arg)
-    if rv != b'Success':
-      print("startProcess", p['name'], "rv:", rv, "timeout:", rv1)
+  def startProcess(self, p, run_num=0):
+    req = 'start'
+    return self.handleRequest(p['host'], p['port'], req, int(run_num))
 
   def stopProcess(self, p):
-    req = json.dumps({'command': 'stop'})
-    rv, rv1 = self.handleRequest(p['host'], p['port'], req)
-    if rv != b'Success':
-      print("stopProcess", p['name'], "rv:", rv, "timeout:", rv1)
+    req = 'stop'
+    return self.handleRequest(p['host'], p['port'], req)
 
   def shutdownProcess(self, p):
-    req = json.dumps({'command': 'shutdown'})
-    rv, rv1 = self.handleRequest(p['host'], p['port'], req)
-    if rv != b'Success':
-      print("shutdown", p['name'], "rv:", rv, "timeout:", rv1)
+    req = 'down'
+    return self.handleRequest(p['host'], p['port'], req)
 
-  def customCommandProcess(self, p, command, args=None):
-    req = json.dumps({'command': command})
-    rv, rv1 = self.handleRequest(p['host'], p['port'], req, args)
-    if rv != b'Success':
-      print(command, p['name'], "rv:", rv, "timeout:", rv1)
+  def customCommandProcess(self, p, command, arg=None):
+    req = 'custom'
+    return self.handleRequest(p['host'], p['port'], req, command, arg)
 
   def getStatus(self, p):
-      sw = supervisor_wrapper.supervisor_wrapper(p['host'], self.group)
-      req = json.dumps({'command': 'status'})
-      state = "RUNNING"
-      timeout = False
-      if self.use_supervisor:
-        try:
-          state = sw.getProcessState(p['name'])['statename']
-        except:
-          state = 'NOT_ADDED'
-          status = b'not_added'
-      if state == 'RUNNING':
-        status, timeout = self.handleRequest(p['host'], p['port'], req)
-        if status == b'':
-          print("status", p['name'], "rv:", status, "timeout:", timeout)
-      elif state != 'NOT_ADDED':
-        status = b'added'
-      return status, timeout
-  
-  def statusCheck(self, p):
-    status = ""
-    while(not self.stop_check):
-      sleep(0.5)
-      new_status = self.getStatus(p)
-      if new_status != status:
-        print(p['name'], "in status", new_status)
-        status = new_status
-        # if status == b'booted':
-        #   print("Automatically configure booted process")
-        #   self.configureProcess(p)
+      sw = supervisor_wrapper(p['host'], self.group)
+      req = 'status'
+      try:
+        status = self.handleRequest(p['host'], p['port'], req)
+      except:
+        if self.use_supervisor:
+          status = 'added'
+          try:
+            sw.getProcessState(p['name'])['statename']
+          except:
+            status = 'not_added'
+      return status

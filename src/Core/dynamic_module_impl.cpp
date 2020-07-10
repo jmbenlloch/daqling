@@ -30,7 +30,11 @@ DAQProcess *daqling_module_create(daqutils::LoggerType logger) {
   assert(logger);
   // Set the logger before create the module. Otherwise would be UB, as the module ctor may log
   // entries.
-  daqutils::Logger::set_instance(logger);
+  try {
+    daqutils::Logger::set_instance(logger);
+  } catch (daqutils::instance_already_set &) {
+    DEBUG("Instance already set");
+  }
 
   auto module = new DAQLING_MODULE_NAME();
   return static_cast<DAQProcess *>(module);
