@@ -87,10 +87,7 @@
                           "type": "string",
                           "enum": [
                             "tcp"
-                          ],
-                          "options": {
-                            "hidden": true
-                          }
+                          ]
                         },
                         "type": {
                           "type": "string",
@@ -116,25 +113,21 @@
                         "host",
                         "port"
                       ],
-											"additionalProperties": false
+                      "additionalProperties": false
                     },
                     {
-                      "title": "tcp (w/ filter)",
+                      "title": "tcp pubsub w/ filter",
                       "type": "object",
                       "properties": {
                         "transport": {
                           "type": "string",
                           "enum": [
                             "tcp"
-                          ],
-                          "options": {
-                            "hidden": true
-                          }
+                          ]
                         },
                         "type": {
                           "type": "string",
                           "enum": [
-                            "pair",
                             "pubsub"
                           ]
                         },
@@ -163,7 +156,7 @@
                         "filter",
                         "filter_size"
                       ],
-											"additionalProperties": false
+                      "additionalProperties": false
                     },
                     {
                       "title": "ipc",
@@ -173,10 +166,7 @@
                           "type": "string",
                           "enum": [
                             "ipc"
-                          ],
-                          "options": {
-                            "hidden": true
-                          }
+                          ]
                         },
                         "type": {
                           "type": "string",
@@ -198,7 +188,46 @@
                         "path",
                         "transport"
                       ],
-											"additionalProperties": false
+                      "additionalProperties": false
+                    },
+                    {
+                      "title": "ipc pubsub w/ filter",
+                      "type": "object",
+                      "properties": {
+                        "transport": {
+                          "type": "string",
+                          "enum": [
+                            "ipc"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "pubsub"
+                          ]
+                        },
+                        "chid": {
+                          "type": "integer"
+                        },
+                        "path": {
+                          "type": "string"
+                        },
+                        "filter": {
+                          "type": "integer"
+                        },
+                        "filter_size": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "chid",
+                        "path",
+                        "transport",
+                        "filter",
+                        "filter_size"
+                      ],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -219,10 +248,7 @@
                           "type": "string",
                           "enum": [
                             "tcp"
-                          ],
-                          "options": {
-                            "hidden": true
-                          }
+                          ]
                         },
                         "type": {
                           "type": "string",
@@ -248,25 +274,21 @@
                         "host",
                         "port"
                       ],
-											"additionalProperties": false
+                      "additionalProperties": false
                     },
                     {
-                      "title": "tcp (w/ filter)",
+                      "title": "tcp pubsub w/ filter",
                       "type": "object",
                       "properties": {
                         "transport": {
                           "type": "string",
                           "enum": [
                             "tcp"
-                          ],
-                          "options": {
-                            "hidden": true
-                          }
+                          ]
                         },
                         "type": {
                           "type": "string",
                           "enum": [
-                            "pair",
                             "pubsub"
                           ]
                         },
@@ -295,7 +317,7 @@
                         "filter",
                         "filter_size"
                       ],
-											"additionalProperties": false
+                      "additionalProperties": false
                     },
                     {
                       "title": "ipc",
@@ -305,10 +327,7 @@
                           "type": "string",
                           "enum": [
                             "ipc"
-                          ],
-                          "options": {
-                            "hidden": true
-                          }
+                          ]
                         },
                         "type": {
                           "type": "string",
@@ -330,7 +349,46 @@
                         "path",
                         "transport"
                       ],
-											"additionalProperties": false
+                      "additionalProperties": false
+                    },
+                    {
+                      "title": "ipc pubsub w/ filter",
+                      "type": "object",
+                      "properties": {
+                        "transport": {
+                          "type": "string",
+                          "enum": [
+                            "ipc"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "pubsub"
+                          ]
+                        },
+                        "chid": {
+                          "type": "integer"
+                        },
+                        "path": {
+                          "type": "string"
+                        },
+                        "filter": {
+                          "type": "integer"
+                        },
+                        "filter_size": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "chid",
+                        "path",
+                        "transport",
+                        "filter",
+                        "filter_size"
+                      ],
+                      "additionalProperties": false
                     }
                   ]
                 }
