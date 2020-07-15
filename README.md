@@ -93,10 +93,12 @@ It showcases the use of the `nodetree` and `daqcontrol` libraries, which can be 
 `daqtree -h` shows the help menu.
 
 The `render` command allows to print the current status of the control tree. The render will print the tree structure with the name of the node, the status and its key flags:
+
 - Included [`True`/`False`]. Nodes can be excluded or included from the controlled tree with `<node> exclude` and `<node> include`. Excluded nodes will not participate to the parent's status and will not receive commands from the parent node.
 - Inconsistent [`True`/`False`]. If the children of a node are in different state, the Inconsistent flag is raised.
 
 The control of the system is granular:
+
 - commands can be issued to any node in the tree (for example to `readoutinterface01` only).
 - the full FSM of the control system can be navigated (as opposed to `daqpy`).
 

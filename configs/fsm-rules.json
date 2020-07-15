@@ -19,7 +19,6 @@
     ],
     "running": [
       "stop",
-      "shutdown",
       "pause"
     ],
     "paused": [
