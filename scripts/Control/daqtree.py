@@ -105,10 +105,10 @@ for pre, _, node in RenderTree(root):
 # user input loop
 while (True):
   try:
-    ctrl, *action = input("Enter input:\n"+
-      "  <node> <action> or \"render\" or \"exit\"\n"+
+    ctrl, *args = input("Enter input:\n"+
+      "  <node> <action> <args> or \"render\" or \"exit\"\n"+
       "    with actions: add, boot, configure, start [run num], stop, unconfigure,\n"+
-      "                  shutdown, remove, custom <command>, exclude, include\n").split(' ')
+      "                  shutdown, remove, <custom-command>, exclude, include\n").split(' ')
     if ctrl == "exit":
       for _, _, node in RenderTree(root):
         node.stopStateCheckers()
@@ -116,12 +116,12 @@ while (True):
     elif ctrl == "render":
       for pre, _, node in RenderTree(root):
         print("%s%s [%s] {included %s} {inconsistent %s}" % (pre, node.name, node.getState(), node.included, node.inconsistent))
-    elif action[0] == "exclude":
+    elif args[0] == "exclude":
       find_by_attr(root, ctrl).exclude()
-    elif action[0] == "include":
+    elif args[0] == "include":
       find_by_attr(root, ctrl).include()
     else:
-      rv = find_by_attr(root, ctrl).executeAction(*action)
+      rv = find_by_attr(root, ctrl).executeAction(*args)
       print(rv)
   except Exception as e:
     print("Exception:", e)

@@ -98,7 +98,7 @@ class NodeTree(NodeMixin):
   #  The method is transparent to the node being a parent or children and acts accordingly.
   #  In the case of a parent it forwards the action to children, according to the order_rules.
   #  In the case of a children it executes the daqcontrol correspondent method if the action is allowed by state_action rules.
-  def executeAction(self, action):
+  def executeAction(self, action, arg=None):
     if self.included == True:
       if not self.is_leaf:  # parent/controller
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -109,14 +109,14 @@ class NodeTree(NodeMixin):
               children_matching = [x for x in children_with_type if x.type == t]
               futures = []
               for c in children_matching:
-                f = executor.submit(c.executeAction, action)
+                f = executor.submit(c.executeAction, action, arg)
                 futures.append(f)
               for f in futures:
                 rvs.append(f.result())
             children_without_type = [x for x in self.children if not hasattr(x, "type")]
             futures = []
             for c in children_without_type:
-              f = executor.submit(c.executeAction, action)
+              f = executor.submit(c.executeAction, action, arg)
               futures.append(f)
             for f in futures:
               rvs.append(f.result())
@@ -125,7 +125,7 @@ class NodeTree(NodeMixin):
             rvs = []
             futures = []
             for c in self.children:
-              f = executor.submit(c.executeAction, action)
+              f = executor.submit(c.executeAction, action, arg)
               futures.append(f)
             for f in futures:
               rvs.append(f.result())
@@ -144,13 +144,19 @@ class NodeTree(NodeMixin):
           elif action == "unconfigure":
             return self.dc.handleRequest(self.host, self.port, action)
           elif action == "start":
-            return self.dc.handleRequest(self.host, self.port, action, 0)
+            run_num = 0
+            if arg != None:
+              run_num = int(arg)
+            return self.dc.handleRequest(self.host, self.port, action, run_num)
           elif action == "stop":
             return self.dc.handleRequest(self.host, self.port, action)
           elif action == "shutdown":
             return self.dc.handleRequest(self.host, self.port, "down")
           else:
-            return self.dc.handleRequest(self.host, self.port, "custom", action)
+            custom_arg = ""
+            if arg != None:
+              custom_arg = arg
+            return self.dc.handleRequest(self.host, self.port, "custom", action, custom_arg)
         else:
           raise Exception("Action %s not allowed on %s" % (action, self.name))
     else:
