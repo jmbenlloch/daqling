@@ -80,19 +80,19 @@ class NodeTree(NodeMixin):
   def getState(self):
     return self.state
 
-  ## Include the node in the tree
+  ## Include the node (and its children) in the tree
   #  When included, a node partecipates to the parent's state and receives actions from parent.
   def include(self):
     self.included = True
     for c in self.children:
-      c.included = True
+      c.include()
 
-  ## Exclude the node from the tree
+  ## Exclude the node (and its children) from the tree
   #  When excluded, a node doesn't partecipate to the parent's state and doesn't receive actions from parent.
   def exclude(self):
     self.included = False
     for c in self.children:
-      c.included = False
+      c.exclude()
 
   def getIncluded(self):
     return self.included
@@ -103,7 +103,7 @@ class NodeTree(NodeMixin):
   #  In the case of a parent it forwards the action to children, according to the order_rules.
   #  In the case of a children it executes the daqcontrol correspondent method if the action is allowed by state_action rules.
   def executeAction(self, action, arg=None):
-    if self.included == True:
+    if self.getIncluded() == True:
       if not self.is_leaf:  # parent/controller
         with concurrent.futures.ThreadPoolExecutor() as executor:
           if action in self.order_rules:
@@ -182,10 +182,16 @@ class NodeTree(NodeMixin):
       for c in self.children:
         if c.getIncluded() == True:
           states.append(c.getState())
-      # if no children is included, add back all of them as to have a meaningful state
+      # if no children is included
       if len(states) == 0:
+        # add back all of them as to have a meaningful state
         for c in self.children:
           states.append(c.getState())
+        self.exclude() # automatically exclude parent
+      else:
+        # if at least a child is included then include self if excluded (parent)
+        if self.getIncluded() == False:
+          self.included = True
       max_state = max(states, key=lambda state: list(self.state_action.keys()).index(state))
       min_state = min(states, key=lambda state: list(self.state_action.keys()).index(state))
       max_count = 0
