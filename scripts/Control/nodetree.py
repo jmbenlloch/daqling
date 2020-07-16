@@ -84,11 +84,15 @@ class NodeTree(NodeMixin):
   #  When included, a node partecipates to the parent's state and receives actions from parent.
   def include(self):
     self.included = True
+    for c in self.children:
+      c.included = True
 
   ## Exclude the node from the tree
   #  When excluded, a node doesn't partecipate to the parent's state and doesn't receive actions from parent.
   def exclude(self):
     self.included = False
+    for c in self.children:
+      c.included = False
 
   def getIncluded(self):
     return self.included
@@ -158,9 +162,9 @@ class NodeTree(NodeMixin):
               custom_arg = arg
             return self.dc.handleRequest(self.host, self.port, "custom", action, custom_arg)
         else:
-          raise Exception("Action %s not allowed on %s" % (action, self.name))
+          return "Action not allowed"
     else:
-      return "Success"
+      return "Excluded"
 
   def checker(self):
     prev = None
@@ -177,6 +181,9 @@ class NodeTree(NodeMixin):
       states = []
       for c in self.children:
         if c.getIncluded() == True:
+          states.append(c.getState())
+      if len(states) == 0:
+        for c in self.children:
           states.append(c.getState())
       max_state = max(states, key=lambda state: list(self.state_action.keys()).index(state))
       min_state = min(states, key=lambda state: list(self.state_action.keys()).index(state))
