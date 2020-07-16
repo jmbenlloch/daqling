@@ -160,7 +160,7 @@ class NodeTree(NodeMixin):
         else:
           raise Exception("Action %s not allowed on %s" % (action, self.name))
     else:
-      raise Exception("Node %s is excluded" % (self.name))
+      return "Success"
 
   def checker(self):
     prev = None
