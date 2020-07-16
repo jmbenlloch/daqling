@@ -182,6 +182,7 @@ class NodeTree(NodeMixin):
       for c in self.children:
         if c.getIncluded() == True:
           states.append(c.getState())
+      # if no children is included, add back all of them as to have a meaningful state
       if len(states) == 0:
         for c in self.children:
           states.append(c.getState())
