@@ -93,13 +93,14 @@ public:
         throw connection_failure();
       }
       if (it.contains("filter") && it.contains("filter_size")) {
-        if (!cm.addChannel(it["chid"], dir, connStr.str(), 1000, it["filter"], it["filter_size"])) {
+        if (!cm.addReceiverChannel(it["chid"], dir, connStr.str(), 1000, it["filter"],
+                                   it["filter_size"])) {
           ERROR("addChannel failure!");
           throw connection_failure();
         }
 
       } else {
-        if (!cm.addChannel(it["chid"], dir, connStr.str(), 1000)) {
+        if (!cm.addReceiverChannel(it["chid"], dir, connStr.str(), 1000)) {
           ERROR("addChannel failure!");
           throw connection_failure();
         }
@@ -130,7 +131,7 @@ public:
         ERROR("Unrecognized transport type");
         throw connection_failure();
       }
-      if (!cm.addChannel(it["chid"], dir, connStr.str(), 1000)) {
+      if (!cm.addSenderChannel(it["chid"], dir, connStr.str(), 1000)) {
         ERROR("addChannel failure!");
         throw connection_failure();
       }
@@ -157,9 +158,13 @@ public:
     auto &cm = daqling::core::ConnectionManager::instance();
     if (!plugin.getLoaded())
       throw invalid_command();
-    while (cm.getNumOfChannels() > 0) {
-      cm.removeChannel(cm.getNumOfChannels() - 1);
+    while (cm.getNumOfReceiverChannels() > 0) {
+      cm.removeReceiverChannel(cm.getNumOfReceiverChannels() - 1);
     }
+    while (cm.getNumOfSenderChannels() > 0) {
+      cm.removeSenderChannel(cm.getNumOfSenderChannels() - 1);
+    }
+
     cm.unsetStatsConnection();
     plugin.unload();
     response = "Success";
