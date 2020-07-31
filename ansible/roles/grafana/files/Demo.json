@@ -73,7 +73,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "readoutinterface01-ch0-NumMessages",
+          "measurement": "readoutinterface01-SenderCh0-NumMessages",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -110,7 +110,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "readoutinterface02-ch0-NumMessages",
+          "measurement": "readoutinterface02-SenderCh0-NumMessages",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "B",
@@ -146,7 +146,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "eventbuilder01-ch0-NumMessages",
+          "measurement": "eventbuilder01-ReceiverCh0-NumMessages",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "C",
@@ -182,7 +182,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "eventbuilder01-ch1-NumMessages",
+          "measurement": "eventbuilder01-ReceiverCh1-NumMessages",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "D",
@@ -218,7 +218,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "eventbuilder01-ch2-NumMessages",
+          "measurement": "eventbuilder01-SenderCh0-NumMessages",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "E",
@@ -254,7 +254,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "filewriter01-ch0-NumMessages",
+          "measurement": "filewriter01-ReceiverCh0-NumMessages",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "F",
@@ -369,7 +369,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "readoutinterface01-ch0-QueueSizeGuess",
+          "measurement": "readoutinterface01-SenderCh0-QueueSizeGuess",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -405,7 +405,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "readoutinterface02-ch0-QueueSizeGuess",
+          "measurement": "readoutinterface02-SenderCh0-QueueSizeGuess",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "B",
@@ -441,7 +441,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "eventbuilder01-ch0-QueueSizeGuess",
+          "measurement": "eventbuilder01-ReceiverCh0-QueueSizeGuess",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "C",
@@ -477,7 +477,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "eventbuilder01-ch1-QueueSizeGuess",
+          "measurement": "eventbuilder01-ReceiverCh1-QueueSizeGuess",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "D",
@@ -513,7 +513,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "eventbuilder01-ch2-QueueSizeGuess",
+          "measurement": "eventbuilder01-SenderCh0-QueueSizeGuess",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "E",
@@ -549,7 +549,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "filewriter01-ch0-QueueSizeGuess",
+          "measurement": "filewriter01-ReceiverCh0-QueueSizeGuess",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "F",
@@ -1712,7 +1712,7 @@
     "list": []
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
@@ -1743,5 +1743,5 @@
   "timezone": "",
   "title": "DAQling demo",
   "uid": "ldySjqTZk",
-  "version": 10
+  "version": 12
 }
