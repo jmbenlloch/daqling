@@ -35,7 +35,12 @@
             "type": "integer"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "ReadoutInterface",
+              "EventBuilder",
+              "FileWriter"
+            ]
           },
           "loglevel": {
             "type": "object",
@@ -64,8 +69,18 @@
             ]
           },
           "settings": {
-            "type": "object",
-            "title": "Settings"
+            "title": "Settings",
+            "oneOf": [
+              {
+                "$ref": "#/definitions/ReadoutInterface"
+              },
+              {
+                "$ref": "#/definitions/EventBuilder"
+              },
+              {
+                "$ref": "#/definitions/FileWriter"
+              }
+            ]
           },
           "connections": {
             "type": "object",
@@ -322,6 +337,62 @@
           "loglevel"
         ]
       }
+    }
+  },
+  "definitions": {
+    "ReadoutInterface": {
+      "title": "ReadoutInterface",
+      "type": "object",
+      "properties": {
+        "board_id": {
+          "type": "integer"
+        },
+        "delay_us": {
+          "type": "integer"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "integer"
+            },
+            "max": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "min",
+            "max"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "board_id",
+        "delay_us",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    "EventBuilder": {
+      "title": "EventBuilder",
+      "type": "object",
+      "properties": {
+      },
+      "additionalProperties": false
+    },
+    "FileWriter": {
+      "title": "FileWriter",
+      "type": "object",
+      "properties": {
+        "filename_pattern": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename_pattern"
+      ],
+      "additionalProperties": false
     }
   }
 }
