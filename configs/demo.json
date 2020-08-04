@@ -54,8 +54,6 @@
       "port": 5560,
       "type": "EventBuilder",
       "loglevel": {"core": "WARNING", "module": "INFO"},
-      "settings": {
-      },
       "connections": {
         "receivers": [
           {

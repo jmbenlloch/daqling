@@ -67,7 +67,7 @@ with open(config_dir_path+config_dict["config"]) as f:
 f.close()
 
 # open schema and validate the configuration
-with open(config_dir_path+'config-schema.json') as f:
+with open(config_dir_path+'schemas/config-schema.json') as f:
   schema = json.load(f)
 f.close()
 print("Configuration Version:", configuration['version'])

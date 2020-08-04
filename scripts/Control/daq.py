@@ -116,7 +116,7 @@ if "scripts" in data:
   add_scripts = True
 
 # open schema and validate the configuration
-with open(env['DAQ_CONFIG_DIR']+'config-schema.json') as f:
+with open(env['DAQ_CONFIG_DIR']+'schemas/config-schema.json') as f:
   schema = json.load(f)
 f.close()
 print("Configuration Version:", data['version'])
