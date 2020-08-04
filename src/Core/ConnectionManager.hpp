@@ -46,7 +46,9 @@ namespace core {
 // template <class CT, class ST>
 class ConnectionManager : public daqling::utilities::Singleton<ConnectionManager> {
 public:
-  ConnectionManager() : m_activeChannels{0}, m_is_stats_setup{false}, m_stop_handlers{false} {}
+  ConnectionManager()
+      : m_receiver_channels{0}, m_sender_channels{0}, m_is_stats_setup{false}, m_stop_handlers{
+                                                                                   false} {}
   ~ConnectionManager() { m_stop_handlers = true; }
 
   // Custom types
@@ -64,58 +66,56 @@ public:
   bool unsetStatsConnection();
 
   // Add a channel (sockets and queues)
-  bool addChannel(unsigned chn, EDirection dir, const std::string &connStr, size_t queueSize,
-                  unsigned filter = 0, size_t filter_size = 0);
-  bool removeChannel(unsigned chn);
+  bool addReceiverChannel(unsigned chn, EDirection dir, const std::string &connStr,
+                          size_t queueSize, unsigned filter = 0, size_t filter_size = 0);
+  bool addSenderChannel(unsigned chn, EDirection dir, const std::string &connStr, size_t queueSize);
 
-  // Getter/Putter for channels:
+  bool removeReceiverChannel(unsigned chn);
+  bool removeSenderChannel(unsigned chn);
+
   /**
-   * @brief Get binary from channel
-   *
+   * @brief Receive binary from receiver channel
+   * @param chn receiver channel id
    * @return true when binary file is successfully passed
    */
-  bool get(unsigned chn, daqling::utilities::Binary &bin);
-  bool put(unsigned chn, daqling::utilities::Binary &msgBin);
-  bool putStr(unsigned chn, const std::string &string);
-  std::string getStr(unsigned chn);
+  bool receive(unsigned chn, daqling::utilities::Binary &bin);
+  /**
+   * @brief Send binary to channel
+   * @param chn sender channel id
+   * @return true when binary file is successfully passed
+   */
+  bool send(unsigned chn, daqling::utilities::Binary &msgBin);
 
   // Start/stop socket processors
   bool start();
   bool stop();
 
   // Utilities
-  unsigned getNumOfChannels() { return m_activeChannels; } // Get the number of active channels.
-  std::atomic<size_t> &getQueueStat(unsigned chn) { return m_pcqSizes[chn]; }
-  std::atomic<size_t> &getMsgStat(unsigned chn) { return m_numMsgsHandled[chn]; }
-  const SizeStatMap &getStatsMap() { return std::ref(m_pcqSizes); }
-  const SizeStatMap &getMsgStatsMap() { return std::ref(m_numMsgsHandled); }
+  unsigned getNumOfReceiverChannels() { return m_receiver_channels; }
+  unsigned getNumOfSenderChannels() { return m_sender_channels; }
+  std::atomic<size_t> &getReceiverQueueStat(unsigned chn) { return m_receiver_pcqSizes[chn]; }
+  std::atomic<size_t> &getSenderQueueStat(unsigned chn) { return m_sender_pcqSizes[chn]; }
+  std::atomic<size_t> &getReceiverMsgStat(unsigned chn) { return m_receiver_numMsgsHandled[chn]; }
+  std::atomic<size_t> &getSenderMsgStat(unsigned chn) { return m_sender_numMsgsHandled[chn]; }
+  const SizeStatMap &getReceiverStatsMap() { return std::ref(m_receiver_pcqSizes); }
+  const SizeStatMap &getSenderStatsMap() { return std::ref(m_sender_pcqSizes); }
+  const SizeStatMap &getReceiverMsgStatsMap() { return std::ref(m_receiver_numMsgsHandled); }
+  const SizeStatMap &getSenderMsgStatsMap() { return std::ref(m_sender_numMsgsHandled); }
   std::unique_ptr<zmq::socket_t> &getStatSocket() { return std::ref(m_stats_socket); }
-
-  /*
-    bool connect(unsigned chn, uint16_t tag) { return false; } // Connect/subscriber to given
-    channel. bool disconnect(unsigned chn, uint16_t tag) { return false; } //
-    Disconnect/unsubscriber from a given channel. void start() {} // Starts the subscri threads.
-    void stopSubscribers() {}  // Stops the subscriber threads.
-    bool busy() { return false; } // are processor threads busy
-  */
 
 private:
   const std::string m_className = "ConnectionManager";
-  size_t m_activeChannels;
+  size_t m_receiver_channels;
+  size_t m_sender_channels;
 
-  // Configuration:
-  std::vector<unsigned> m_channels;
-
-  // Queues
-#ifdef MSGQ
-  std::map<unsigned, UniqueMessageQueue> m_pcqs; // Queues for elink RX.
-#else
-  // std::map<unsigned, UniqueFrameQueue> m_pcqs;
-#endif
+  std::map<unsigned, UniqueMessageQueue> m_receiver_pcqs; // Queues for elink RX.
+  std::map<unsigned, UniqueMessageQueue> m_sender_pcqs;   // Queues for elink TX.
 
   // Stats
-  SizeStatMap m_pcqSizes;
-  SizeStatMap m_numMsgsHandled;
+  SizeStatMap m_receiver_pcqSizes;
+  SizeStatMap m_sender_pcqSizes;
+  SizeStatMap m_receiver_numMsgsHandled;
+  SizeStatMap m_sender_numMsgsHandled;
 
   // Network library handling
   // Statistics
@@ -123,12 +123,18 @@ private:
   std::unique_ptr<zmq::socket_t> m_stats_socket;
   std::atomic<bool> m_is_stats_setup;
   // Dataflow
-  std::map<unsigned, std::unique_ptr<zmq::context_t>> m_contexts; // context descriptors
-  std::map<unsigned, std::unique_ptr<zmq::socket_t>> m_sockets;   // sockets.
-  std::map<unsigned, EDirection> m_directions;
+  std::map<unsigned, std::unique_ptr<zmq::context_t>> m_receiver_contexts; // context descriptors
+  std::map<unsigned, std::unique_ptr<zmq::context_t>> m_sender_contexts;   // context descriptors
+
+  std::map<unsigned, std::unique_ptr<zmq::socket_t>> m_receiver_sockets; // sockets.
+  std::map<unsigned, std::unique_ptr<zmq::socket_t>> m_sender_sockets;   // sockets.
+
+  std::map<unsigned, EDirection> m_receiver_directions;
+  std::map<unsigned, EDirection> m_sender_directions;
 
   // Threads
-  std::map<unsigned, std::thread> m_handlers;
+  std::map<unsigned, std::thread> m_receiver_handlers;
+  std::map<unsigned, std::thread> m_sender_handlers;
   std::map<unsigned, std::unique_ptr<daqling::utilities::ReusableThread>> m_processors;
   std::map<unsigned, std::function<void()>> m_functors;
 

@@ -88,7 +88,6 @@ public:
     auto statsURI = m_config.getSettings()["stats_uri"];
     auto influxDbURI = m_config.getSettings()["influxDb_uri"];
     auto influxDbName = m_config.getSettings()["influxDb_name"];
-    auto numConnections = m_config.getNumConnections();
 
     INFO("Setting up statistics on: " << statsURI);
     if ((statsURI == "" || statsURI == nullptr) && (influxDbURI == "" || influxDbURI == nullptr)) {
@@ -103,12 +102,22 @@ public:
         }
       }
       m_statistics = std::make_unique<Statistics>(m_connections.getStatSocket());
-      for (unsigned ch = 0; ch < numConnections; ch++) {
+      for (unsigned ch = 0; ch < m_config.getNumReceiverConnections(); ch++) {
+        m_statistics->registerMetric<std::atomic<size_t>>(&m_connections.getReceiverQueueStat(ch),
+                                                          "ReceiverCh" + std::to_string(ch) +
+                                                              "-QueueSizeGuess",
+                                                          daqling::core::metrics::LAST_VALUE);
         m_statistics->registerMetric<std::atomic<size_t>>(
-            &m_connections.getQueueStat(ch), "ch" + std::to_string(ch) + "-QueueSizeGuess",
-            daqling::core::metrics::LAST_VALUE);
+            &m_connections.getReceiverMsgStat(ch),
+            "ReceiverCh" + std::to_string(ch) + "-NumMessages", daqling::core::metrics::RATE);
+      }
+      for (unsigned ch = 0; ch < m_config.getNumSenderConnections(); ch++) {
+        m_statistics->registerMetric<std::atomic<size_t>>(&m_connections.getSenderQueueStat(ch),
+                                                          "SenderCh" + std::to_string(ch) +
+                                                              "-QueueSizeGuess",
+                                                          daqling::core::metrics::LAST_VALUE);
         m_statistics->registerMetric<std::atomic<size_t>>(
-            &m_connections.getMsgStat(ch), "ch" + std::to_string(ch) + "-NumMessages",
+            &m_connections.getSenderMsgStat(ch), "SenderCh" + std::to_string(ch) + "-NumMessages",
             daqling::core::metrics::RATE);
       }
       if (statsURI != "" && statsURI != nullptr) {

@@ -78,7 +78,7 @@ void EventBuilderModule::runner() {
         m_complete_ev_size_guess = complete_seq.sizeGuess();
       }
       lck.unlock();
-      while (!m_connections.put(m_nreceivers, out) && m_run) {
+      while (!m_connections.send(0, out) && m_run) {
         WARNING("put() failed. Trying again");
         std::this_thread::sleep_for(1ms);
       }
@@ -93,7 +93,7 @@ void EventBuilderModule::runner() {
     bool received = false;
     for (unsigned ch = 0; ch < m_nreceivers; ch++) {
       daqling::utilities::Binary b;
-      if (m_connections.get(ch, std::ref(b))) {
+      if (m_connections.receive(ch, std::ref(b))) {
         unsigned seq_number;
         data_t *d = static_cast<data_t *>(b.data());
         seq_number = d->header.seq_number;

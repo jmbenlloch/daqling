@@ -93,7 +93,7 @@ void ReadoutInterfaceModule::runner() {
     // print binary
     // INFO("\n" << binary);
 
-    while (!m_connections.put(0, binary) && m_run) {
+    while (!m_connections.send(0, binary) && m_run) {
       WARNING("put() failed. Trying again");
       std::this_thread::sleep_for(1ms);
     };
