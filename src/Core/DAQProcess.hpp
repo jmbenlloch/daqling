@@ -85,9 +85,9 @@ public:
 
   bool setupStatistics() { // TODO
 
-    auto statsURI = m_config.getSettings()["stats_uri"];
-    auto influxDbURI = m_config.getSettings()["influxDb_uri"];
-    auto influxDbName = m_config.getSettings()["influxDb_name"];
+    auto statsURI = m_config.getMetricsSettings()["stats_uri"];
+    auto influxDbURI = m_config.getMetricsSettings()["influxDb_uri"];
+    auto influxDbName = m_config.getMetricsSettings()["influxDb_name"];
 
     INFO("Setting up statistics on: " << statsURI);
     if ((statsURI == "" || statsURI == nullptr) && (influxDbURI == "" || influxDbURI == nullptr)) {
