@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 9,
   "group": "daq",
   "scripts": [
     {
@@ -23,11 +23,19 @@
       "host": "localhost",
       "port": 5555,
       "type": "ReadoutInterface",
-      "loglevel": {"core": "INFO", "module": "INFO"},
+      "loglevel": {
+        "core": "INFO",
+        "module": "INFO"
+      },
       "settings": {
         "board_id": 0,
         "delay_us": 100,
-        "payload": {"min": 200, "max": 1500},
+        "payload": {
+          "min": 200,
+          "max": 1500
+        }
+      },
+      "metrics_settings": {
         "stats_uri": "tcp://localhost:6007"
       },
       "connections": {
@@ -47,11 +55,19 @@
       "host": "localhost",
       "port": 5556,
       "type": "ReadoutInterface",
-      "loglevel": {"core": "INFO", "module": "INFO"},
+      "loglevel": {
+        "core": "INFO",
+        "module": "INFO"
+      },
       "settings": {
         "board_id": 1,
         "delay_us": 100,
-        "payload": {"min": 200, "max": 1500},
+        "payload": {
+          "min": 200,
+          "max": 1500
+        }
+      },
+      "metrics_settings": {
         "stats_uri": "tcp://localhost:6007"
       },
       "connections": {
@@ -71,8 +87,12 @@
       "host": "localhost",
       "port": 5560,
       "type": "EventBuilder",
-      "loglevel": {"core": "INFO", "module": "INFO"},
-      "settings": {
+      "loglevel": {
+        "core": "INFO",
+        "module": "INFO"
+      },
+      "settings": {},
+      "metrics_settings": {
         "stats_uri": "tcp://localhost:6007"
       },
       "connections": {
@@ -107,9 +127,14 @@
       "host": "localhost",
       "port": 5561,
       "type": "FileWriter",
-      "loglevel": {"core": "INFO", "module": "INFO"},
+      "loglevel": {
+        "core": "INFO",
+        "module": "INFO"
+      },
       "settings": {
-        "filename_pattern": "/tmp/test-%D.%r.%c.%n.bin",
+        "filename_pattern": "/tmp/test-%D.%r.%c.%n.bin"
+      },
+      "metrics_settings": {
         "stats_uri": "tcp://localhost:6007"
       },
       "connections": {
@@ -125,4 +150,3 @@
     }
   ]
 }
-

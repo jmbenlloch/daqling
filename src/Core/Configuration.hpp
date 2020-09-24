@@ -44,6 +44,7 @@ public:
   void load(const std::string &jsonStr) { m_config = nlohmann::json::parse(jsonStr); }
   nlohmann::json &getConfig() { return m_config; }
   nlohmann::json &getSettings() { return m_config["settings"]; }
+  nlohmann::json &getMetricsSettings() { return m_config["metrics_settings"]; }
   nlohmann::json &getConnections() { return m_config["connections"]; }
   unsigned getNumReceiverConnections() { return m_config["connections"]["receivers"].size(); }
   unsigned getNumSenderConnections() { return m_config["connections"]["senders"].size(); }

@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 9,
   "group": "daq",
   "components": [
     {
@@ -13,6 +13,7 @@
         "delay_us": 100000,
         "payload": {"min": 200, "max": 1500}
       },
+      "metrics_settings": {},
       "connections": {
         "senders": [
           {
@@ -36,6 +37,7 @@
         "delay_us": 100000,
         "payload": {"min": 200, "max": 1500}
       },
+      "metrics_settings": {},
       "connections": {
         "senders": [
           {
@@ -54,6 +56,8 @@
       "port": 5560,
       "type": "EventBuilder",
       "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {},
+      "metrics_settings": {},
       "connections": {
         "receivers": [
           {
@@ -90,6 +94,7 @@
       "settings": {
         "filename_pattern": "/tmp/test-%D.%r.%c.%n.bin"
       },
+      "metrics_settings": {},
       "connections": {
         "receivers": [
           {
