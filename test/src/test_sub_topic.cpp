@@ -15,9 +15,10 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Utils/zhelpers.hpp"
+#include <zmq.hpp>
 #include <chrono>
 #include <thread>
+#include <iostream>
 
 struct data_t {
   uint8_t tag;

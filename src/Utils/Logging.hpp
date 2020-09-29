@@ -36,7 +36,7 @@
 #include "hedley.h"
 #include "spdlog/sinks/base_sink.h"
 #include "spdlog/spdlog.h"
-#include "zhelpers.hpp"
+#include <zmq.hpp>
 
 #undef SPDLOG_FUNCTION
 #define SPDLOG_FUNCTION __PRETTY_FUNCTION__

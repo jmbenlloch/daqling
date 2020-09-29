@@ -35,7 +35,7 @@
 
 #include "Configuration.hpp"
 #include "Metric.hpp"
-#include "Utils/zhelpers.hpp"
+#include <zmq.hpp>
 
 namespace daqling {
 namespace core {

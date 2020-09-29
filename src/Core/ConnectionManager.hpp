@@ -29,7 +29,7 @@
 #include "Command.hpp"
 #include "Utils/Binary.hpp"
 #include "Utils/ProducerConsumerQueue.hpp"
-#include "Utils/zhelpers.hpp"
+#include <zmq.hpp>
 
 #define MSGQ
 
