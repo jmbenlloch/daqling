@@ -167,14 +167,12 @@ if arg == 'add' or arg == 'complete':
   if arg == 'add':
     quit()
 
-# add scripts
+# send name+pid info to active psutil-manager(s)
 if add_scripts:
-  # get the set of hosts
-  component_hosts = {c['host'] for c in data['components']}
-  script_hosts = {s['host'] for s in data['scripts']}
+  hosts = {s['host'] for s in data['scripts'] if s['executable'] == 'psutil-manager.py'}
   context = zmq.Context()
-  # loop on hosts, get the Name+PID dictionary and send it to psutil-manager
-  for host in component_hosts.union(script_hosts):
+  # loop on hosts with psutil-manager, get the Name+PID dictionary and send it
+  for host in hosts:
     try:
       name_pids = dc.getAllNameProcessID(host)
       socket = context.socket(zmq.PAIR)
