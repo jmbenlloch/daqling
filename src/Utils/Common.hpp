@@ -18,13 +18,11 @@
 #ifndef DAQLING_UTILITIES_COMMON_HPP
 #define DAQLING_UTILITIES_COMMON_HPP
 
-/// \cond
 #include <limits.h>
 #include <pthread.h>
 #include <thread>
 #include <time.h>
 #include <unistd.h>
-/// \endcond
 
 #include "Types.hpp"
 

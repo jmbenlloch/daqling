@@ -17,10 +17,8 @@
 
 #pragma once
 
-/// \cond
 #include <cassandra.h>
 #include <iostream>
-/// \endcond
 
 #include "Core/DAQProcess.hpp"
 #include "Core/DataLogger.hpp"

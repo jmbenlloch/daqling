@@ -16,9 +16,7 @@
 
 #pragma once
 
-/// \cond
 #include <cstddef>
-/// \endcond
 
 namespace folly {
 

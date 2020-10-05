@@ -15,13 +15,11 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \cond
 #include <chrono>
 #include <dlfcn.h>
 #include <iostream>
 #include <string>
 #include <thread>
-/// \endcond
 
 #include "Core/DAQProcess.hpp"
 #include "Utils/Logging.hpp"

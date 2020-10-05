@@ -18,13 +18,11 @@
 #ifndef DAQLING_CORE_CONNECTIONMANAGER_HPP
 #define DAQLING_CORE_CONNECTIONMANAGER_HPP
 
-/// \cond
 #include <algorithm>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <thread>
-/// \endcond
 
 #include "Command.hpp"
 #include "Utils/Binary.hpp"

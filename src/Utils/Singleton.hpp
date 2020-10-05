@@ -26,9 +26,7 @@
  * Date: March 2019
  */
 
-/// \cond
 #include <memory>
-/// \endcond
 
 namespace daqling {
 namespace utilities {

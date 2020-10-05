@@ -18,9 +18,7 @@
 #ifndef DAQLING_CORE_CORE_HPP
 #define DAQLING_CORE_CORE_HPP
 
-/// \cond
 #include <atomic>
-/// \endcond
 
 #include "PluginManager.hpp"
 

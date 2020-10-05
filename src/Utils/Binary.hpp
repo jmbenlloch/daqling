@@ -26,7 +26,6 @@
  *   https://twiki.cern.ch/twiki/bin/view/Persistency/Coral
  */
 
-/// \cond
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -35,7 +34,6 @@
 #include <iostream>
 #include <optional>
 #include <vector>
-/// \endcond
 
 namespace daqling::utilities {
 

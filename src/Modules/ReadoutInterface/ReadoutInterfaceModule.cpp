@@ -15,10 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \cond
 #include <chrono>
 #include <random>
-/// \endcond
 
 #include "Common/DataFormat.hpp"
 #include "ReadoutInterfaceModule.hpp"

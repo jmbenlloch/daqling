@@ -15,10 +15,11 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <zmq.hpp>
 #include <chrono>
-#include <thread>
 #include <iostream>
+#include <thread>
+
+#include <zmq.hpp>
 
 struct data_t {
   uint8_t tag;

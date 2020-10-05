@@ -23,11 +23,9 @@
 #ifndef DAQLING_CORE_PLUGINMANAGER_HPP
 #define DAQLING_CORE_PLUGINMANAGER_HPP
 
-/// \cond
 #include <dlfcn.h>
 #include <optional>
 #include <string>
-/// \endcond
 
 #include "DAQProcess.hpp"
 

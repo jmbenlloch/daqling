@@ -18,7 +18,6 @@
 #ifndef DAQLING_CORE_CONFIGURATION_HPP
 #define DAQLING_CORE_CONFIGURATION_HPP
 
-/// \cond
 #include "nlohmann/json.hpp"
 #include <istream>
 #include <ostream>
@@ -26,7 +25,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-/// \endcond
 
 #include "Utils/Logging.hpp"
 #include "Utils/Singleton.hpp"

@@ -26,11 +26,9 @@
 #ifndef DAQLING_UTILITIES_LOGGING_HPP
 #define DAQLING_UTILITIES_LOGGING_HPP
 
-/// \cond
 #include <cassert>
 #include <memory>
 #include <sstream>
-/// \endcond
 
 #include "Common.hpp"
 #include "hedley.h"
