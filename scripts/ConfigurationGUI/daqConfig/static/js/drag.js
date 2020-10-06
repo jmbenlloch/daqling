@@ -688,25 +688,25 @@ function readJSON(){
                 cache: false,
                 success: function(jsonPosition){
                     // If the positon file assciated to the JSON exists
-                    for(i=0;i<json["components"].length;i++){
+                    for(i=0;i<json["configuration"]["components"].length;i++){
                         var found = false;
                         for(j=0;j<jsonPosition["module"].length;j++){
-                            if(json["components"][i]["name"] == jsonPosition["module"][j]["name"]){
-                                dragAndDrop(json["components"][i]["name"],json["components"][i]["host"],json["components"][i]["type"],json["components"][i]["port"],jsonPosition["module"][j]["position"]);
+                            if(json["configuration"]["components"][i]["name"] == jsonPosition["module"][j]["name"]){
+                                dragAndDrop(json["configuration"]["components"][i]["name"],json["configuration"]["components"][i]["host"],json["configuration"]["components"][i]["type"],json["configuration"]["components"][i]["port"],jsonPosition["module"][j]["position"]);
                                 found = true;
                                 break;
                             }
                         }
                         if(!found){
-                            dragAndDrop(json["components"][i]["name"],json["components"][i]["host"],json["components"][i]["type"],json["components"][i]["port"],null);
+                            dragAndDrop(json["configuration"]["components"][i]["name"],json["configuration"]["components"][i]["host"],json["configuration"]["components"][i]["type"],json["configuration"]["components"][i]["port"],[50+50*i,75+75*i]);
                         }
                     }
                     readJSON_helper(json);
                 },
                 error: function(){
                     // If the position file does not exist
-                    for(i=0;i<json["components"].length;i++){
-                        dragAndDrop(json["components"][i]["name"],json["components"][i]["host"],json["components"][i]["type"],json["components"][i]["port"],null);
+                    for(i=0;i<json["configuration"]["components"].length;i++){
+                        dragAndDrop(json["configuration"]["components"][i]["name"],json["configuration"]["components"][i]["host"],json["configuration"]["components"][i]["type"],json["configuration"]["components"][i]["port"],[50+50*i,75+75*i]);
                     }
                     readJSON_helper(json);
                 }});
@@ -717,29 +717,29 @@ function readJSON_helper(json){
     var i,j,k,l;
     var toConnectObj = {};
 
-    for(i=0;i<json["components"].length;i++){
+    for(i=0;i<json["configuration"]["components"].length;i++){
         var moduleID;
         for(j=0;j<moduleArray.length;j++){
-            if(json["components"][i]["name"] == moduleArray[j].name){
+            if(json["configuration"]["components"][i]["name"] == moduleArray[j].name){
                 moduleID = moduleArray[j].ID;
             }
         }
-        if(json["components"][i]["connections"] != undefined){
-            if(json["components"][i]["connections"]["senders"] != undefined){
-                for(j=0;j<json["components"][i]["connections"]["senders"].length;j++){
+        if(json["configuration"]["components"][i]["connections"] != undefined){
+            if(json["configuration"]["components"][i]["connections"]["senders"] != undefined){
+                for(j=0;j<json["configuration"]["components"][i]["connections"]["senders"].length;j++){
                     // Makes the the Sender containers
                     moduleArray[moduleID].makeSenderContainerREADINGONLY();
                     // If port is zero, it means it has not been filled and we do not want any connections to be made
-                    if(json["components"][i]["connections"]["senders"][j]["port"] != 0){
+                    if(json["configuration"]["components"][i]["connections"]["senders"][j]["port"] != 0){
                         let connectInfo;
                         // check the connection type
-                        if(json["components"][i]["connections"]["senders"][j]["transport"] == "tcp" || json["components"][i]["connections"]["senders"][j]["transport"] == "tcp (w/ filter)"){
-                            connectInfo = String(json["components"][i]["connections"]["senders"][j]["type"]) + String(json["components"][i]["connections"]["senders"][j]["transport"]) + String(json["components"][i]["connections"]["senders"][j]["port"])
+                        if(json["configuration"]["components"][i]["connections"]["senders"][j]["transport"] == "tcp" || json["configuration"]["components"][i]["connections"]["senders"][j]["transport"] == "tcp (w/ filter)"){
+                            connectInfo = String(json["configuration"]["components"][i]["connections"]["senders"][j]["type"]) + String(json["configuration"]["components"][i]["connections"]["senders"][j]["transport"]) + String(json["configuration"]["components"][i]["connections"]["senders"][j]["port"])
                         }
-                        else if(json["components"][i]["connections"]["senders"][j]["transport"] == "ipc"){
-                            connectInfo = String(json["components"][i]["connections"]["senders"][j]["type"]) + String(json["components"][i]["connections"]["senders"][j]["transport"]) + String(json["components"][i]["connections"]["senders"][j]["path"])
+                        else if(json["configuration"]["components"][i]["connections"]["senders"][j]["transport"] == "ipc"){
+                            connectInfo = String(json["configuration"]["components"][i]["connections"]["senders"][j]["type"]) + String(json["configuration"]["components"][i]["connections"]["senders"][j]["transport"]) + String(json["configuration"]["components"][i]["connections"]["senders"][j]["path"])
                         }
-                        else if(json["components"][i]["connections"]["senders"][j]["transport"] == undefined){
+                        else if(json["configuration"]["components"][i]["connections"]["senders"][j]["transport"] == undefined){
                             console.log("Error: Transport protocol needed");
                             continue;
                         }
@@ -753,31 +753,31 @@ function readJSON_helper(json){
                             toConnectObj[connectInfo] = {}
                         }
                         if(toConnectObj[connectInfo]["senders"] == undefined){
-                            toConnectObj[connectInfo]["senders"] = [[moduleID,json["components"][i]["connections"]["senders"][j]["chid"]]];
+                            toConnectObj[connectInfo]["senders"] = [[moduleID,json["configuration"]["components"][i]["connections"]["senders"][j]["chid"]]];
                         }
                         else{
-                            toConnectObj[connectInfo]["senders"].push([moduleID,json["components"][i]["connections"]["senders"][j]["chid"]]);
+                            toConnectObj[connectInfo]["senders"].push([moduleID,json["configuration"]["components"][i]["connections"]["senders"][j]["chid"]]);
                         }
                     }
                 }
             }
-            if(json["components"][i]["connections"]["receivers"] != undefined){
-                for(j=0;j<json["components"][i]["connections"]["receivers"].length;j++){
+            if(json["configuration"]["components"][i]["connections"]["receivers"] != undefined){
+                for(j=0;j<json["configuration"]["components"][i]["connections"]["receivers"].length;j++){
                     // Makes the receivers containers
                     moduleArray[moduleID].makeReceiverContainerREADINGONLY();
                     // If port is zero, it means it has not been filled and we do not want any connections to be made
-                    if(json["components"][i]["connections"]["receivers"][j]["port"] != 0){
+                    if(json["configuration"]["components"][i]["connections"]["receivers"][j]["port"] != 0){
                         let connectInfo
                         // check the connection type
-                        if(json["components"][i]["connections"]["receivers"][j]["transport"] == "tcp" || json["components"][i]["connections"]["receivers"][j]["transport"] == "tcp (w/ filter)"){
-                            if(String(json["components"][i]["connections"]["receivers"][j]["port"]).length!=0){
-                                connectInfo = String(json["components"][i]["connections"]["receivers"][j]["type"]) + String(json["components"][i]["connections"]["receivers"][j]["transport"]) + String(json["components"][i]["connections"]["receivers"][j]["port"])
+                        if(json["configuration"]["components"][i]["connections"]["receivers"][j]["transport"] == "tcp" || json["configuration"]["components"][i]["connections"]["receivers"][j]["transport"] == "tcp (w/ filter)"){
+                            if(String(json["configuration"]["components"][i]["connections"]["receivers"][j]["port"]).length!=0){
+                                connectInfo = String(json["configuration"]["components"][i]["connections"]["receivers"][j]["type"]) + String(json["configuration"]["components"][i]["connections"]["receivers"][j]["transport"]) + String(json["configuration"]["components"][i]["connections"]["receivers"][j]["port"])
                             }
                         }
-                        else if(json["components"][i]["connections"]["receivers"][j]["transport"] == "ipc"){
-                            connectInfo = String(json["components"][i]["connections"]["receivers"][j]["type"]) + String(json["components"][i]["connections"]["receivers"][j]["transport"]) + String(json["components"][i]["connections"]["receivers"][j]["path"])
+                        else if(json["configuration"]["components"][i]["connections"]["receivers"][j]["transport"] == "ipc"){
+                            connectInfo = String(json["configuration"]["components"][i]["connections"]["receivers"][j]["type"]) + String(json["configuration"]["components"][i]["connections"]["receivers"][j]["transport"]) + String(json["configuration"]["components"][i]["connections"]["receivers"][j]["path"])
                         }
-                        else if(json["components"][i]["connections"]["receivers"][j]["transport"] == undefined){
+                        else if(json["configuration"]["components"][i]["connections"]["receivers"][j]["transport"] == undefined){
                             console.log("Error: Transport protocol needed");
                             continue;
                         }
@@ -791,10 +791,10 @@ function readJSON_helper(json){
                             toConnectObj[connectInfo] = {}
                         }
                         if(toConnectObj[connectInfo]["receivers"] == undefined){
-                            toConnectObj[connectInfo]["receivers"] = [[moduleID,json["components"][i]["connections"]["receivers"][j]["chid"]]];
+                            toConnectObj[connectInfo]["receivers"] = [[moduleID,json["configuration"]["components"][i]["connections"]["receivers"][j]["chid"]]];
                         }
                         else{
-                            toConnectObj[connectInfo]["receivers"].push([moduleID,json["components"][i]["connections"]["receivers"][j]["chid"]]);
+                            toConnectObj[connectInfo]["receivers"].push([moduleID,json["configuration"]["components"][i]["connections"]["receivers"][j]["chid"]]);
                         }
                     }
                 }
@@ -815,19 +815,19 @@ function readJSON_helper(json){
     /* Updates the port generator to use only higher ports than the one used
      in the JSON file for the connectors */
     var higherPort = -1;
-    for(i=0;i<json["components"].length;i++){
-        if(json["components"][i]["connections"] != undefined){
-            if(json["components"][i]["connections"]["senders"] != undefined){
-                for(j=0;j<json["components"][i]["connections"]["senders"].length;j++){
-                    if(json["components"][i]["connections"]["senders"][j]["port"] != undefined && Number.isInteger(json["components"][i]["connections"]["senders"][j]["port"]) && json["components"][i]["connections"]["senders"][j]["port"]>higherPort){
-                        higherPort = json["components"][i]["connections"]["senders"][j]["port"]
+    for(i=0;i<json["configuration"]["components"].length;i++){
+        if(json["configuration"]["components"][i]["connections"] != undefined){
+            if(json["configuration"]["components"][i]["connections"]["senders"] != undefined){
+                for(j=0;j<json["configuration"]["components"][i]["connections"]["senders"].length;j++){
+                    if(json["configuration"]["components"][i]["connections"]["senders"][j]["port"] != undefined && Number.isInteger(json["configuration"]["components"][i]["connections"]["senders"][j]["port"]) && json["configuration"]["components"][i]["connections"]["senders"][j]["port"]>higherPort){
+                        higherPort = json["configuration"]["components"][i]["connections"]["senders"][j]["port"]
                     }
                 }
             }
-            if(json["components"][i]["connections"]["receivers"]!= undefined){
-                for(j=0;j<json["components"][i]["connections"]["receivers"].length;j++){
-                    if(json["components"][i]["connections"]["receivers"][j]["port"] != undefined && Number.isInteger(json["components"][i]["connections"]["receivers"][j]["port"]) && json["components"][i]["connections"]["receivers"][j]["port"]>higherPort){
-                        higherPort = json["components"][i]["connections"]["receivers"][j]["port"]
+            if(json["configuration"]["components"][i]["connections"]["receivers"]!= undefined){
+                for(j=0;j<json["configuration"]["components"][i]["connections"]["receivers"].length;j++){
+                    if(json["configuration"]["components"][i]["connections"]["receivers"][j]["port"] != undefined && Number.isInteger(json["configuration"]["components"][i]["connections"]["receivers"][j]["port"]) && json["configuration"]["components"][i]["connections"]["receivers"][j]["port"]>higherPort){
+                        higherPort = json["configuration"]["components"][i]["connections"]["receivers"][j]["port"]
                     }
                 }
             }
@@ -836,9 +836,9 @@ function readJSON_helper(json){
     portRange("connection",higherPort);
     // For the module port
     higherPort = -1;
-    for(i=0;i<json["components"].length;i++){
-        if(json["components"][i]["port"] != undefined && Number.isInteger(json["components"][i]["port"]) && json["components"][i]["port"]>higherPort){
-            higherPort = json["components"][i]["port"];
+    for(i=0;i<json["configuration"]["components"].length;i++){
+        if(json["configuration"]["components"][i]["port"] != undefined && Number.isInteger(json["configuration"]["components"][i]["port"]) && json["configuration"]["components"][i]["port"]>higherPort){
+            higherPort = json["configuration"]["components"][i]["port"];
         }
     }
     portRange("module",higherPort);
@@ -855,32 +855,32 @@ function writeJSON(){ // Updates the internal dummy file to match what is displa
         success: function(json){
         var collectExisting = [];
         var i,j,k;
-        if(json["components"] != undefined){
+        if(json["configuration"]["components"] != undefined){
             // If the module already exists on the JSON file, it will not overwrite it. Informations are copied
-            for(i=0;i<json["components"].length;i++){
-                collectExisting.push(json["components"][i]["name"]);
-                if(json["components"][i]["connections"] == undefined){
-                    json["components"][i]["connections"] = {};
+            for(i=0;i<json["configuration"]["components"].length;i++){
+                collectExisting.push(json["configuration"]["components"][i]["name"]);
+                if(json["configuration"]["components"][i]["connections"] == undefined){
+                    json["configuration"]["components"][i]["connections"] = {};
                 }
                 for(j=0;j<moduleArray.length;j++){
-                    if(moduleArray[j].name == json["components"][i]["name"]){
-                        if(moduleArray[j].chidSendArray.length != 0 && json["components"][i]["connections"]["senders"] == undefined){
-                            json["components"][i]["connections"]["senders"] = [];
+                    if(moduleArray[j].name == json["configuration"]["components"][i]["name"]){
+                        if(moduleArray[j].chidSendArray.length != 0 && json["configuration"]["components"][i]["connections"]["senders"] == undefined){
+                            json["configuration"]["components"][i]["connections"]["senders"] = [];
                         }
-                        if(moduleArray[j].chidReceiveArray.length != 0 && json["components"][i]["connections"]["receivers"] == undefined){
-                            json["components"][i]["connections"]["receivers"] = [];
+                        if(moduleArray[j].chidReceiveArray.length != 0 && json["configuration"]["components"][i]["connections"]["receivers"] == undefined){
+                            json["configuration"]["components"][i]["connections"]["receivers"] = [];
                         }
                         // Checks if new connections have been added to the module
-                        if(json["components"][i]["connections"]["senders"] != undefined){
-                            while(json["components"][i]["connections"]["senders"].length < moduleArray[j].chidSendArray.length){
-                                let chid = json["components"][i]["connections"]["senders"].length;
-                                json["components"][i]["connections"]["senders"].push({"chid":chid})
+                        if(json["configuration"]["components"][i]["connections"]["senders"] != undefined){
+                            while(json["configuration"]["components"][i]["connections"]["senders"].length < moduleArray[j].chidSendArray.length){
+                                let chid = json["configuration"]["components"][i]["connections"]["senders"].length;
+                                json["configuration"]["components"][i]["connections"]["senders"].push({"chid":chid})
                             }
                         }
-                        if(json["components"][i]["connections"]["receivers"] != undefined){
-                            while(json["components"][i]["connections"]["receivers"].length < moduleArray[j].chidReceiveArray.length){
-                                let chid = json["components"][i]["connections"]["receivers"].length;
-                                json["components"][i]["connections"]["receivers"].push({"chid":chid})
+                        if(json["configuration"]["components"][i]["connections"]["receivers"] != undefined){
+                            while(json["configuration"]["components"][i]["connections"]["receivers"].length < moduleArray[j].chidReceiveArray.length){
+                                let chid = json["configuration"]["components"][i]["connections"]["receivers"].length;
+                                json["configuration"]["components"][i]["connections"]["receivers"].push({"chid":chid})
                             }
                         }
                     }
@@ -888,23 +888,23 @@ function writeJSON(){ // Updates the internal dummy file to match what is displa
             }
         }
         else{
-            json["components"] = [];
+            json["configuration"]["components"] = [];
         }
         // For all the new modules, add them to the file and retreive their connection information
         for(i=0;i<moduleArray.length;i++){
             if(!collectExisting.includes(moduleArray[i].name)){
-                json["components"].push({"name":moduleArray[i].name,"host":moduleArray[i].host,"type":moduleArray[i].type,"port":moduleArray[i].port});
-                json["components"][json["components"].length-1]["connections"]= new Object();
+                json["configuration"]["components"].push({"name":moduleArray[i].name,"host":moduleArray[i].host,"type":moduleArray[i].type,"port":moduleArray[i].port});
+                json["configuration"]["components"][json["configuration"]["components"].length-1]["connections"]= new Object();
                 if(moduleArray[i].chidSendArray.length!= 0){
-                    json["components"][json["components"].length-1]["connections"]["senders"] = [];
+                    json["configuration"]["components"][json["configuration"]["components"].length-1]["connections"]["senders"] = [];
                     for(j=0;j<moduleArray[i].chidSendArray.length;j++){
-                        json["components"][json["components"].length-1]["connections"]["senders"].push({"chid":j})
+                        json["configuration"]["components"][json["configuration"]["components"].length-1]["connections"]["senders"].push({"chid":j})
                     }
                 }
                 if(moduleArray[i].chidReceiveArray.length!= 0){
-                    json["components"][json["components"].length-1]["connections"]["receivers"] = [];
+                    json["configuration"]["components"][json["configuration"]["components"].length-1]["connections"]["receivers"] = [];
                     for(j=0;j<moduleArray[i].chidReceiveArray.length;j++){
-                        json["components"][json["components"].length-1]["connections"]["receivers"].push({"chid":j})
+                        json["configuration"]["components"][json["configuration"]["components"].length-1]["connections"]["receivers"].push({"chid":j})
                     }
                 }
             }
@@ -928,7 +928,7 @@ function initConnectionForm(){
         data: json,
         cache: false,
         success: function(json){
-            let path = json["properties"]["components"]["items"]["properties"]["connections"]["properties"]["receivers"]["items"]
+            let path = json["properties"]["configuration"]["properties"]["components"]["items"]["properties"]["connections"]["properties"]["receivers"]["items"]
             let data = {schema: path,disable_collapse:true,disable_properties:true,disable_edit_json:true,disable_array_reorder:true,keep_oneof_values:true};
             JSONEditor.defaults.options.theme = 'spectre';
             JSONEditor.defaults.options.iconlib = 'spectre';
@@ -950,7 +950,7 @@ function initNewModuleForm(){
         data: json,
         cache: false,
         success: function(json){
-            let path = json["properties"]["components"]["items"]
+            let path = json["properties"]["configuration"]["properties"]["components"]["items"]
             var schema = {};
             var schemaMulti = {};
             // Init the schema to add one new module
@@ -960,13 +960,16 @@ function initNewModuleForm(){
             schema["properties"]["name"] = path["properties"]["name"]
             schema["properties"]["host"] = path["properties"]["host"]
             schema["properties"]["type"] = path["properties"]["type"]
-            schema["type"] = "object"
+            schema["definitions"] = json["definitions"]
             // Init the schema to add multiple modules
+            schemaMulti["type"] = "object"
             schemaMulti["title"] = "Component"
             schemaMulti["properties"] = {}
+            schemaMulti["properties"]["name"] = path["properties"]["name"]
             schemaMulti["properties"]["number of modules"] = {"type":"integer"}
             schemaMulti["properties"]["host"] = path["properties"]["host"]
             schemaMulti["properties"]["type"] = path["properties"]["type"]
+            schemaMulti["definitions"] = json["definitions"]
 
             let data = {schema: schema,disable_collapse:true,disable_properties:true,disable_edit_json:true,disable_array_reorder:true};
             let dataMulti = {schema: schemaMulti,disable_collapse:true,disable_properties:true,disable_edit_json:true,disable_array_reorder:true};
@@ -989,7 +992,7 @@ function initNewModuleForm(){
 function submitNewModule(){
     // Used in the HTML template to add a new module
     var json = jsoneditorModule.getValue();
-    dragAndDrop(json["name"],json["host"],json["type"],null,null);
+    dragAndDrop(json["name"],json["host"],json["type"],null,[50, 75]);
     writeJSON();
 }
 
@@ -997,7 +1000,7 @@ function submitNewMultiModules(){
   // Used in the HTML template to add a multiple new modules
   var json = jsoneditorMultiModule.getValue();
   var nb = json["number of modules"]
-  var name = json["type"].toLowerCase();
+  var name = json["name"];
   var i;
   var count = 0;
 
@@ -1015,7 +1018,7 @@ function submitNewMultiModules(){
   }
   for(i=0;i<nb;i++){
     count = count + 1;
-    dragAndDrop(name+String(count),json["host"],json["type"],null,null);
+    dragAndDrop(name+String(("0" + count).slice(-2)),json["host"],json["type"],null,[60*count, 75*count]);
   }
   writeJSON();
 }
@@ -1056,37 +1059,37 @@ function submitNewConnection(){
             }
             else{
                 var json2 = jsoneditor.getValue();
-                for(i=0;i<json["components"].length;i++){
-                    if(json["components"][i]["name"] == moduleArray[mRec].name){
-                        for(j=0;j<json["components"][i]["connections"]["receivers"].length;j++){
-                            if(json["components"][i]["connections"]["receivers"][j]["chid"] == TEMPORARYINFO[3]){
+                for(i=0;i<json["configuration"]["components"].length;i++){
+                    if(json["configuration"]["components"][i]["name"] == moduleArray[mRec].name){
+                        for(j=0;j<json["configuration"]["components"][i]["connections"]["receivers"].length;j++){
+                            if(json["configuration"]["components"][i]["connections"]["receivers"][j]["chid"] == TEMPORARYINFO[3]){
                                 // Clean the json in case of previous unwanted information
-                                for (var member in json["components"][i]["connections"]["receivers"][j]) delete json["components"][i]["connections"]["receivers"][j][member];
-                                json["components"][i]["connections"]["receivers"][j]["chid"] = parseInt(TEMPORARYINFO[3],10)
+                                for (var member in json["configuration"]["components"][i]["connections"]["receivers"][j]) delete json["configuration"]["components"][i]["connections"]["receivers"][j][member];
+                                json["configuration"]["components"][i]["connections"]["receivers"][j]["chid"] = parseInt(TEMPORARYINFO[3],10)
 
                                 // Copy the connection information into the one it is connected to
-                                $.extend(json["components"][i]["connections"]["receivers"][j],json["components"][i]["connections"]["receivers"][j],json2)
+                                $.extend(json["configuration"]["components"][i]["connections"]["receivers"][j],json["configuration"]["components"][i]["connections"]["receivers"][j],json2)
                             }
                         }
                     }
-                    if(json["components"][i]["name"] == moduleArray[mSend].name){
-                        for(j=0;j<json["components"][i]["connections"]["senders"].length;j++){
-                            if(json["components"][i]["connections"]["senders"][j]["chid"] == TEMPORARYINFO[1]){
+                    if(json["configuration"]["components"][i]["name"] == moduleArray[mSend].name){
+                        for(j=0;j<json["configuration"]["components"][i]["connections"]["senders"].length;j++){
+                            if(json["configuration"]["components"][i]["connections"]["senders"][j]["chid"] == TEMPORARYINFO[1]){
                                 // Clean the json in case of previous unwanted information
-                                for (var member in json["components"][i]["connections"]["senders"][j]) delete json["components"][i]["connections"]["senders"][j][member];
-                                json["components"][i]["connections"]["senders"][j]["chid"] = parseInt(TEMPORARYINFO[1],10)
+                                for (var member in json["configuration"]["components"][i]["connections"]["senders"][j]) delete json["configuration"]["components"][i]["connections"]["senders"][j][member];
+                                json["configuration"]["components"][i]["connections"]["senders"][j]["chid"] = parseInt(TEMPORARYINFO[1],10)
 
                                 // Check the connection type
                                 if(json2["transport"] == "tcp" || json2["transport"] == "tcp (w/ filter)"){
-                                    json["components"][i]["connections"]["senders"][j]["transport"] = json2["transport"];
-                                    json["components"][i]["connections"]["senders"][j]["type"] = json2["type"];
-                                    json["components"][i]["connections"]["senders"][j]["host"] = "*";
-                                    json["components"][i]["connections"]["senders"][j]["port"] = json2["port"];
+                                    json["configuration"]["components"][i]["connections"]["senders"][j]["transport"] = json2["transport"];
+                                    json["configuration"]["components"][i]["connections"]["senders"][j]["type"] = json2["type"];
+                                    json["configuration"]["components"][i]["connections"]["senders"][j]["host"] = "*";
+                                    json["configuration"]["components"][i]["connections"]["senders"][j]["port"] = json2["port"];
                                 }
                                 else if(json2["transport"] == "ipc"){
-                                    json["components"][i]["connections"]["senders"][j]["transport"] = json2["transport"];
-                                    json["components"][i]["connections"]["senders"][j]["type"] = json2["type"];
-                                    json["components"][i]["connections"]["senders"][j]["path"] = json2["path"];
+                                    json["configuration"]["components"][i]["connections"]["senders"][j]["transport"] = json2["transport"];
+                                    json["configuration"]["components"][i]["connections"]["senders"][j]["type"] = json2["type"];
+                                    json["configuration"]["components"][i]["connections"]["senders"][j]["path"] = json2["path"];
                                 }
                                 else {
                                     console.log("Error: unknown transport type")
@@ -1139,17 +1142,17 @@ function checkConnection(mSend,ioSend,mRec,ioRec){
     return "new"; // It is a new connection
 }
 
-PORTMODUlE = 5000;
+PORTMODULE = 5000;
 PORTCONNECTION = 8000;
 function portRange(type,port){
     // Auto-generates port number
     if(type=="module" && port == -1){
-        PORTMODUlE = PORTMODUlE + 1;
-        return PORTMODUlE-1;
+        PORTMODULE = PORTMODULE + 1;
+        return PORTMODULE-1;
     }
     else if(type=="module" && port != -1){
-        PORTMODUlE = port + 1;
-        return PORTMODUlE-1;
+        PORTMODULE = port + 1;
+        return PORTMODULE-1;
     }
     else if(type=="connection" && port == -1){
         PORTCONNECTION = PORTCONNECTION + 1;
@@ -1231,8 +1234,8 @@ function copyConnectors(from){
             var posRec,posSend,posIoSend,posIoRec;
             var keepGoing = true;
             //------------- Find the modules and connectors in the array used for the internal representation----------------
-            for(i=0;i<json["components"].length;i++){
-                if(json["components"][i]["name"] == moduleArray[mRec].name){
+            for(i=0;i<json["configuration"]["components"].length;i++){
+                if(json["configuration"]["components"][i]["name"] == moduleArray[mRec].name){
                     posRec = i;
                     if(keepGoing){
                         keepGoing = false;
@@ -1241,7 +1244,7 @@ function copyConnectors(from){
                         break;
                     }
                 }
-                if(json["components"][i]["name"] == moduleArray[mSend].name){
+                if(json["configuration"]["components"][i]["name"] == moduleArray[mSend].name){
                     posSend = i;
                     if(keepGoing){
                         keepGoing = false;
@@ -1251,13 +1254,13 @@ function copyConnectors(from){
                     }
                 }
             }
-            for(i=0;i<json["components"][posSend]["connections"]["senders"].length;i++){
-                if(json["components"][posSend]["connections"]["senders"][i]["chid"] == TEMPORARYINFO[1]){
+            for(i=0;i<json["configuration"]["components"][posSend]["connections"]["senders"].length;i++){
+                if(json["configuration"]["components"][posSend]["connections"]["senders"][i]["chid"] == TEMPORARYINFO[1]){
                     posIoSend = i;
                 }
             }
-            for(i=0;i<json["components"][posRec]["connections"]["receivers"].length;i++){
-                if(json["components"][posRec]["connections"]["receivers"][i]["chid"] == TEMPORARYINFO[3]){
+            for(i=0;i<json["configuration"]["components"][posRec]["connections"]["receivers"].length;i++){
+                if(json["configuration"]["components"][posRec]["connections"]["receivers"][i]["chid"] == TEMPORARYINFO[3]){
                     posIoRec = i;
                 }
             }
@@ -1282,16 +1285,16 @@ function copyConnectors(from){
 
 function copyFromReceiver(posSend,posIoSend,posRec,posIoRec,json){
     // Copy information from a receiver into a sender
-    if(json["components"][posRec]["connections"]["receivers"][posIoRec]["transport"] == "tcp" || json["components"][posRec]["connections"]["receivers"][posIoRec]["transport"] == "tcp (w/ filter)"){
-        json["components"][posSend]["connections"]["senders"][posIoSend]["transport"] = json["components"][posRec]["connections"]["receivers"][posIoRec]["transport"];
-        json["components"][posSend]["connections"]["senders"][posIoSend]["type"] = json["components"][posRec]["connections"]["receivers"][posIoRec]["type"];
-        json["components"][posSend]["connections"]["senders"][posIoSend]["host"] = "*";
-        json["components"][posSend]["connections"]["senders"][posIoSend]["port"] = json["components"][posRec]["connections"]["receivers"][posIoRec]["port"];
+    if(json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["transport"] == "tcp" || json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["transport"] == "tcp (w/ filter)"){
+        json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["transport"] = json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["transport"];
+        json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["type"] = json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["type"];
+        json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["host"] = "*";
+        json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["port"] = json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["port"];
     }
-    else if(json["components"][posRec]["connections"]["receivers"][posIoRec]["transport"] == "ipc"){
-        json["components"][posSend]["connections"]["senders"][posIoSend]["transport"] = json["components"][posRec]["connections"]["receivers"][posIoRec]["transport"];
-        json["components"][posSend]["connections"]["senders"][posIoSend]["type"] = json["components"][posRec]["connections"]["receivers"][posIoRec]["type"];
-        json["components"][posSend]["connections"]["senders"][posIoSend]["path"] = json["components"][posRec]["connections"]["receivers"][posIoRec]["path"];
+    else if(json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["transport"] == "ipc"){
+        json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["transport"] = json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["transport"];
+        json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["type"] = json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["type"];
+        json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["path"] = json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["path"];
     }
     else{
         console.log("Error: unknown transport protocol");
@@ -1301,16 +1304,16 @@ function copyFromReceiver(posSend,posIoSend,posRec,posIoRec,json){
 
 function copyFromSender(posSend,posIoSend,posRec,posIoRec,json){
     // Copy information from a sender into a receiver
-    if(json["components"][posSend]["connections"]["senders"][posIoSend]["transport"] == "tcp" || json["components"][posSend]["connections"]["senders"][posIoSend]["transport"] == "tcp (w/ filter)"){
-        json["components"][posRec]["connections"]["receivers"][posIoRec]["transport"] = json["components"][posSend]["connections"]["senders"][posIoSend]["transport"];
-        json["components"][posRec]["connections"]["receivers"][posIoRec]["type"] = json["components"][posSend]["connections"]["senders"][posIoSend]["type"];
-        json["components"][posRec]["connections"]["receivers"][posIoRec]["host"] = json["components"][posRec]["host"];
-        json["components"][posRec]["connections"]["receivers"][posIoRec]["port"] = json["components"][posSend]["connections"]["senders"][posIoSend]["port"];
+    if(json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["transport"] == "tcp" || json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["transport"] == "tcp (w/ filter)"){
+        json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["transport"] = json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["transport"];
+        json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["type"] = json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["type"];
+        json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["host"] = json["configuration"]["components"][posRec]["host"];
+        json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["port"] = json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["port"];
     }
-    else if(json["components"][posSend]["connections"]["senders"][posIoSend]["transport"] == "ipc"){
-        json["components"][posRec]["connections"]["receivers"][posIoRec]["transport"] = json["components"][posSend]["connections"]["senders"][posIoSend]["transport"];
-        json["components"][posRec]["connections"]["receivers"][posIoRec]["type"] = json["components"][posSend]["connections"]["senders"][posIoSend]["type"];
-        json["components"][posRec]["connections"]["receivers"][posIoRec]["path"] = json["components"][posSend]["connections"]["senders"][posIoSend]["path"];
+    else if(json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["transport"] == "ipc"){
+        json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["transport"] = json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["transport"];
+        json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["type"] = json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["type"];
+        json["configuration"]["components"][posRec]["connections"]["receivers"][posIoRec]["path"] = json["configuration"]["components"][posSend]["connections"]["senders"][posIoSend]["path"];
     }
     else{
         console.log("Error: unknown transport protocol");

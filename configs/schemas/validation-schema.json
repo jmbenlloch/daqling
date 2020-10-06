@@ -11,8 +11,8 @@
       "type": "integer",
       "description": "Configuration version",
       "minimum": 9,
-      "maximum": 9,
-      "default": 9
+      "maximum": 10,
+      "default": 10
     },
     "group": {
       "type": "string",
@@ -65,12 +65,7 @@
             "type": "integer"
           },
           "type": {
-            "type": "string",
-            "enum": [
-              "ReadoutInterface",
-              "EventBuilder",
-              "FileWriter"
-            ]
+            "type": "string"
           },
           "loglevel": {
             "type": "object",
@@ -105,18 +100,7 @@
             "title": "Settings",
             "options": {
               "collapsed": true
-            },
-            "oneOf": [
-              {
-                "$ref": "#/definitions/ReadoutInterface"
-              },
-              {
-                "$ref": "#/definitions/EventBuilder"
-              },
-              {
-                "$ref": "#/definitions/FileWriter"
-              }
-            ]
+            }
           },
           "metrics_settings": {
             "title": "Metrics Settings",
@@ -396,60 +380,6 @@
     }
   },
   "definitions": {
-    "ReadoutInterface": {
-      "title": "ReadoutInterface",
-      "type": "object",
-      "properties": {
-        "board_id": {
-          "type": "integer"
-        },
-        "delay_us": {
-          "type": "integer"
-        },
-        "payload": {
-          "type": "object",
-          "properties": {
-            "min": {
-              "type": "integer"
-            },
-            "max": {
-              "type": "integer"
-            }
-          },
-          "required": [
-            "min",
-            "max"
-          ],
-          "additionalProperties": false
-        }
-      },
-      "required": [
-        "board_id",
-        "delay_us",
-        "payload"
-      ],
-      "additionalProperties": false
-    },
-    "EventBuilder": {
-      "title": "EventBuilder",
-      "type": "object",
-      "properties": {},
-      "additionalProperties": false
-    },
-    "FileWriter": {
-      "title": "FileWriter",
-      "type": "object",
-      "properties": {
-        "filename_pattern": {
-          "type": "string",
-          "default": "/tmp/test-%D.%r.%c.%n.bin"
-        }
-      },
-      "required": [
-        "filename_pattern"
-      ],
-      "additionalProperties": false
-    },
     "no_metrics": {
       "title": "no_metrics",
       "type": "object",

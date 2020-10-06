@@ -10,10 +10,11 @@
     python3 metric-manager.py metrics-config.json
 
 ## Tweak the config
+
 If no `metrics` field is provided, all available metrics are forwarded to both the active destinations.
 
 An example of `metrics`:
-    
+
     "metrics": [
       "metricssimulator-RandomMetric1-int,i",
       "metricssimulator-RandomMetric2-float,w",
