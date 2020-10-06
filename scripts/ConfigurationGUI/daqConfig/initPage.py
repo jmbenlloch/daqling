@@ -39,7 +39,7 @@ def index():
             if request.form["actionType"] == "New": # Working on a new configuration file
                 currentFileName = request.form["fileName"]
                 with open(path_dummy,'w') as f:
-                    f.write('{"components":[]}') # Erases the temporary file
+                    f.write("{\"common\": {},\"configuration\": {\"components\": []}}") # Erases the temporary file
                 if os.path.exists(path_position):
                     os.remove(path_position)
                 return redirect(url_for('initPage.canvas',currentFileName=currentFileName))

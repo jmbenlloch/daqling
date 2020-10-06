@@ -19,9 +19,10 @@ import sys
 import signal
 from os import environ as env
 import json
+import jsonref
 from jsonschema import validate
 from functools import partial
-from daqcontrol import daqcontrol
+from daqcontrol import daqcontrol, jsonref_to_json
 import concurrent.futures
 import threading
 import zmq
@@ -85,11 +86,11 @@ class statusChecker():
       t.start()
       self.status_check_threads.append(t)
 
-
   def stop_check_threads(self):
     self.stop_check = True
     for t in self.status_check_threads:
       t.join()
+
 
 ## Main
 
@@ -108,15 +109,22 @@ for o in sys.argv:
     quit()
 
 with open(sys.argv[1]) as f:
-  data = json.load(f)
+  jsonref_obj = jsonref.load(f)
 f.close()
+
+if "configuration" in jsonref_obj:
+  # schema with references (version >= 10)
+  data = jsonref_to_json(jsonref_obj)["configuration"]
+else:
+  # old-style schema (version < 10)
+  data = jsonref_obj
 
 add_scripts = False
 if "scripts" in data:
   add_scripts = True
 
 # open schema and validate the configuration
-with open(env['DAQ_CONFIG_DIR']+'schemas/config-schema.json') as f:
+with open(env['DAQ_CONFIG_DIR']+'schemas/validation-schema.json') as f:
   schema = json.load(f)
 f.close()
 print("Configuration Version:", data['version'])
