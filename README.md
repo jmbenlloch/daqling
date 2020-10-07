@@ -131,3 +131,18 @@ To run a newly created Module (e.g. `MyDummyModule`), it is necessary to add a c
       "connections": {
       }    
     }
+
+## Contributors
+
+DAQling has been developed by the EP-DT-DI section at CERN and is maintained by:
+
+- Enrico Gamberini, CERN, @engamber
+- Roland Sipos, CERN, @rsipos
+- Marco Boretto, CERN, @mboretto
+  
+The following authors, in alphabetical order, have contributed to DAQling:
+
+- Wojciech Brylinski, Warsaw University of Technology, @wobrylin
+- Giovanna Lehmann Miotto, CERN, @glehmann
+- Viktor Vilhelm Sonesten, CERN, @vsoneste
+- Clement Claude Thorens, Université de Genève, @cthorens

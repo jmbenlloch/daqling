@@ -7,3 +7,8 @@
   pip: 
     name: jsonschema
     executable: pip3 
+
+- name: Install jsonref
+  pip: 
+    name: jsonref
+    executable: pip3 

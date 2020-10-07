@@ -26,17 +26,15 @@
 #ifndef DAQLING_UTILITIES_LOGGING_HPP
 #define DAQLING_UTILITIES_LOGGING_HPP
 
-/// \cond
 #include <cassert>
 #include <memory>
 #include <sstream>
-/// \endcond
 
 #include "Common.hpp"
 #include "hedley.h"
 #include "spdlog/sinks/base_sink.h"
 #include "spdlog/spdlog.h"
-#include "zhelpers.hpp"
+#include <zmq.hpp>
 
 #undef SPDLOG_FUNCTION
 #define SPDLOG_FUNCTION __PRETTY_FUNCTION__

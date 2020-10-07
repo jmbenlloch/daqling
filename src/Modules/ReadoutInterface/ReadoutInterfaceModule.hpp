@@ -17,9 +17,7 @@
 
 #pragma once
 
-/// \cond
 #include <string>
-/// \endcond
 
 #include "Core/DAQProcess.hpp"
 

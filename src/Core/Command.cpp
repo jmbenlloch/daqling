@@ -15,12 +15,10 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \cond
 #include <chrono>
 #include <ctime>
 #include <iomanip>
 #include <thread>
-/// \endcond
 
 #include "Command.hpp"
 #include "Configuration.hpp"

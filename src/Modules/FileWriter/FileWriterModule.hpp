@@ -17,14 +17,12 @@
 
 #pragma once
 
-/// \cond
 #include <condition_variable>
 #include <fstream>
 #include <map>
 #include <memory>
 #include <queue>
 #include <tuple>
-/// \endcond
 
 #include "Core/DAQProcess.hpp"
 #include "Utils/Binary.hpp"

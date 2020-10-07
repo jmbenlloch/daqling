@@ -18,14 +18,12 @@
 #ifndef DAQLING_UTILITIES_REUSABLETHREAD_HPP
 #define DAQLING_UTILITIES_REUSABLETHREAD_HPP
 
-/// \cond
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <functional>
 #include <mutex>
 #include <thread>
-/// \endcond
 
 /********************************
  * ReusableThread

@@ -15,9 +15,7 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \cond
 #include <chrono>
-/// \endcond
 
 #include "Common/DataFormat.hpp"
 #include "EventBuilderModule.hpp"

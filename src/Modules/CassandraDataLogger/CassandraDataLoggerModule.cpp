@@ -15,10 +15,8 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \cond
 #include <chrono>
 #include <sstream>
-/// \endcond
 
 #include "CassandraDataLoggerModule.hpp"
 #include "Utils/Common.hpp"

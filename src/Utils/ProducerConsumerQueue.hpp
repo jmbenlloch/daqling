@@ -19,7 +19,6 @@
 
 #pragma once
 
-/// \cond
 #include <atomic>
 #include <cassert>
 #include <cstdlib>
@@ -30,7 +29,6 @@
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
-/// \endcond
 
 #include "Align.hpp"
 

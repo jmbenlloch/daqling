@@ -18,7 +18,6 @@
 #ifndef STATISTICS_HPP
 #define STATISTICS_HPP
 
-/// \cond
 #include <atomic>
 #include <ctime>
 #include <iostream>
@@ -28,14 +27,13 @@
 #include <string>
 #include <thread>
 #include <vector>
+
 #ifdef BUILD_WITH_CPR
 #include <cpr/cpr.h>
 #endif
-/// \endcond
-
 #include "Configuration.hpp"
 #include "Metric.hpp"
-#include "Utils/zhelpers.hpp"
+#include <zmq.hpp>
 
 namespace daqling {
 namespace core {
