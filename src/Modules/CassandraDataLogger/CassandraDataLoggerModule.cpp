@@ -211,7 +211,7 @@ void CassandraDataLoggerModule::runner() {
   while (m_run) {
     incr++;
     daqutils::Binary pl(0);
-    while (!m_connections.get(1, std::ref(pl))) {
+    while (!m_connections.receive(0, std::ref(pl))) {
       std::this_thread::sleep_for(1ms);
     }
     write(incr, pl);
