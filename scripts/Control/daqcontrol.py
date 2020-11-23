@@ -157,13 +157,3 @@ class daqcontrol:
             status = 'not_added'
       return status
 
-
-## Convert jsonref object to json object
-#  @param jsonref_obj The jsonref object to convert
-#  @return The json object
-def jsonref_to_json(jsonref_obj):
-  # cast jsonref to str
-  jsonref_str = str(jsonref_obj)
-  # substitute single quote to double quote
-  json_str = jsonref_str.replace("\'", "\"")
-  return json.loads(json_str)
