@@ -102,7 +102,7 @@ void FileWriterModule::configure() {
   // Read out required and optional configurations
   m_max_filesize = m_config.getSettings().value("max_filesize", 1 * daqutils::Constant::Giga);
   m_buffer_size = m_config.getSettings().value("buffer_size", 4 * daqutils::Constant::Kilo);
-  m_channels = m_config.getConnections()["receivers"].size();
+  m_channels = m_config.getNumReceiverConnections();
   m_pattern = m_config.getSettings()["filename_pattern"];
   INFO("Configuration:");
   INFO(" -> Maximum filesize: " << m_max_filesize << "B");

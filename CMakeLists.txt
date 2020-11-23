@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4.3 FATAL_ERROR)
 cmake_policy(SET CMP0077 NEW) # option() honors normal variables
 set(PACKAGE daqling)
-set(PACKAGE_VERSION 0.0.1)
+set(PACKAGE_VERSION 0.9.2)
 
 project(${PACKAGE} VERSION ${PACKAGE_VERSION}
         DESCRIPTION "Data acquisition framework"
@@ -147,7 +147,7 @@ else()
 endif()
 
 # https://cmake.org/cmake/help/v3.0/module/FindXMLRPC.html
-find_package(XMLRPC REQUIRED c++2 abyss-server)
+find_package(XMLRPC 1.51.06 EXACT REQUIRED c++2 abyss-server)
 set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} ${XMLRPC_LIBRARIES})
 
 find_package(CURL QUIET REQUIRED)

@@ -24,7 +24,7 @@ using namespace std::chrono_literals;
 
 EventBuilderModule::EventBuilderModule() : m_eventmap_size{0}, m_complete_ev_size_guess{0} {
   DEBUG("With config: " << m_config.dump() << " getState: " << this->getState());
-  m_nreceivers = m_config.getConnections()["receivers"].size();
+  m_nreceivers = m_config.getNumReceiverConnections();
 }
 
 EventBuilderModule::~EventBuilderModule() {}
@@ -77,7 +77,7 @@ void EventBuilderModule::runner() {
       }
       lck.unlock();
       while (!m_connections.send(0, out) && m_run) {
-        WARNING("put() failed. Trying again");
+        WARNING("send() failed. Trying again");
         std::this_thread::sleep_for(1ms);
       }
     }
