@@ -1,0 +1,140 @@
+{
+  "configuration": {
+    "version": 10,
+    "group": "daq",
+    "components": [
+      {
+        "name": "readoutinterface01",
+        "host": "localhost",
+        "port": 5555,
+        "type": {
+          "$ref": "common.json#/common/readoutinterface/type"
+        },
+        "loglevel": {
+          "$ref": "common.json#/common/loglevel"
+        },
+        "settings": {
+          "board_id": 0,
+          "delay_us": {
+            "$ref": "common.json#/common/readoutinterface/delay_us"
+          },
+          "payload": {
+            "$ref": "common.json#/common/readoutinterface/payload"
+          }
+        },
+        "metrics_settings": {
+          "$ref": "common.json#/common/metrics_settings"
+        },
+        "connections": {
+          "senders": [
+            {
+              "type": "pubsub",
+              "chid": 0,
+              "transport": "tcp",
+              "host": "*",
+              "port": 8101
+            }
+          ]
+        }
+      },
+      {
+        "name": "readoutinterface02",
+        "host": "localhost",
+        "port": 5556,
+        "type": {
+          "$ref": "common.json#/common/readoutinterface/type"
+        },
+        "loglevel": {
+          "$ref": "common.json#/common/loglevel"
+        },
+        "settings": {
+          "board_id": 1,
+          "delay_us": {
+            "$ref": "common.json#/common/readoutinterface/delay_us"
+          },
+          "payload": {
+            "$ref": "common.json#/common/readoutinterface/payload"
+          }
+        },
+        "metrics_settings": {
+          "$ref": "common.json#/common/metrics_settings"
+        },
+        "connections": {
+          "senders": [
+            {
+              "type": "pair",
+              "chid": 0,
+              "transport": "tcp",
+              "host": "*",
+              "port": 8102
+            }
+          ]
+        }
+      },
+      {
+        "name": "eventbuilder01",
+        "host": "localhost",
+        "port": 5560,
+        "type": "EventBuilder",
+        "loglevel": {
+          "$ref": "common.json#/common/loglevel"
+        },
+        "settings": {},
+        "metrics_settings": {
+          "$ref": "common.json#/common/metrics_settings"
+        },
+        "connections": {
+          "receivers": [
+            {
+              "type": "pubsub",
+              "chid": 0,
+              "transport": "tcp",
+              "host": "localhost",
+              "port": 8101
+            },
+            {
+              "type": "pair",
+              "chid": 1,
+              "transport": "tcp",
+              "host": "localhost",
+              "port": 8102
+            }
+          ],
+          "senders": [
+            {
+              "type": "pair",
+              "chid": 0,
+              "transport": "ipc",
+              "path": "/tmp/feed3"
+            }
+          ]
+        }
+      },
+      {
+        "name": "filewriter01",
+        "host": "localhost",
+        "port": 5561,
+        "type": "FileWriter",
+        "loglevel": {
+          "$ref": "common.json#/common/loglevel"
+        },
+        "settings": {
+          "filename_pattern": "/tmp/test-%D.%r.%c.%n.bin"
+        },
+        "metrics_settings": {
+          "$ref": "common.json#/common/metrics_settings"
+        },
+        "connections": {
+          "receivers": [
+            {
+              "type": "pair",
+              "chid": 0,
+              "transport": "ipc",
+              "path": "/tmp/feed3"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

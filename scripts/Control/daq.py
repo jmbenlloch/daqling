@@ -22,11 +22,13 @@ import json
 import jsonref
 from jsonschema import validate
 from functools import partial
-from daqcontrol import daqcontrol, jsonref_to_json
+from daqcontrol import daqcontrol
 import concurrent.futures
 import threading
 import zmq
 from time import sleep
+from pathlib import Path
+from copy import deepcopy
 
 def spawnJoin(list, func):
   futures = []
@@ -109,12 +111,13 @@ for o in sys.argv:
     quit()
 
 with open(sys.argv[1]) as f:
-  jsonref_obj = jsonref.load(f)
+  base_dir_uri = Path(env['DAQ_CONFIG_DIR']).as_uri() + '/'
+  jsonref_obj = jsonref.load(f, base_uri=base_dir_uri, loader=jsonref.JsonLoader())
 f.close()
 
 if "configuration" in jsonref_obj:
   # schema with references (version >= 10)
-  data = jsonref_to_json(jsonref_obj)["configuration"]
+  data = deepcopy(jsonref_obj)["configuration"]
 else:
   # old-style schema (version < 10)
   data = jsonref_obj

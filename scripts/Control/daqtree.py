@@ -24,6 +24,8 @@ from jsonschema import validate
 from anytree import RenderTree
 from anytree.search import find_by_attr
 from anytree.importer import DictImporter
+from pathlib import Path
+from copy import deepcopy
 
 from nodetree import NodeTree
 from daqcontrol import daqcontrol as daqctrl, jsonref_to_json
@@ -64,12 +66,13 @@ state_action = fsm_rules["fsm"]
 order_rules = fsm_rules["order"]
 
 with open(config_dir_path+config_dict["config"]) as f:
-  jsonref_obj = jsonref.load(f)
+  base_dir_uri = Path(env['DAQ_CONFIG_DIR']).as_uri() + '/'
+  jsonref_obj = jsonref.load(f, base_uri=base_dir_uri, loader=jsonref.JsonLoader())
 f.close()
 
 if "configuration" in jsonref_obj:
   # schema with references (version >= 10)
-  configuration = jsonref_to_json(jsonref_obj)["configuration"]
+  configuration = deepcopy(jsonref_obj)["configuration"]
 else:
   # old-style schema (version < 10)
   configuration = jsonref_obj
