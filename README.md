@@ -4,7 +4,7 @@ A software framework for the development of modular and distributed data acquisi
 
 ## Documentation
 
-Detailed documentation can be found [https://daqling.docs.cern.ch](https://daqling.docs.cern.ch).
+Detailed documentation can be found at [https://daqling.docs.cern.ch](https://daqling.docs.cern.ch).
 
 Subscribe to the "daqling-users" CERN e-group for updates.
 
