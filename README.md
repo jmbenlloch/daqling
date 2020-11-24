@@ -4,13 +4,11 @@ A software framework for the development of modular and distributed data acquisi
 
 ## Documentation
 
-Detailed documentation can be found [here][codimd].
+Detailed documentation can be found [https://daqling.docs.cern.ch/](https://daqling.docs.cern.ch/).
 
 Subscribe to the "daqling-users" CERN e-group for updates.
 
 To contact the developers: daqling-developers@cern.ch (only for "daqling-users" members).
-
-[codimd]: <https://codimd.web.cern.ch/s/B1oArin-r>
 
 ## Host configuration and framework build
 
