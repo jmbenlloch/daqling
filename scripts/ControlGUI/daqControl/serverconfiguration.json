@@ -11,7 +11,7 @@
     "paused":"/static/pics/orange.png",
     "error":"/static/pics/red.png"
     },
-  "SSO_enabled":1,
+  "SSO_enabled":0,
   "serverlog_location_name":"/log/webintefaceserver.log",
   "callbackUri":"http://localhost:32768/login/callback",
   "ALLOWED_EXTENSIONS":["json", "txt"],
