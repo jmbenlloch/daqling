@@ -141,6 +141,7 @@ DAQling has been developed by the EP-DT-DI section at CERN and is maintained by:
 The following authors, in alphabetical order, have contributed to DAQling:
 
 - Wojciech Brylinski, Warsaw University of Technology, @wobrylin
+- Zbynek Kral, Czech Technical University in Prague, @zkral
 - Giovanna Lehmann Miotto, CERN, @glehmann
 - Viktor Vilhelm Sonesten, CERN, @vsoneste
 - Clement Claude Thorens, Université de Genève, @cthorens

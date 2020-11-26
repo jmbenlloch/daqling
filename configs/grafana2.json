@@ -1,0 +1,18 @@
+{
+  "readoutinterface20": {
+        "grafana":["http://188.184.102.221:3000/d-solo/cvwhBltGk/new-dashboard-copy?orgId=1&from=1604900404913&to=1604922004915&panelId=2","http://188.184.102.221:3000/d-solo/cvwhBltGk/new-dashboard-copy?orgId=1&from=1604900404913&to=1604922004915&panelId=2","http://188.184.102.221:3000/d-solo/cvwhBltGk/new-dashboard-copy?orgId=1&from=1604900404913&to=1604922004915&panelId=2"],
+        "kibana":"kibalink1"
+        },
+  "readoutinterface21":{
+        "grafana":["link1","link2"],
+        "kibana":"kibalink1"
+        },
+  "eventbuilder01":{
+        "grafana":["link1","link2"],
+        "kibana":"kibalink1"
+        },
+  "filewriter01":{
+        "grafana":["link1","link2"],
+        "kibana":"kibalink1"
+        }
+}

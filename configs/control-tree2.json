@@ -1,0 +1,134 @@
+{
+  "name": "Root2",
+  "children": [
+    {
+      "name": "ReadoutInterfaces2",
+      "type": "RI",
+      "children": [
+        {
+          "name": "readoutinterface20"
+        },
+        {
+          "name": "readoutinterface21"
+        },
+        {
+          "name": "readoutinterface22"
+        },
+        {
+          "name": "readoutinterface23"
+        },
+        {
+          "name": "readoutinterface24"
+        },
+        {
+          "name": "readoutinterface25"
+        },
+        {
+          "name": "readoutinterface26"
+        },
+        {
+          "name": "readoutinterface27"
+        },
+        {
+          "name": "readoutinterface28"
+        },
+        {
+          "name": "readoutinterface29"
+        }
+      ]
+    },
+     {
+      "name": "ReadoutInterfaces3",
+      "type": "RI",
+      "children": [
+        {
+          "name": "readoutinterface30"
+        },
+        {
+          "name": "readoutinterface31"
+        },
+        {
+          "name": "readoutinterface32"
+        },
+        {
+          "name": "readoutinterface33"
+        },
+        {
+          "name": "readoutinterface34"
+        },
+        {
+          "name": "readoutinterface35"
+        },
+        {
+          "name": "readoutinterface36"
+        },
+        {
+          "name": "readoutinterface37"
+        },
+        {
+          "name": "readoutinterface38"
+        },
+        {
+          "name": "readoutinterface39"
+        }
+      ]
+    },
+     {
+      "name": "ReadoutInterfaces4",
+      "type": "RI",
+      "children": [
+        {
+          "name": "readoutinterface40",
+          "type": "RI",
+          "children": [
+            {
+              "name": "readoutinterface400"
+            },
+            {
+              "name": "readoutinterface401"
+            },
+            {
+              "name": "readoutinterface402"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "eventbuilder10",
+      "type": "EB"
+    },
+    {
+      "name": "eventbuilder11",
+      "type": "EB"
+    },
+    {
+      "name": "eventbuilder12",
+      "type": "EB"
+    },
+    {
+      "name": "eventbuilder13",
+      "type": "EB"
+    },
+    {
+      "name": "eventbuilder14",
+      "type": "EB"
+    },
+    {
+      "name": "eventbuilder15",
+      "type": "EB"
+    },
+    {
+      "name": "eventbuilder16",
+      "type": "EB"
+    },
+    {
+      "name": "eventbuilder17",
+      "type": "EB"
+    },
+    {
+      "name": "filewriter66",
+      "type": "FW"
+    }
+  ]
+}
