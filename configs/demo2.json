@@ -1,0 +1,860 @@
+{
+  "version": 9,
+  "group": "daq",
+  "components": [
+    {
+      "name": "readoutinterface20",
+      "host": "localhost",
+      "port": 7555,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8101
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface21",
+      "host": "localhost",
+      "port": 2555,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8105
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface22",
+      "host": "localhost",
+      "port": 2556,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8106
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface23",
+      "host": "localhost",
+      "port": 2557,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8128
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface24",
+      "host": "localhost",
+      "port": 2357,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8107
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface25",
+      "host": "localhost",
+      "port": 2558,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8108
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface26",
+      "host": "localhost",
+      "port": 2559,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8109
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface27",
+      "host": "localhost",
+      "port": 2560,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8110
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface28",
+      "host": "localhost",
+      "port": 2561,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8111
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface29",
+      "host": "localhost",
+      "port": 2562,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8112
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface30",
+      "host": "localhost",
+      "port": 7556,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 1,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pair",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8102
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface31",
+      "host": "localhost",
+      "port": 1555,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 7105
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface32",
+      "host": "localhost",
+      "port": 1556,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 7106
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface33",
+      "host": "localhost",
+      "port": 1557,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 7128
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface34",
+      "host": "localhost",
+      "port": 1547,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8107
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface35",
+      "host": "localhost",
+      "port": 1558,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 7108
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface36",
+      "host": "localhost",
+      "port": 1559,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 7109
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface37",
+      "host": "localhost",
+      "port": 1560,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 7110
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface38",
+      "host": "localhost",
+      "port": 1561,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 7111
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface39",
+      "host": "localhost",
+      "port": 1562,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 0,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 7112
+          }
+        ]
+      }
+    },
+	{
+      "name": "readoutinterface400",
+      "host": "localhost",
+      "port": 7997,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 1,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pair",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8192
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface401",
+      "host": "localhost",
+      "port": 7987,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 1,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pair",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8182
+          }
+        ]
+      }
+    },
+    {
+      "name": "readoutinterface402",
+      "host": "localhost",
+      "port": 7987,
+      "type": "ReadoutInterface",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "board_id": 1,
+        "delay_us": 100000,
+        "payload": {"min": 200, "max": 1500}
+      },
+      "metrics_settings": {},
+      "connections": {
+        "senders": [
+          {
+            "type": "pair",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "*",
+            "port": 8182
+          }
+        ]
+      }
+    },
+    {
+      "name": "eventbuilder10",
+      "host": "localhost",
+      "port": 7560,
+      "type": "EventBuilder",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {},
+      "metrics_settings": {},
+      "connections": {
+        "receivers": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 8101
+          },
+          {
+            "type": "pair",
+            "chid": 1,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 8102
+          }
+        ],
+        "senders": [
+          {
+            "type": "pair",
+            "chid": 0,
+            "transport": "ipc",
+            "path": "/tmp/feed3"
+          }
+        ]
+      }
+    },
+     {
+      "name": "eventbuilder11",
+      "host": "localhost",
+      "port": 7160,
+      "type": "EventBuilder",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {},
+      "metrics_settings": {},
+      "connections": {
+        "receivers": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 1103
+          },
+          {
+            "type": "pair",
+            "chid": 1,
+            "transport": "tcp",
+            "host": "localhost",
+            "port":1104
+          }
+        ],
+        "senders": [
+          {
+            "type": "pair",
+            "chid": 0,
+            "transport": "ipc",
+            "path": "/tmp/feed3"
+          }
+        ]
+      }
+    },
+     {
+      "name": "eventbuilder12",
+      "host": "localhost",
+      "port": 7260,
+      "type": "EventBuilder",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {},
+      "metrics_settings": {},
+      "connections": {
+        "receivers": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 8121
+          },
+          {
+            "type": "pair",
+            "chid": 1,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 8122
+          }
+        ],
+        "senders": [
+          {
+            "type": "pair",
+            "chid": 0,
+            "transport": "ipc",
+            "path": "/tmp/feed3"
+          }
+        ]
+      }
+    },
+     {
+      "name": "eventbuilder13",
+      "host": "localhost",
+      "port": 7530,
+      "type": "EventBuilder",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {},
+      "metrics_settings": {},
+      "connections": {
+        "receivers": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 8131
+          },
+          {
+            "type": "pair",
+            "chid": 1,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 8132
+          }
+        ],
+        "senders": [
+          {
+            "type": "pair",
+            "chid": 0,
+            "transport": "ipc",
+            "path": "/tmp/feed3"
+          }
+        ]
+      }
+    },
+     {
+      "name": "eventbuilder14",
+      "host": "localhost",
+      "port": 7460,
+      "type": "EventBuilder",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {},
+      "metrics_settings": {},
+      "connections": {
+        "receivers": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 8141
+          },
+          {
+            "type": "pair",
+            "chid": 1,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 8142
+          }
+        ],
+        "senders": [
+          {
+            "type": "pair",
+            "chid": 0,
+            "transport": "ipc",
+            "path": "/tmp/feed3"
+          }
+        ]
+      }
+    },
+     {
+      "name": "eventbuilder15",
+      "host": "localhost",
+      "port": 7760,
+      "type": "EventBuilder",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {},
+      "metrics_settings": {},
+      "connections": {
+        "receivers": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 8171
+          },
+          {
+            "type": "pair",
+            "chid": 1,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 8172
+          }
+        ],
+        "senders": [
+          {
+            "type": "pair",
+            "chid": 0,
+            "transport": "ipc",
+            "path": "/tmp/feed3"
+          }
+        ]
+      }
+    },
+     {
+      "name": "eventbuilder16",
+      "host": "localhost",
+      "port": 7060,
+      "type": "EventBuilder",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {},
+      "metrics_settings": {},
+      "connections": {
+        "receivers": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 8161
+          },
+          {
+            "type": "pair",
+            "chid": 1,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 8162
+          }
+        ],
+        "senders": [
+          {
+            "type": "pair",
+            "chid": 0,
+            "transport": "ipc",
+            "path": "/tmp/feed3"
+          }
+        ]
+      }
+    },
+     {
+      "name": "eventbuilder17",
+      "host": "localhost",
+      "port": 7960,
+      "type": "EventBuilder",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {},
+      "metrics_settings": {},
+      "connections": {
+        "receivers": [
+          {
+            "type": "pubsub",
+            "chid": 0,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 8171
+          },
+          {
+            "type": "pair",
+            "chid": 1,
+            "transport": "tcp",
+            "host": "localhost",
+            "port": 8172
+          }
+        ],
+        "senders": [
+          {
+            "type": "pair",
+            "chid": 0,
+            "transport": "ipc",
+            "path": "/tmp/feed3"
+          }
+        ]
+      }
+    },
+    {
+      "name": "filewriter66",
+      "host": "localhost",
+      "port": 7561,
+      "type": "FileWriter",
+      "loglevel": {"core": "WARNING", "module": "INFO"},
+      "settings": {
+        "filename_pattern": "/tmp/test-%D.%r.%c.%n.bin"
+      },
+      "metrics_settings": {},
+      "connections": {
+        "receivers": [
+          {
+            "type": "pair",
+            "chid": 0,
+            "transport": "ipc",
+            "path": "/tmp/feed3"
+          }
+        ]
+      }
+    }
+  ]
+}
+
