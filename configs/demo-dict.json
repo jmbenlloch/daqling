@@ -2,5 +2,5 @@
     "tree": "control-tree.json",
     "fsm_rules": "fsm-rules.json",
     "config": "demo.json",
-	"grafana": "grafana1.json"
+	"grafana": "grafana.json"
 }
