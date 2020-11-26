@@ -95,14 +95,14 @@ def reinitTree(configJson, oldRoot=None):
     else:
         # old-style schema (version < 10)
         configuration = jsonref_obj
-   # except:
-   #     raise Exception("Invalid devices configuration")
-    try:
-        with open(os.path.join(env['DAQ_CONFIG_DIR'], configJson['grafana'])) as f:
-            grafanaConfig = json.load(f)
-        f.close()
-    except:
-        raise Exception("Invalid grafana/kibana nodes configuration:" + e)
+    # except:
+    #     raise Exception("Invalid devices configuration")
+    # try:
+    #     with open(os.path.join(env['DAQ_CONFIG_DIR'], configJson['grafana'])) as f:
+    #         grafanaConfig = json.load(f)
+    #     f.close()
+    # except:
+    #     raise Exception("Invalid grafana/kibana nodes configuration:" + e)
 
     group = configuration['group']
     if 'path' in configuration.keys():
@@ -323,11 +323,11 @@ def ajaxParse():
     configFile = session['configFile']
     whoInterlocked[session['configFile']][1] = datetime.now()
     try:
-        r = executeComm(node, command);
+        r = executeComm(node, command)
     except Exception as e:
         logAndEmit(configFile,'ERROR', str(e))
     time.sleep(TIMEOUT)
-    return jsonify(r);
+    return jsonify(r)
     
 @app.route("/logout")
 def logout():
