@@ -241,7 +241,7 @@ bool ConnectionManager::addPublishHandler(unsigned chn) {
   return true;
 }
 
-bool ConnectionManager::receive(unsigned chn, daqling::utilities::Binary &bin) {
+bool ConnectionManager::receive(const unsigned &chn, daqling::utilities::Binary &bin) {
   if (m_receiver_pcqs[chn]->sizeGuess() != 0) {
     utilities::Binary msgBin(m_receiver_pcqs[chn]->frontPtr()->data(),
                              m_receiver_pcqs[chn]->frontPtr()->size());
@@ -252,7 +252,7 @@ bool ConnectionManager::receive(unsigned chn, daqling::utilities::Binary &bin) {
   return false;
 }
 
-bool ConnectionManager::send(unsigned chn, daqling::utilities::Binary &msgBin) {
+bool ConnectionManager::send(const unsigned &chn, const daqling::utilities::Binary &msgBin) {
   zmq::message_t message(msgBin.size());
   memcpy(message.data(), msgBin.data(), msgBin.size());
   return m_sender_pcqs[chn]->write(std::move(message));

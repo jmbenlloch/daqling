@@ -144,7 +144,6 @@ void FileWriterModule::configure() {
 void FileWriterModule::start(unsigned run_num) {
   m_start_completed.store(false);
   DAQProcess::start(run_num);
-  DEBUG(" getState: " << getState());
 
   m_stopWriters.store(false);
   unsigned int threadid = 11111;       // XXX: magic
@@ -174,7 +173,6 @@ void FileWriterModule::start(unsigned run_num) {
 
 void FileWriterModule::stop() {
   DAQProcess::stop();
-  DEBUG(" getState: " << this->getState());
   m_stopWriters.store(true);
   for (auto & [ chid, ctx ] : m_channelContexts) {
     DEBUG(" stopping context[" << chid << "]");
@@ -189,7 +187,7 @@ void FileWriterModule::stop() {
   }
 }
 
-void FileWriterModule::runner() {
+void FileWriterModule::runner() noexcept {
   DEBUG(" Running...");
 
   while (!m_start_completed) {

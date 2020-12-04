@@ -4,13 +4,11 @@ A software framework for the development of modular and distributed data acquisi
 
 ## Documentation
 
-Detailed documentation can be found [here][codimd].
+Detailed documentation can be found at [https://daqling.docs.cern.ch](https://daqling.docs.cern.ch).
 
 Subscribe to the "daqling-users" CERN e-group for updates.
 
 To contact the developers: daqling-developers@cern.ch (only for "daqling-users" members).
-
-[codimd]: <https://codimd.web.cern.ch/s/B1oArin-r>
 
 ## Host configuration and framework build
 
@@ -143,6 +141,7 @@ DAQling has been developed by the EP-DT-DI section at CERN and is maintained by:
 The following authors, in alphabetical order, have contributed to DAQling:
 
 - Wojciech Brylinski, Warsaw University of Technology, @wobrylin
+- Zbynek Kral, Czech Technical University in Prague, @zkral
 - Giovanna Lehmann Miotto, CERN, @glehmann
 - Viktor Vilhelm Sonesten, CERN, @vsoneste
 - Clement Claude Thorens, Université de Genève, @cthorens

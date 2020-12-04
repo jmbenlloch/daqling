@@ -28,7 +28,7 @@ from pathlib import Path
 from copy import deepcopy
 
 from nodetree import NodeTree
-from daqcontrol import daqcontrol as daqctrl, jsonref_to_json
+from daqcontrol import daqcontrol as daqctrl
 
 def print_help():
   print("Missing JSON configuration dictionary file.\n"

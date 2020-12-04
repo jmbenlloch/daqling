@@ -31,29 +31,27 @@ ReadoutInterfaceModule::ReadoutInterfaceModule() {
   m_delay_us = std::chrono::microseconds(m_config.getSettings()["delay_us"]);
   m_min_payload = m_config.getSettings()["payload"]["min"];
   m_max_payload = m_config.getSettings()["payload"]["max"];
-
   m_pause = false;
-  registerCommand("pause", "paused", &ReadoutInterfaceModule::pause, this);
-  registerCommand("resume", "running", &ReadoutInterfaceModule::resume, this);
+  registerCommand("pause", "pausing", "paused", &ReadoutInterfaceModule::pause, this);
+  registerCommand("resume", "resuming", "running", &ReadoutInterfaceModule::resume, this);
 }
 
 ReadoutInterfaceModule::~ReadoutInterfaceModule() {}
+
+void ReadoutInterfaceModule::configure() {
+  DAQProcess::configure();
+  std::this_thread::sleep_for(2s); // some sleep to demonstrate transition states
+}
 
 void ReadoutInterfaceModule::pause() { m_pause = true; }
 
 void ReadoutInterfaceModule::resume() { m_pause = false; }
 
-void ReadoutInterfaceModule::start(unsigned run_num) {
-  DAQProcess::start(run_num);
-  DEBUG("getState: " << this->getState());
-}
+void ReadoutInterfaceModule::start(unsigned run_num) { DAQProcess::start(run_num); }
 
-void ReadoutInterfaceModule::stop() {
-  DAQProcess::stop();
-  DEBUG("getState: " << this->getState());
-}
+void ReadoutInterfaceModule::stop() { DAQProcess::stop(); }
 
-void ReadoutInterfaceModule::runner() {
+void ReadoutInterfaceModule::runner() noexcept {
   unsigned sequence_number = 0;
   microseconds timestamp;
 
@@ -61,7 +59,6 @@ void ReadoutInterfaceModule::runner() {
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> dis(static_cast<int>(m_min_payload),
                                       static_cast<int>(m_max_payload));
-
   DEBUG("Running...");
   while (m_run) {
     if (m_pause) {
@@ -99,7 +96,7 @@ void ReadoutInterfaceModule::runner() {
     sequence_number++;
     if (sequence_number == UINT32_MAX) {
       ERROR("Reached maximum sequence number! That's enough for an example...");
-      throw;
+      std::terminate();
     }
     std::this_thread::sleep_for(m_delay_us);
   }
