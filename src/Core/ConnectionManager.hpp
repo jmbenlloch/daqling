@@ -76,13 +76,13 @@ public:
    * @param chn receiver channel id
    * @return true when binary file is successfully passed
    */
-  bool receive(unsigned chn, daqling::utilities::Binary &bin);
+  bool receive(const unsigned &chn, daqling::utilities::Binary &bin);
   /**
    * @brief Send binary to channel
    * @param chn sender channel id
    * @return true when binary file is successfully passed
    */
-  bool send(unsigned chn, daqling::utilities::Binary &msgBin);
+  bool send(const unsigned &chn, const daqling::utilities::Binary &msgBin);
 
   // Start/stop socket processors
   bool start();

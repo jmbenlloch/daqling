@@ -35,11 +35,12 @@ public:
   void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) {
     std::string response;
     paramList.verifyEnd(0);
-    auto &plugin = daqling::core::PluginManager::instance();
-    if (plugin.getLoaded()) {
-      response = plugin.getState();
-    } else {
-      response = "booted";
+    try {
+      auto &command = daqling::core::Command::instance();
+      response = command.getState();
+    } catch (std::exception const &e) {
+      ERROR("Exception: " << e.what());
+      response = "Failure " + std::string(e.what());
     }
     *retvalP = xmlrpc_c::value_string(response);
   };
@@ -54,93 +55,104 @@ public:
     std::string argument = paramList.getString(0);
     paramList.verifyEnd(1);
 
+    auto &command = daqling::core::Command::instance();
     auto &cm = daqling::core::ConnectionManager::instance();
     auto &plugin = daqling::core::PluginManager::instance();
-    if (plugin.getLoaded())
-      throw invalid_command();
-    auto &cfg = Configuration::instance();
-    cfg.load(argument);
-    DEBUG("Get config: " << argument);
-
-    auto type = cfg.get<std::string>("type");
-    DEBUG("Loading type: " << type);
-
-    auto j = cfg.getConfig();
-    auto rcvs = j["connections"]["receivers"];
-    DEBUG("receivers empty " << rcvs.empty());
-    for (auto &it : rcvs) {
-      DEBUG("key" << it);
-      std::ostringstream connStr;
-      ConnectionManager::EDirection dir;
-      if (it["type"] == "pair") {
-        dir = ConnectionManager::EDirection::CLIENT;
-      } else if (it["type"] == "pubsub") {
-        dir = ConnectionManager::EDirection::SUBSCRIBER;
-      } else {
-        ERROR("Unrecognized socket type");
-        throw connection_failure();
+    std::string entry_state = command.getState();
+    try {
+      if (command.getState() != "booted") {
+        throw invalid_command();
       }
-      if (it["transport"] == "ipc") {
-        std::string path = it["path"];
-        connStr << "ipc://" << path;
-      } else if (it["transport"] == "tcp") {
-        std::string host = it["host"];
-        connStr << "tcp://" << host << ":" << it["port"];
-      } else {
-        ERROR("Unrecognized transport type");
-        throw connection_failure();
+      command.setState("configuring");
+      auto &cfg = Configuration::instance();
+      cfg.load(argument);
+      DEBUG("Get config: " << argument);
+
+      auto type = cfg.get<std::string>("type");
+      DEBUG("Loading type: " << type);
+      if (!plugin.load(type)) {
+        ERROR("Plugin load failure!");
+        throw module_loading_failure();
       }
-      if (it.contains("filter") && it.contains("filter_size")) {
-        if (!cm.addReceiverChannel(it["chid"], dir, connStr.str(), 1000, it["filter"],
-                                   it["filter_size"])) {
+
+      auto j = cfg.getConfig();
+      auto rcvs = j["connections"]["receivers"];
+      DEBUG("receivers empty " << rcvs.empty());
+      for (auto &it : rcvs) {
+        DEBUG("key" << it);
+        std::ostringstream connStr;
+        ConnectionManager::EDirection dir;
+        if (it["type"] == "pair") {
+          dir = ConnectionManager::EDirection::CLIENT;
+        } else if (it["type"] == "pubsub") {
+          dir = ConnectionManager::EDirection::SUBSCRIBER;
+        } else {
+          ERROR("Unrecognized socket type");
+          throw connection_failure();
+        }
+        if (it["transport"] == "ipc") {
+          std::string path = it["path"];
+          connStr << "ipc://" << path;
+        } else if (it["transport"] == "tcp") {
+          std::string host = it["host"];
+          connStr << "tcp://" << host << ":" << it["port"];
+        } else {
+          ERROR("Unrecognized transport type");
+          throw connection_failure();
+        }
+        if (it.contains("filter") && it.contains("filter_size")) {
+          if (!cm.addReceiverChannel(it["chid"], dir, connStr.str(), 1000, it["filter"],
+                                     it["filter_size"])) {
+            ERROR("addChannel failure!");
+            throw connection_failure();
+          }
+
+        } else {
+          if (!cm.addReceiverChannel(it["chid"], dir, connStr.str(), 1000)) {
+            ERROR("addChannel failure!");
+            throw connection_failure();
+          }
+        }
+      }
+
+      auto sndrs = j["connections"]["senders"];
+      DEBUG("senders empty " << sndrs.empty());
+      for (auto &it : sndrs) {
+        DEBUG("key" << it);
+        std::ostringstream connStr;
+        ConnectionManager::EDirection dir;
+        if (it["type"] == "pair") {
+          dir = ConnectionManager::EDirection::SERVER;
+        } else if (it["type"] == "pubsub") {
+          dir = ConnectionManager::EDirection::PUBLISHER;
+        } else {
+          ERROR("Unrecognized socket type");
+          throw connection_failure();
+        }
+        if (it["transport"] == "ipc") {
+          std::string path = it["path"];
+          connStr << "ipc://" << path;
+        } else if (it["transport"] == "tcp") {
+          std::string host = it["host"];
+          connStr << "tcp://" << host << ":" << it["port"];
+        } else {
+          ERROR("Unrecognized transport type");
+          throw connection_failure();
+        }
+        if (!cm.addSenderChannel(it["chid"], dir, connStr.str(), 1000)) {
           ERROR("addChannel failure!");
           throw connection_failure();
         }
+      }
 
-      } else {
-        if (!cm.addReceiverChannel(it["chid"], dir, connStr.str(), 1000)) {
-          ERROR("addChannel failure!");
-          throw connection_failure();
-        }
-      }
+      plugin.configure();
+      command.setState("ready");
+      response = "Success";
+    } catch (std::exception const &e) {
+      response = "Failure: " + std::string(e.what());
+      ERROR("Exception: " << e.what());
+      command.setState(entry_state);
     }
-
-    auto sndrs = j["connections"]["senders"];
-    DEBUG("senders empty " << sndrs.empty());
-    for (auto &it : sndrs) {
-      DEBUG("key" << it);
-      std::ostringstream connStr;
-      ConnectionManager::EDirection dir;
-      if (it["type"] == "pair") {
-        dir = ConnectionManager::EDirection::SERVER;
-      } else if (it["type"] == "pubsub") {
-        dir = ConnectionManager::EDirection::PUBLISHER;
-      } else {
-        ERROR("Unrecognized socket type");
-        throw connection_failure();
-      }
-      if (it["transport"] == "ipc") {
-        std::string path = it["path"];
-        connStr << "ipc://" << path;
-      } else if (it["transport"] == "tcp") {
-        std::string host = it["host"];
-        connStr << "tcp://" << host << ":" << it["port"];
-      } else {
-        ERROR("Unrecognized transport type");
-        throw connection_failure();
-      }
-      if (!cm.addSenderChannel(it["chid"], dir, connStr.str(), 1000)) {
-        ERROR("addChannel failure!");
-        throw connection_failure();
-      }
-    }
-
-    if (!plugin.load(type)) {
-      ERROR("Plugin load failure!");
-      throw connection_failure();
-    }
-    response = "Success";
-    plugin.configure();
     *retvalP = xmlrpc_c::value_string(response);
   };
 };
@@ -154,19 +166,29 @@ public:
     paramList.verifyEnd(0);
     auto &plugin = daqling::core::PluginManager::instance();
     auto &cm = daqling::core::ConnectionManager::instance();
-    if (!plugin.getLoaded())
-      throw invalid_command();
-    while (cm.getNumOfReceiverChannels() > 0) {
-      cm.removeReceiverChannel(cm.getNumOfReceiverChannels() - 1);
-    }
-    while (cm.getNumOfSenderChannels() > 0) {
-      cm.removeSenderChannel(cm.getNumOfSenderChannels() - 1);
-    }
+    auto &command = daqling::core::Command::instance();
+    std::string entry_state = command.getState();
+    try {
+      if (command.getState() != "ready") {
+        throw invalid_command();
+      }
+      command.setState("unconfiguring");
+      while (cm.getNumOfReceiverChannels() > 0) {
+        cm.removeReceiverChannel(cm.getNumOfReceiverChannels() - 1);
+      }
+      while (cm.getNumOfSenderChannels() > 0) {
+        cm.removeSenderChannel(cm.getNumOfSenderChannels() - 1);
+      }
 
-    cm.unsetStatsConnection();
-    plugin.unload();
-    response = "Success";
-
+      cm.unsetStatsConnection();
+      plugin.unload();
+      command.setState("booted");
+      response = "Success";
+    } catch (std::exception const &e) {
+      response = "Failure " + std::string(e.what());
+      ERROR("Exception: " << e.what());
+      command.setState(entry_state);
+    }
     *retvalP = xmlrpc_c::value_string(response);
   };
 };
@@ -181,12 +203,21 @@ public:
     paramList.verifyEnd(1);
     auto &plugin = daqling::core::PluginManager::instance();
     auto &cm = daqling::core::ConnectionManager::instance();
-    if (!plugin.getLoaded() || plugin.getState() == "running")
-      throw invalid_command();
-    cm.start();
-    plugin.start(run_num);
-    response = "Success";
-
+    auto &command = daqling::core::Command::instance();
+    std::string entry_state = command.getState();
+    try {
+      if (std::string s = command.getState(); s != "ready" or s == "running")
+        throw invalid_command();
+      command.setState("starting");
+      cm.start();
+      plugin.start(run_num);
+      command.setState("running");
+      response = "Success";
+    } catch (std::exception const &e) {
+      response = "Failure " + std::string(e.what());
+      ERROR("Exception: " << e.what());
+      command.setState(entry_state);
+    }
     *retvalP = xmlrpc_c::value_string(response);
   };
 };
@@ -200,13 +231,22 @@ public:
     paramList.verifyEnd(0);
     auto &plugin = daqling::core::PluginManager::instance();
     auto &cm = daqling::core::ConnectionManager::instance();
-
-    if (!plugin.getLoaded() || plugin.getState() == "ready")
-      throw invalid_command();
-    plugin.stop();
-    cm.stop();
-    response = "Success";
-
+    auto &command = daqling::core::Command::instance();
+    std::string entry_state = command.getState();
+    try {
+      if (command.getState() != "running") {
+        throw invalid_command();
+      }
+      command.setState("stopping");
+      plugin.stop();
+      cm.stop();
+      command.setState("ready");
+      response = "Success";
+    } catch (std::exception const &e) {
+      response = "Failure";
+      ERROR("Exception: " << e.what());
+      command.setState("error");
+    }
     *retvalP = xmlrpc_c::value_string(response);
   };
 };
@@ -216,11 +256,23 @@ public:
   down() {}
 
   void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) {
-    std::string response{"Failure"};
+    std::string response;
     paramList.verifyEnd(0);
     auto &command = daqling::core::Command::instance();
-    command.stop_and_notify();
-    response = "Success";
+    std::string entry_state = command.getState();
+    try {
+      if (std::string s = command.getState(); s != "booted" and s != "ready" and s != "running") {
+        throw invalid_command();
+      }
+      command.setState("shutting");
+      command.stop_and_notify();
+      command.setState("added");
+      response = "Success";
+    } catch (std::exception const &e) {
+      response = "Failure: " + std::string(e.what());
+      ERROR("Exception: " << e.what());
+      command.setState(entry_state);
+    }
     *retvalP = xmlrpc_c::value_string(response);
   };
 };
@@ -235,8 +287,23 @@ public:
     const std::string argument = paramList.getString(1);
     paramList.verifyEnd(2);
     auto &plugin = daqling::core::PluginManager::instance();
-    plugin.command(command_name, argument);
-    response = "Success";
+    auto &command = daqling::core::Command::instance();
+    std::string entry_state = command.getState();
+    try {
+      if (plugin.isCommandRegistered(command_name)) {
+        command.setState(plugin.getCommandTransitionState(command_name));
+        plugin.command(command_name, argument);
+        command.setState(plugin.getCommandTargetState(command_name));
+        response = "Success";
+      } else {
+        ERROR("Command " << command_name << " is not registered");
+        response = "Failure: " + command_name + " is not registered";
+      }
+    } catch (std::exception const &e) {
+      response = "Failure: " + std::string(e.what());
+      ERROR("Exception: " << e.what());
+      command.setState(entry_state);
+    }
     *retvalP = xmlrpc_c::value_string(response);
   };
 };
@@ -259,6 +326,6 @@ void daqling::core::Command::setupServer(unsigned port) {
     m_cmd_handler = std::thread([&]() { m_server_p->run(); });
     INFO("Server set up on port: " << port);
   } catch (std::exception const &e) {
-    ERROR("Something bad happened!" << e.what());
+    ERROR("Exception: " << e.what());
   }
 }

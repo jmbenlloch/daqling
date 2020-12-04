@@ -23,7 +23,7 @@
 using namespace std::chrono_literals;
 
 EventBuilderModule::EventBuilderModule() : m_eventmap_size{0}, m_complete_ev_size_guess{0} {
-  DEBUG("With config: " << m_config.dump() << " getState: " << this->getState());
+  DEBUG("With config: " << m_config.dump());
   m_nreceivers = m_config.getNumReceiverConnections();
 }
 
@@ -42,17 +42,11 @@ void EventBuilderModule::configure() {
   }
 }
 
-void EventBuilderModule::start(unsigned run_num) {
-  DAQProcess::start(run_num);
-  DEBUG("getState: " << getState());
-}
+void EventBuilderModule::start(unsigned run_num) { DAQProcess::start(run_num); }
 
-void EventBuilderModule::stop() {
-  DAQProcess::stop();
-  DEBUG("getState: " << this->getState());
-}
+void EventBuilderModule::stop() { DAQProcess::stop(); }
 
-void EventBuilderModule::runner() {
+void EventBuilderModule::runner() noexcept {
   DEBUG("Running...");
 
   std::unordered_map<uint32_t, std::vector<daqling::utilities::Binary>> events;
@@ -61,10 +55,13 @@ void EventBuilderModule::runner() {
   std::mutex mtx;
 
   std::thread consumer{[&]() {
-    while (m_run || complete_seq.sizeGuess() != 0) { // finish to process complete events
+    while (m_run || !complete_seq.isEmpty()) { // finish to process complete events
       unsigned seq;
       while (!complete_seq.read(seq) && m_run)
         std::this_thread::sleep_for(1ms);
+      if (m_run == false) {
+        return;
+      }
       daqling::utilities::Binary out;
       std::unique_lock<std::mutex> lck(mtx);
       for (auto &c : events[seq]) {
@@ -99,7 +96,7 @@ void EventBuilderModule::runner() {
         if (prev_seq[ch] + 1 != seq_number && seq_number != 0) {
           ERROR("Sequence number for channel " << ch << " is broken! Previous = " << prev_seq[ch]
                                                << " while current = " << seq_number);
-          throw;
+          std::terminate();
         }
         prev_seq[ch] = seq_number;
         std::unique_lock<std::mutex> lck(mtx);

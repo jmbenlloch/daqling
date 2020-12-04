@@ -12,19 +12,24 @@
       "shutdown",
       "remove"
     ],
+    "configuring": [],
     "ready": [
       "start",
       "unconfigure",
       "shutdown"
     ],
+    "starting": [],
     "running": [
       "stop",
-      "pause"
+      "pause",
+      "shutdown"
     ],
+    "stopping": [],
     "paused": [
-      "resume",
-      "stop"
-    ]
+      "resume"
+    ],
+    "pausing": [],
+    "resuming": []
   },
   "order": {
     "start": [

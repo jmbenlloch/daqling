@@ -28,7 +28,7 @@ void DummyModule::configure() {
   daqling::core::DAQProcess::configure();
   INFO("");
 
-  registerCommand("foobar", "foobarred", &DummyModule::foobar, this, _1);
+  registerCommand("foobar", "foobarring", "foobarred", &DummyModule::foobar, this, _1);
 }
 
 void DummyModule::start(unsigned run_num) {
@@ -41,7 +41,7 @@ void DummyModule::stop() {
   INFO("");
 }
 
-void DummyModule::runner() {
+void DummyModule::runner() noexcept {
   INFO("Running...");
   while (m_run) {
   }

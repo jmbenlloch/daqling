@@ -43,14 +43,12 @@ public:
     if (m_stats_on) {
       m_statistics->start();
     }
-    m_state = "ready";
   };
 
   virtual void start(unsigned run_num) {
     m_run_number = run_num;
     DEBUG("run number " << m_run_number);
     m_run = true;
-    m_state = "running";
     m_runner_thread = std::thread(&DAQProcess::runner, this);
   };
 
@@ -59,29 +57,38 @@ public:
     if (running()) {
       m_runner_thread.join();
     }
-    m_state = "ready";
   };
 
-  virtual void runner() = 0;
+  virtual void runner() noexcept = 0;
 
   /**
-   * Runs a registered custom command named `key`, if available.
-   * Returns whether a command was found and run.
+   * Returns whether a command was found in register.
    */
-  bool command(const std::string &key, const std::string &arg) noexcept {
+  bool isCommandRegistered(const std::string &key) noexcept {
     if (auto cmd = m_commands.find(key); cmd != m_commands.end()) {
-      DEBUG("Command '" << key << "' registered. Running...");
-      cmd->second.first(arg);
-      DEBUG("Moving to state " << cmd->second.second);
-      m_state = cmd->second.second;
       return true;
     }
-
-    DEBUG("No command '" << key << "' registered");
+    WARNING("No command '" << key << "' registered");
     return false;
   }
 
-  std::string getState() { return m_state; }
+  /**
+   * Runs a registered custom command named `key`.
+   */
+  void command(const std::string &key, const std::string &arg) {
+    auto cmd = m_commands.find(key);
+    std::get<0>(cmd->second)(arg);
+  }
+
+  std::string getCommandTransitionState(const std::string &key) {
+    auto cmd = m_commands.find(key);
+    return std::get<1>(cmd->second);
+  }
+
+  std::string getCommandTargetState(const std::string &key) {
+    auto cmd = m_commands.find(key);
+    return std::get<2>(cmd->second);
+  }
 
   bool setupStatistics() { // TODO
 
@@ -142,13 +149,15 @@ protected:
    * Returns whether the command was inserted (false meaning that command `cmd` already exists)
    */
   template <typename Function, typename... Args>
-  bool registerCommand(const std::string &cmd, const std::string &target_state, Function &&f,
-                       Args &&... args) {
-    if (m_state == "running") {
-      throw std::logic_error("commands cannot be registered during runtime.");
-    }
+  bool registerCommand(const std::string &cmd, const std::string &transition_state,
+                       const std::string &target_state, Function &&f, Args &&... args) {
+    // if (m_state == "running") {
+    //   throw std::logic_error("commands cannot be registered during runtime.");
+    // }
 
-    return m_commands.emplace(cmd, std::make_pair(std::bind(f, args...), target_state)).second;
+    return m_commands
+        .emplace(cmd, std::make_tuple(std::bind(f, args...), transition_state, target_state))
+        .second;
   }
 
   // ZMQ ConnectionManager
@@ -160,14 +169,13 @@ protected:
   bool m_stats_on;
   std::unique_ptr<Statistics> m_statistics;
 
-  std::string m_state;
   std::atomic<bool> m_run;
   std::thread m_runner_thread;
   unsigned m_run_number;
 
 private:
-  std::map<const std::string,
-           std::pair<std::function<void(const std::string &)>, const std::string>>
+  std::map<const std::string, std::tuple<std::function<void(const std::string &)>,
+                                         const std::string, const std::string>>
       m_commands;
 };
 

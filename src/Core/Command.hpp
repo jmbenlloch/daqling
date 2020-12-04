@@ -28,16 +28,35 @@
 namespace daqling {
 namespace core {
 
-struct connection_failure : public std::exception {};
-struct invalid_command : public std::exception {};
+struct connection_failure : public std::exception {
+  const char *what() const throw() { return "Connection failure"; }
+};
+struct invalid_command : public std::exception {
+  const char *what() const throw() { return "Invalid command"; }
+};
+struct module_loading_failure : public std::exception {
+  const char *what() const throw() { return "Module loading failure"; }
+};
 
 class Command : public daqling::utilities::Singleton<Command> {
 public:
   Command()
-      : m_should_stop{false}, m_handled(false), m_command{""}, m_argument{""}, m_response{""} {}
+      : m_should_stop{false},
+        m_handled(false), m_state{"booted"}, m_command{""}, m_argument{""}, m_response{""} {}
   ~Command() {
     m_server_p->terminate();
     m_cmd_handler.join();
+  }
+
+  void setState(const std::string &state) {
+    DEBUG("Setting state: " << state);
+    const std::lock_guard<std::mutex> lock(m_state_mtx);
+    m_state = state;
+  }
+
+  std::string getState() {
+    const std::lock_guard<std::mutex> lock(m_state_mtx);
+    return m_state;
   }
 
   void setupServer(unsigned port);
@@ -56,10 +75,12 @@ public:
 private:
   bool m_should_stop;
   bool m_handled;
+  std::string m_state;
   std::string m_command;
   std::string m_argument;
   std::string m_response;
   std::mutex m_mtx;
+  std::mutex m_state_mtx;
   std::condition_variable m_cv;
   std::thread m_cmd_handler;
   xmlrpc_c::registry m_registry;
