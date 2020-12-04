@@ -33,5 +33,5 @@ public:
   void start(unsigned run_num);
   void stop();
 
-  void runner();
+  void runner() noexcept;
 };

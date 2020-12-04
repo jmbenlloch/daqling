@@ -28,10 +28,11 @@ class ReadoutInterfaceModule : public daqling::core::DAQProcess {
 public:
   ReadoutInterfaceModule();
   ~ReadoutInterfaceModule();
+  void configure();
   void start(unsigned run_num);
   void stop();
 
-  void runner();
+  void runner() noexcept;
 
 private:
   unsigned m_board_id;

@@ -101,18 +101,25 @@ public:
   void stop() { m_dp.value()->stop(); };
 
   /**
-   * Executes a custom module command `cmd` if registered.
-   *
    * Returns whether specified command was executed.
    */
-  bool command(const std::string &cmd, const std::string &arg) {
-    return m_dp.value()->command(cmd, arg);
+
+  bool isCommandRegistered(const std::string &key) {
+    return m_dp.value()->isCommandRegistered(key);
   }
 
   /**
-   * Returns the state of the module.
+   * Executes a custom module command `cmd`.
    */
-  std::string getState() { return m_dp.value()->getState(); }
+  void command(const std::string &cmd, const std::string &arg) { m_dp.value()->command(cmd, arg); }
+
+  std::string getCommandTransitionState(const std::string &key) {
+    return m_dp.value()->getCommandTransitionState(key);
+  }
+
+  std::string getCommandTargetState(const std::string &key) {
+    return m_dp.value()->getCommandTargetState(key);
+  }
 
   /**
    * Returns whether a module is loaded.
