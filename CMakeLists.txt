@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4.3 FATAL_ERROR)
 cmake_policy(SET CMP0077 NEW) # option() honors normal variables
 set(PACKAGE daqling)
-set(PACKAGE_VERSION 0.9.2)
+set(PACKAGE_VERSION 0.10.1)
 
 project(${PACKAGE} VERSION ${PACKAGE_VERSION}
         DESCRIPTION "Data acquisition framework"
