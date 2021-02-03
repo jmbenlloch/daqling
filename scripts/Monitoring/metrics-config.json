@@ -7,9 +7,5 @@
     "host" : "localhost",
     "port" : "8086",
     "name" : "DAQlingMetrics"
-  },
-  "redis_settings": {
-    "host" : "localhost",
-    "port" : "6379"
   }
 }
