@@ -1,3 +1,7 @@
+- name: Install python3-devel
+  yum:
+    name: python3-devel
+
 - name: Install pyzmq
   pip:
     name: pyzmq
