@@ -15,32 +15,31 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "ConnectionManager.hpp"
+#include "Command.hpp"
+#include "Utils/Binary.hpp"
+#include "Utils/Ers.hpp"
 #include <chrono>
 #include <ctime>
 #include <exception>
 #include <iomanip>
 #include <thread>
 
-#include "Command.hpp"
-#include "ConnectionManager.hpp"
-#include "Utils/Binary.hpp"
-#include "Utils/Logging.hpp"
-
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
 bool ConnectionManager::setupStatsConnection(uint8_t ioT, std::string connStr) {
   if (m_is_stats_setup) {
-    INFO(" Statistics socket is already online... Won't do anything.");
+    ERS_INFO(" Statistics socket is already online... Won't do anything.");
     return false;
   }
   try {
     m_stats_context = std::make_unique<zmq::context_t>(ioT);
     m_stats_socket = std::make_unique<zmq::socket_t>(*(m_stats_context.get()), ZMQ_PUB);
     m_stats_socket->connect(connStr);
-    INFO(" Statistics are published on: " << connStr);
+    ERS_INFO(" Statistics are published on: " << connStr);
   } catch (std::exception &e) {
-    ERROR(" Failed to add Stats publisher channel! ZMQ returned: " << e.what());
+    throw CannotAddStatsChannel(ERS_HERE, e.what());
     return false;
   }
   m_is_stats_setup = true;
@@ -61,14 +60,14 @@ bool ConnectionManager::addReceiverChannel(unsigned chn, EDirection dir, const s
     if (dir == EDirection::SUBSCRIBER) {
       try {
         m_receiver_sockets[chn]->connect(connStr.c_str());
-        INFO(" Adding SUBSCRIBER channel for: [" << chn << "] connect: " << connStr);
+        ERS_INFO(" Adding SUBSCRIBER channel for: [" << chn << "] connect: " << connStr);
       } catch (std::exception &e) {
-        ERROR(" Failed to add channel! ZMQ returned: " << e.what());
+        throw CannotAddChannel(ERS_HERE, e.what());
         return false;
       }
       return true;
     } else {
-      INFO(" Socket for channel already exists... Won't add this channel again.");
+      ERS_INFO(" Socket for channel already exists... Won't add this channel again.");
       return false;
     }
   }
@@ -83,16 +82,16 @@ bool ConnectionManager::addReceiverChannel(unsigned chn, EDirection dir, const s
       m_receiver_sockets[chn] =
           std::make_unique<zmq::socket_t>(*(m_receiver_contexts[chn].get()), ZMQ_PAIR);
       m_receiver_sockets[chn]->connect(connStr.c_str());
-      INFO(" Adding CLIENT channel for: [" << chn << "] connect: " << connStr);
+      ERS_INFO(" Adding CLIENT channel for: [" << chn << "] connect: " << connStr);
     } else if (dir == EDirection::SUBSCRIBER) {
       m_receiver_sockets[chn] =
           std::make_unique<zmq::socket_t>(*(m_receiver_contexts[chn].get()), ZMQ_SUB);
       m_receiver_sockets[chn]->connect(connStr.c_str());
       m_receiver_sockets[chn]->setsockopt(ZMQ_SUBSCRIBE, &filter, filter_size);
-      INFO(" Adding SUBSCRIBER channel for: [" << chn << "] connect: " << connStr);
+      ERS_INFO(" Adding SUBSCRIBER channel for: [" << chn << "] connect: " << connStr);
     }
   } catch (std::exception &e) {
-    ERROR(" Failed to add channel! ZMQ returned: " << e.what());
+    throw CannotAddChannel(ERS_HERE, e.what());
     return false;
   }
   m_receiver_channels++;
@@ -112,15 +111,15 @@ bool ConnectionManager::addSenderChannel(unsigned chn, EDirection dir, const std
       m_sender_sockets[chn] =
           std::make_unique<zmq::socket_t>(*(m_sender_contexts[chn].get()), ZMQ_PAIR);
       m_sender_sockets[chn]->bind(connStr.c_str());
-      INFO(" Adding SERVER channel for: [" << chn << "] bind: " << connStr);
+      ERS_INFO(" Adding SERVER channel for: [" << chn << "] bind: " << connStr);
     } else if (dir == EDirection::PUBLISHER) {
       m_sender_sockets[chn] =
           std::make_unique<zmq::socket_t>(*(m_sender_contexts[chn].get()), ZMQ_PUB);
       m_sender_sockets[chn]->bind(connStr.c_str());
-      INFO(" Adding PUBLISHER channel for: [" << chn << "] bind: " << connStr);
+      ERS_INFO(" Adding PUBLISHER channel for: [" << chn << "] bind: " << connStr);
     }
   } catch (std::exception &e) {
-    ERROR(" Failed to add channel! ZMQ returned: " << e.what());
+    throw CannotAddChannel(ERS_HERE, e.what());
     return false;
   }
   m_sender_channels++;
@@ -150,32 +149,31 @@ bool ConnectionManager::removeSenderChannel(unsigned chn) {
 }
 
 bool ConnectionManager::addReceiveHandler(unsigned chn) {
-  INFO(" [CLIENT] ReceiveHandler for channel [" << chn << "] starting...");
+  ERS_INFO(" [CLIENT] ReceiveHandler for channel [" << chn << "] starting...");
   m_receiver_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
       zmq::message_t msg;
       if (m_receiver_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) {
         while (!m_receiver_pcqs[chn]->write(std::move(msg)) && !m_stop_handlers) {
-          WARNING("Waiting queue to allow write");
+          ERS_WARNING("Waiting queue to allow write");
           std::this_thread::sleep_for(1ms);
         }
         m_receiver_numMsgsHandled[chn]++;
-        // DEBUG("    -> wrote to queue");
       } else {
         std::this_thread::sleep_for(1ms);
       }
       m_receiver_pcqSizes[chn].store(m_receiver_pcqs[chn]->sizeGuess());
       if (m_receiver_pcqs[chn]->sizeGuess() > m_receiver_pcqs[chn]->capacity() * 0.9) {
-        WARNING("CLIENT -> queue population: " << m_receiver_pcqs[chn]->sizeGuess());
+        ERS_WARNING("CLIENT -> queue population: " << m_receiver_pcqs[chn]->sizeGuess());
       }
     }
-    INFO(" joining channel [" << chn << "] handler.");
+    ERS_INFO(" joining channel [" << chn << "] handler.");
   });
   return true;
 }
 
 bool ConnectionManager::addSendHandler(unsigned chn) {
-  INFO(" [SERVER] SendHandler for channel [" << chn << "] starting...");
+  ERS_INFO(" [SERVER] SendHandler for channel [" << chn << "] starting...");
   m_sender_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
       zmq::message_t msg;
@@ -187,41 +185,40 @@ bool ConnectionManager::addSendHandler(unsigned chn) {
       }
       m_sender_pcqSizes[chn].store(m_sender_pcqs[chn]->sizeGuess());
       if (m_sender_pcqs[chn]->sizeGuess() > m_sender_pcqs[chn]->capacity() * 0.9) {
-        WARNING("SERVER -> queue population: " << m_sender_pcqs[chn]->sizeGuess());
+        ERS_WARNING("SERVER -> queue population: " << m_sender_pcqs[chn]->sizeGuess());
       }
     }
-    INFO(" joining channel [" << chn << "] handler.");
+    ERS_INFO(" joining channel [" << chn << "] handler.");
   });
   return true;
 }
 
 bool ConnectionManager::addSubscribeHandler(unsigned chn) {
-  INFO(" [SUB] SubscribeHandler for channel [" << chn << "] starting...");
+  ERS_INFO(" [SUB] SubscribeHandler for channel [" << chn << "] starting...");
   m_receiver_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
       zmq::message_t msg;
       if (m_receiver_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) {
         while (!m_receiver_pcqs[chn]->write(std::move(msg)) && !m_stop_handlers) {
-          WARNING("Waiting queue to allow write");
+          ERS_WARNING("Waiting queue to allow write");
           std::this_thread::sleep_for(1ms);
         }
         m_receiver_numMsgsHandled[chn]++;
-        // DEBUG("    -> wrote to queue");
       } else {
         std::this_thread::sleep_for(1ms);
       }
       m_receiver_pcqSizes[chn].store(m_receiver_pcqs[chn]->sizeGuess());
       if (m_receiver_pcqs[chn]->sizeGuess() > m_receiver_pcqs[chn]->capacity() * 0.9) {
-        WARNING("SUB -> queue population: " << m_receiver_pcqs[chn]->sizeGuess());
+        ERS_WARNING("SUB -> queue population: " << m_receiver_pcqs[chn]->sizeGuess());
       }
     }
-    INFO(" joining channel [" << chn << "] handler.");
+    ERS_INFO(" joining channel [" << chn << "] handler.");
   });
   return true;
 }
 
 bool ConnectionManager::addPublishHandler(unsigned chn) {
-  INFO(" [PUB] PublishHandler for channel [" << chn << "] starting...");
+  ERS_INFO(" [PUB] PublishHandler for channel [" << chn << "] starting...");
   m_sender_handlers[chn] = std::thread([&, chn]() {
     while (!m_stop_handlers) {
       zmq::message_t msg;
@@ -233,10 +230,10 @@ bool ConnectionManager::addPublishHandler(unsigned chn) {
       }
       m_sender_pcqSizes[chn].store(m_sender_pcqs[chn]->sizeGuess());
       if (m_sender_pcqs[chn]->sizeGuess() > m_sender_pcqs[chn]->capacity() * 0.9) {
-        WARNING("PUB -> queue population: " << m_sender_pcqs[chn]->sizeGuess());
+        ERS_WARNING("PUB -> queue population: " << m_sender_pcqs[chn]->sizeGuess());
       }
     }
-    INFO(" joining channel [" << chn << "] handler.");
+    ERS_INFO(" joining channel [" << chn << "] handler.");
   });
   return true;
 }

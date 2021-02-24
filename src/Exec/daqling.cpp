@@ -16,10 +16,10 @@
  */
 
 #include "Core/Core.hpp"
-#include "spdlog/sinks/stdout_color_sinks.h"
+
+#include "Utils/Ers.hpp"
 
 using namespace std::chrono_literals;
-using logger = daqling::utilities::Logger;
 
 int main(int argc, char **argv) {
   if (argc < 5) {
@@ -29,41 +29,47 @@ int main(int argc, char **argv) {
   }
 
   std::string name = argv[1];
-  std::vector<spdlog::sink_ptr> sinks;
-  sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
-  sinks.push_back(std::make_shared<daqling::utilities::zmq_sink_mt>(name));
+  // assign log-levels from arguments
+  std::vector<std::string> const table = {"DEBUG", "LOG", "INFO", "WARNING", "ERROR"};
+  std::vector<std::string>::const_iterator coreLvl;
+  std::vector<std::string>::const_iterator moduleLvl;
+  auto core_tup = std::make_tuple(&coreLvl, std::string(argv[3]), "INFO", "Core");
+  auto module_tup = std::make_tuple(&moduleLvl, std::string(argv[4]), "DEBUG", "Module");
 
-  auto core_logger = std::make_shared<spdlog::logger>("core", begin(sinks), end(sinks));
-  auto module_logger = std::make_shared<spdlog::logger>("module", begin(sinks), end(sinks));
-
-  // Set default sink pattern
-  for (auto sink : sinks) {
-    sink->set_pattern(daqling::utilities::sink_pattern());
-  }
-
-  // Assign the logger globals, allowing us to use logging macros.
-  logger::set_instance(core_logger);
-  logger::set_module_instance(module_logger);
-
-  // Parse and set log level for both logers
-  auto core_ctx = std::make_tuple(core_logger, std::string(argv[3]), spdlog::level::info);
-  auto module_ctx = std::make_tuple(module_logger, std::string(argv[4]), spdlog::level::debug);
-  for (auto[logger, supplied_lvl, default_lvl] : {core_ctx, module_ctx}) {
-    std::transform(supplied_lvl.begin(), supplied_lvl.end(), supplied_lvl.begin(), ::tolower);
-
-    if (auto lvl = spdlog::level::from_str(supplied_lvl);
-        lvl == spdlog::level::off && supplied_lvl != "off") {
-      // Supplied log level does not exist so spdlog returned the default level::off. Use our own
-      // default instead.
-      WARNING("Unknown loglevel '" << supplied_lvl << "', defaulting to level '"
-                                   << spdlog::level::to_string_view(default_lvl).data() << "' for '"
-                                   << logger->name() << "' logger");
-      logger->set_level(default_lvl);
-    } else {
-      // Log level exists, set it.
-      logger->set_level(lvl);
+  for (auto[lvl, supplied_lvl, default_lvl, name] : {core_tup, module_tup}) {
+    if ((*lvl = find(table.begin(), table.end(), supplied_lvl)) == table.end()) {
+      *lvl = find(table.begin(), table.end(), default_lvl);
+      ERS_WARNING("Unknown loglevel '" << supplied_lvl << "', defaulting to level '" << default_lvl
+                                       << "' for '" << name << "' logger");
     }
   }
+
+  // helper variables - stream setup:
+  bool CoreHasLowestLvl = coreLvl < moduleLvl;
+  auto lowestLvl = (CoreHasLowestLvl ? coreLvl : moduleLvl);
+  auto highestLvl = (CoreHasLowestLvl ? moduleLvl : coreLvl);
+  std::string filter = (CoreHasLowestLvl ? "filter(core)," : "filter(module),");
+  // set up the streams:
+  for (auto level = table.begin(); level != table.end(); ++level) {
+    std::string stream = (static_cast<std::string>("TDAQ_ERS_")) + (*level);
+    std::string configs = "";
+    if (level < lowestLvl) {
+      configs += "null";
+    } else {
+      if (level >= lowestLvl && level < highestLvl) {
+        configs += filter;
+      }
+      if (*level == "WARNING" || *level == "ERROR") {
+        configs += "throttle,dlstderr";
+      } else {
+        configs += "dlstdout";
+      }
+      configs += ",ZMQSink(" + name + ")";
+    }
+    setenv(stream.c_str(), configs.c_str(), 0);
+  }
+  // Setup fatal stream to terminate
+  setenv("TDAQ_ERS_FATAL", "dlstderr,exit", 0);
 
   unsigned port = strtoul(argv[2], NULL, 0);
   daqling::core::Core c(port);

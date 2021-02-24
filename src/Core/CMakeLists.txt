@@ -9,6 +9,8 @@ add_library(DaqlingCore SHARED
   PluginManager.cpp
   Statistics.cpp
 )
+add_compile_definitions(TDAQ_PACKAGE_NAME="core")
+
 
 # Link the dependencies
 target_link_libraries(DaqlingCore ${DAQLING_DEPS_LIBRARIES})

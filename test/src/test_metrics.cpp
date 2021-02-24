@@ -16,17 +16,13 @@
  */
 
 #include "Core/Statistics.hpp"
-#include "spdlog/sinks/stdout_color_sinks.h"
+
+#include "Utils/Ers.hpp"
 #include "zmq.hpp"
 #include <atomic>
 #include <unistd.h>
 
-using logger = daqling::utilities::Logger;
-
 int main(int, char **) {
-  auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-  auto logger = std::make_shared<spdlog::logger>("my_logger", sink);
-  logger::set_instance(logger);
 
   std::atomic<float> buffer_occupation;
   std::atomic<int> packets;
@@ -54,7 +50,7 @@ int main(int, char **) {
     usleep(500000);
     packets += 2;
     buffer_occupation = buffer_occupation + 3.1;
-    INFO("Buffer occupation: " << buffer_occupation);
+    ERS_INFO("Buffer occupation: " << buffer_occupation);
   }
 
   return 0;

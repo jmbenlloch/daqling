@@ -21,6 +21,12 @@
 
 #include "Core/DAQProcess.hpp"
 
+namespace daqling {
+
+ERS_DECLARE_ISSUE(module, SequenceLimitReached,
+                  "Reached maximum sequence number! That's enough for an example...", ERS_EMPTY)
+}
+
 class ReadoutInterfaceModule : public daqling::core::DAQProcess {
   void pause();
   void resume();

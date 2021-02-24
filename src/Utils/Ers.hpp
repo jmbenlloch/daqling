@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,26 +14,16 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef ERS_HPP
+#define ERS_HPP
 
-#pragma once
+#include <ers/ers.h>
 
-#include "Core/DAQProcess.hpp"
-namespace daqling {
-#include <ers/Issue.h>
+/** \def ERS_WARNING( message ) This macro sends the message to the ers::warning stream.
+ */
+#define ERS_WARNING(message)                                                                       \
+  do {                                                                                             \
+    ERS_REPORT_IMPL(ers::warning, ers::Message, message, ERS_EMPTY);                               \
+  } while (0)
 
-ERS_DECLARE_ISSUE(module, DummyIssue, "DummyIssue message", ERS_EMPTY)
-}
-
-class DummyModule : public daqling::core::DAQProcess {
-  void foobar(const std::string &arg);
-
-public:
-  DummyModule();
-  ~DummyModule();
-
-  void configure(); // optional (configuration can be handled in the constructor)
-  void start(unsigned run_num);
-  void stop();
-
-  void runner() noexcept;
-};
+#endif

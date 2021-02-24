@@ -28,6 +28,13 @@
 #include "Utils/Binary.hpp"
 #include "Utils/ProducerConsumerQueue.hpp"
 
+namespace daqling {
+#include <ers/Issue.h>
+
+ERS_DECLARE_ISSUE(module, InvalidFileName, "Invalid File name pattern", ERS_EMPTY)
+
+ERS_DECLARE_ISSUE(module, OfstreamFail, "std::ofstream::fail()", ERS_EMPTY)
+}
 /**
  * Module for writing your acquired data to file.
  */

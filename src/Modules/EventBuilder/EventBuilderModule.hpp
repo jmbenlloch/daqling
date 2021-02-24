@@ -16,8 +16,16 @@
  */
 
 #pragma once
-
 #include "Core/DAQProcess.hpp"
+
+namespace daqling {
+#include <ers/Issue.h>
+
+ERS_DECLARE_ISSUE(module, BrokenSequenceNumber,
+                  "Sequence number for channel " << ch << " is broken! Previous = " << prev_seq
+                                                 << " while current = " << seq_number,
+                  ((unsigned)ch)((unsigned)prev_seq)((unsigned)seq_number))
+}
 
 class EventBuilderModule : public daqling::core::DAQProcess {
 

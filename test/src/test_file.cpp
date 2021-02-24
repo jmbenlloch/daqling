@@ -16,18 +16,18 @@
  */
 
 #include "Core/ConnectionManager.hpp"
-#include "Utils/Logging.hpp"
+#include "Utils/Ers.hpp"
 
 using namespace daqling;
 
 int main(int argc, char **argv) {
 
-  INFO("WOOF WOOF");
-  WARNING("Ugh!" << 12345 << "bof bof" << '\n');
+  ERS_INFO("WOOF WOOF");
+  ERS_WARNING("Ugh!" << 12345 << "bof bof" << '\n');
 
-  INFO("Testing ConnectionManager.hpp");
+  ERS_INFO("Testing ConnectionManager.hpp");
   daqling::core::ConnectionManager &cm = daqling::core::ConnectionManager::instance();
 
-  ERROR("About to die...");
+  ERS_WARNING("About to die...");
   return 0;
 }

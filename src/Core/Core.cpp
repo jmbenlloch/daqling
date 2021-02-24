@@ -24,7 +24,7 @@ using namespace daqling::core;
 using namespace std::chrono_literals;
 
 void Core::setupCommandServer() {
-  INFO("Starting XML-RPC Server on port: " << m_port);
+  ERS_INFO("Starting XML-RPC Server on port: " << m_port);
   m_command.setupServer(m_port);
 }
 

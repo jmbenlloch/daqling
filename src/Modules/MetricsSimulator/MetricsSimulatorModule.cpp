@@ -17,11 +17,11 @@
 
 #include "MetricsSimulatorModule.hpp"
 #include "Core/Statistics.hpp"
+#include "Utils/Ers.hpp"
 #include <stdlib.h>
+MetricsSimulatorModule::MetricsSimulatorModule() { ERS_INFO(""); }
 
-MetricsSimulatorModule::MetricsSimulatorModule() { INFO(""); }
-
-MetricsSimulatorModule::~MetricsSimulatorModule() { INFO(""); }
+MetricsSimulatorModule::~MetricsSimulatorModule() { ERS_INFO(""); }
 
 void MetricsSimulatorModule::start(unsigned run_num) {
   daqling::core::DAQProcess::start(run_num);
@@ -55,16 +55,16 @@ void MetricsSimulatorModule::start(unsigned run_num) {
                                                   daqling::core::metrics::LAST_VALUE);
   m_statistics->registerMetric<std::atomic<size_t>>(&m_metric5, "RandomMetric10-size_t_rate",
                                                     daqling::core::metrics::RATE, 5);
-  INFO("");
+  ERS_INFO("");
 }
 
 void MetricsSimulatorModule::stop() {
   daqling::core::DAQProcess::stop();
-  INFO("");
+  ERS_INFO("");
 }
 
 void MetricsSimulatorModule::runner() {
-  INFO("Running...");
+  ERS_INFO("Running...");
   // downcast is fine here, but this RNG should be modified to use std random.
   srand(static_cast<unsigned int>(time(nullptr)));
   while (m_run) {
@@ -87,5 +87,5 @@ void MetricsSimulatorModule::runner() {
     m_metric10 = static_cast<long unsigned int>(rand() % 100);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
-  INFO("Runner stopped");
+  ERS_INFO("Runner stopped");
 }

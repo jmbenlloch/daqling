@@ -46,7 +46,22 @@
 #endif
 
 namespace daqling {
+#include <ers/Issue.h>
 
+ERS_DECLARE_ISSUE(persistency, ChunkIssue, "", ERS_EMPTY)
+
+ERS_DECLARE_ISSUE_BASE(persistency, InvalidChunkAction, persistency::ChunkIssue,
+                       "Tried invalid/unsupported chunk action" << action, ERS_EMPTY,
+                       ((const char *)action))
+
+ERS_DECLARE_ISSUE_BASE(persistency, WrongChunkSize, persistency::ChunkIssue,
+                       "Chunk operation with different written bytes for "
+                           << objName << " chunkId:" << chunkId,
+                       ERS_EMPTY, ((const char *)objName)((unsigned int)chunkId))
+
+ERS_DECLARE_ISSUE_BASE(persistency, InvalidChunkRead, persistency::ChunkIssue,
+                       "Object named: " << objName << " is invalid for read.", ERS_EMPTY,
+                       ((const char *)objName))
 namespace persistency {
 
 // The class holds the meta information of a single object.
@@ -151,7 +166,7 @@ public:
   // m_chunks(chunks) {}
   ~ChunkTask() {}
   void read() { m_csp->readChunk(m_objectName, m_chunkId, m_chunkSize, m_blobPtr); }
-  void write() { ERROR("Chunk write requested as task! It's not supported!"); }
+  void write() { throw InvalidChunkAction(ERS_HERE, "Write"); }
 };
 
 template <typename T> struct readInvoker {
@@ -191,7 +206,7 @@ public:
       if (attributes.isValidForRead()) {
         break;
       } else {
-        ERROR("Object named: " << m_objectName << " is invalid for read.");
+        throw InvalidChunkRead(ERS_HERE, m_objectName);
       }
       // if ( !retry.allowRetry() )
       //
@@ -278,8 +293,7 @@ public:
       const void *voidPtr = static_cast<const char *>(m_inputObject.data()) + offset;
       std::pair<const void *, size_t> cp(voidPtr, nextChunkSize);
       if (m_csp->writeChunk(m_objectName, chunkId, cp, m_ttl) != nextChunkSize) {
-        ERROR("Chunk operation with different written bytes for "
-              << m_objectName << " chunkId:" << std::to_string(chunkId));
+        throw WrongChunkSize(ERS_HERE, m_objectName, chunkId);
       }
       remaining -= nextChunkSize;
       if (remaining < m_chunkSize) {
@@ -321,7 +335,7 @@ public:
       : m_csp(provider), m_objectName(objectName) {}
   ~ObjectDeleter(){};
   const ObjectMetadata call() const {
-    ERROR("Attempt to delete chunk! It's forbidden...");
+    throw InvalidChunkAction(ERS_HERE, "Delete");
     daqling::persistency::ObjectMetadata attributes;
     return attributes;
   }
@@ -338,7 +352,7 @@ public:
       : m_csp(provider), m_path(path) {}
   ~ObjectDirectoryLister(){};
   const ObjectMetadata call() const {
-    ERROR("The Directory lister feature is not supported yet...");
+    throw InvalidChunkAction(ERS_HERE, "Directory lister feature");
     daqling::persistency::ObjectMetadata attributes;
     return attributes;
   }

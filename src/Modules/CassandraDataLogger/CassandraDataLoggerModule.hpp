@@ -28,6 +28,31 @@
 //#define HASH_MODE
 #define EVID_MODE
 
+namespace daqling {
+#include <ers/Issue.h>
+
+ERS_DECLARE_ISSUE(module, CassandraIssue, "Cassandra fail message: " << failMsg,
+                  ((const char *)failMsg))
+
+ERS_DECLARE_ISSUE_BASE(module, FailedQuery, module::CassandraIssue,
+                       "Query string: " << queryString << "  ", ((const char *)failMsg),
+                       ((const char *)queryString))
+
+ERS_DECLARE_ISSUE_BASE(module, FailedQueryPrep, module::FailedQuery,
+                       "Query preparation failed for:  ",
+                       ((const char *)failMsg)((const char *)queryString), ERS_EMPTY)
+
+ERS_DECLARE_ISSUE_BASE(module, FailedQueryExec, module::FailedQuery,
+                       "Query execution failed for:  ",
+                       ((const char *)failMsg)((const char *)queryString), ERS_EMPTY)
+
+ERS_DECLARE_ISSUE_BASE(module, ExecutionFailed, module::CassandraIssue,
+                       "Statement execution failed  ", ((const char *)failMsg), ERS_EMPTY)
+
+ERS_DECLARE_ISSUE_BASE(module, CannotConnectToCluster, module::CassandraIssue,
+                       "Unable to connect to Cassandra cluster for:  " << ClusterStr << "  ",
+                       ((const char *)failMsg), ((const char *)ClusterStr))
+}
 /*
  * CassandraDataLoggerModule
  * Description: Data logger with Cassandra persistency layer

@@ -22,7 +22,6 @@
 #include "Logging.hpp"
 
 #include <openssl/sha.h>
-
 /*
  * Hash
  * Description:
@@ -30,7 +29,18 @@
  * Date: March 2019
  */
 namespace daqling {
+#include <ers/Issue.h>
 
+ERS_DECLARE_ISSUE(persistency, HashIssue, "", ERS_EMPTY)
+
+ERS_DECLARE_ISSUE_BASE(persistency, CannotInitializeSHA1, persistency::HashIssue,
+                       "SHA1 initialization error.", ERS_EMPTY, ERS_EMPTY)
+
+ERS_DECLARE_ISSUE_BASE(persistency, CannotProcessSHA1, persistency::HashIssue,
+                       "SHA1 processing error " << num << ".", ERS_EMPTY, ((int)num))
+
+ERS_DECLARE_ISSUE_BASE(persistency, CannotFinalizeSHA1, persistency::HashIssue,
+                       "SHA1 finalization error.", ERS_EMPTY, ERS_EMPTY)
 namespace persistency {
 
 typedef std::string Hash;
@@ -39,17 +49,17 @@ static constexpr unsigned int HASH_SIZE = 40;
 inline Hash makeHash(const std::string &objectType, const daqling::utilities::Binary &data) {
   SHA_CTX ctx;
   if (!SHA1_Init(&ctx)) {
-    ERROR("daqling::persistency::makeHash: SHA1 initialization error.");
+    throw CannotInitializeSHA1(ERS_HERE);
   }
   if (!SHA1_Update(&ctx, objectType.c_str(), objectType.size())) {
-    ERROR("daqling::persistency::makeHash: SHA1 processing error (1).");
+    throw CannotProcessSHA1(ERS_HERE, 1);
   }
   if (!SHA1_Update(&ctx, data.data(), data.size())) {
-    ERROR("daqling::persistency::makeHash: SHA1 processing error (2).");
+    throw CannotProcessSHA1(ERS_HERE, 2);
   }
   unsigned char hash[SHA_DIGEST_LENGTH];
   if (!SHA1_Final(hash, &ctx)) {
-    ERROR("daqling::persistency::makeHash: SHA1 finalization error.");
+    throw CannotFinalizeSHA1(ERS_HERE);
   }
 
   char tmp[SHA_DIGEST_LENGTH * 2 + 1];

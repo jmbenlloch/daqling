@@ -15,13 +15,13 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "PluginManager.hpp"
+#include "Command.hpp"
+#include "Utils/Ers.hpp"
 #include <chrono>
 #include <ctime>
 #include <iomanip>
 #include <thread>
-
-#include "Command.hpp"
-#include "PluginManager.hpp"
 
 using namespace daqling::core;
 using namespace std::chrono_literals;
@@ -39,7 +39,7 @@ bool PluginManager::load(std::string name) {
   std::string pluginName = "libDaqlingModule" + name + ".so";
   m_handle = dlopen(pluginName.c_str(), RTLD_NOW);
   if (*m_handle == nullptr) {
-    ERROR("Unable to dlopen module " << name << "; reason: " << dlerror());
+    throw CannotOpenModule(ERS_HERE, name.c_str(), dlerror());
     m_handle.reset();
     return false;
   }
@@ -48,11 +48,12 @@ bool PluginManager::load(std::string name) {
   try {
     m_create = resolve<CreateFunc>("daqling_module_create");
     m_delete = resolve<DeleteFunc>("daqling_module_delete");
-  } catch (const std::runtime_error &) {
-    return false;
+  } catch (ers::Issue &issue) {
+    throw MissingCreateOrDelete(ERS_HERE, issue);
+    // return false;
   }
 
-  m_dp = m_create(daqling::utilities::Logger::get_module_instance());
+  m_dp = m_create();
   m_loaded = true;
   return true;
 }

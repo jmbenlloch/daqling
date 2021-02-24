@@ -2,9 +2,9 @@
 #error "This header should only be automatically included during the build with CMake"
 #endif
 
+#include "Utils/Ers.hpp"
 #include <chrono>
 
-#include "Utils/Logging.hpp"
 #include DAQLING_MODULE_HEADER
 
 namespace daqutils = daqling::utilities;
@@ -16,25 +16,14 @@ using namespace std::chrono_literals;
  * Must be hidden from the symbol table so that it is not aliased to daqling's own when the module
  * is dynamically loaded.
  */
-HEDLEY_PRIVATE
-daqutils::LoggerType daqutils::Logger::m_logger;
-
 namespace daqling::core {
 extern "C" {
 // forward-declare to satisfy -Werror=missing-declarations
-DAQProcess *daqling_module_create(daqutils::LoggerType);
+DAQProcess *daqling_module_create();
 void daqling_module_delete(DAQProcess *);
 }
 
-DAQProcess *daqling_module_create(daqutils::LoggerType logger) {
-  assert(logger);
-  // Set the logger before create the module. Otherwise would be UB, as the module ctor may log
-  // entries.
-  try {
-    daqutils::Logger::set_instance(logger);
-  } catch (daqutils::instance_already_set &) {
-    DEBUG("Instance already set");
-  }
+DAQProcess *daqling_module_create() {
 
   auto module = new DAQLING_MODULE_NAME();
   return static_cast<DAQProcess *>(module);

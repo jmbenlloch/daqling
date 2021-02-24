@@ -29,12 +29,28 @@
 
 #include "DAQProcess.hpp"
 
+#include "Utils/Ers.hpp"
+
 namespace daqling {
+
+#include <ers/Issue.h>
+
+ERS_DECLARE_ISSUE(core, DynamicLinkIssue, "Dynamic library name: " << dlName,
+                  ((const char *)dlName))
+
+ERS_DECLARE_ISSUE_BASE(core, CannotResolveModule, core::DynamicLinkIssue,
+                       "Failed to resolve module - Reason: " << reason << " - ",
+                       ((const char *)dlName), ((const char *)reason))
+
+ERS_DECLARE_ISSUE_BASE(core, CannotOpenModule, core::DynamicLinkIssue,
+                       "Failed to dlopen module - Reason: " << reason << " - ",
+                       ((const char *)dlName), ((const char *)reason))
+ERS_DECLARE_ISSUE(core, MissingCreateOrDelete, "Failed to resolve create and/or delete", ERS_EMPTY)
 namespace core {
 
 class PluginManager : public daqling::utilities::Singleton<PluginManager> {
 private:
-  using CreateFunc = DAQProcess *(daqling::utilities::LoggerType);
+  using CreateFunc = DAQProcess *(void); //(daqling::utilities::LoggerType);
   using DeleteFunc = void(DAQProcess *);
 
   CreateFunc *m_create;
@@ -49,15 +65,14 @@ private:
    * Throws std::runtime_error if the symbol cannot be resolved.
    */
   template <typename FuncSig> FuncSig *resolve(const char *symbol) {
-    assert(*m_handle != nullptr);
+    ERS_PRECONDITION(*m_handle != nullptr);
     dlerror(); // discard any previous errors
 
     char *error;
     void *handle = dlsym(*m_handle, symbol);
     error = dlerror();
     if (error) {
-      ERROR("Module resolution error: " << error);
-      throw std::runtime_error("resolution error");
+      throw CannotResolveModule(ERS_HERE, symbol, error);
     }
 
     return reinterpret_cast<FuncSig *>(handle);
@@ -84,21 +99,30 @@ public:
    *
    * @warning May only be called after a successful `load`.
    */
-  void configure() { m_dp.value()->configure(); };
+  void configure() {
+    ERS_PRECONDITION(m_loaded);
+    m_dp.value()->configure();
+  };
 
   /**
    * Starts the loaded module.
    *
    * @warning May only be called after a successful `load`.
    */
-  void start(unsigned run_num) { m_dp.value()->start(run_num); };
+  void start(unsigned run_num) {
+    ERS_PRECONDITION(m_loaded);
+    m_dp.value()->start(run_num);
+  };
 
   /**
    * Stops the loaded module.
    *
    * @warning May only be called after a successful `load`.
    */
-  void stop() { m_dp.value()->stop(); };
+  void stop() {
+    ERS_PRECONDITION(m_loaded);
+    m_dp.value()->stop();
+  };
 
   /**
    * Returns whether specified command was executed.

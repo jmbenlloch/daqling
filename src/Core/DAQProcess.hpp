@@ -26,8 +26,16 @@
 
 #include "ConnectionManager.hpp"
 #include "Statistics.hpp"
+#include "Utils/Ers.hpp"
 
-namespace daqling::core {
+namespace daqling {
+#include <ers/Issue.h>
+
+ERS_DECLARE_ISSUE(core, DAQProcessIssue, "", ERS_EMPTY)
+
+ERS_DECLARE_ISSUE_BASE(core, CannotSetupStatPublishing, core::DAQProcessIssue,
+                       "Connection setup failed for Statistics publishing!", ERS_EMPTY, ERS_EMPTY)
+namespace core {
 
 using namespace std::placeholders;
 
@@ -47,7 +55,7 @@ public:
 
   virtual void start(unsigned run_num) {
     m_run_number = run_num;
-    DEBUG("run number " << m_run_number);
+    ERS_DEBUG(0, "run number " << m_run_number);
     m_run = true;
     m_runner_thread = std::thread(&DAQProcess::runner, this);
   };
@@ -68,7 +76,7 @@ public:
     if (auto cmd = m_commands.find(key); cmd != m_commands.end()) {
       return true;
     }
-    WARNING("No command '" << key << "' registered");
+    ERS_WARNING("No command '" << key << "' registered");
     return false;
   }
 
@@ -96,16 +104,19 @@ public:
     auto influxDbURI = m_config.getMetricsSettings()["influxDb_uri"];
     auto influxDbName = m_config.getMetricsSettings()["influxDb_name"];
 
-    INFO("Setting up statistics on: " << statsURI);
+    ERS_INFO("Setting up statistics on: " << statsURI);
     if ((statsURI == "" || statsURI == nullptr) && (influxDbURI == "" || influxDbURI == nullptr)) {
-      INFO("No Statistics settings were provided... Running without stats.");
+      ERS_INFO("No Statistics settings were provided... Running without stats.");
       m_stats_on = false;
       return false;
     } else {
       if (statsURI != "" && statsURI != nullptr) {
-        if (!m_connections.setupStatsConnection(1, statsURI)) {
-          ERROR("Connection setup failed for Statistics publishing!");
-          return false;
+        try {
+          if (!m_connections.setupStatsConnection(1, statsURI)) {
+            return false;
+          }
+        } catch (ers::Issue &i) {
+          throw core::CannotSetupStatPublishing(ERS_HERE, i);
         }
       }
       m_statistics = std::make_unique<Statistics>(m_connections.getStatSocket());
@@ -178,7 +189,7 @@ private:
                                          const std::string, const std::string>>
       m_commands;
 };
-
-} // namespace daqling::core
+} // namespace core
+} // namespace daqling
 
 #endif // DAQLING_CORE_DAQPROCESS_HPP

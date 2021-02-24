@@ -43,7 +43,7 @@ macro(daqling_executable name)
 
     # Add the required logging symbols
     target_compile_definitions(${name} PRIVATE DAQLING_EXECUTABLE_NAME=${name})
-    target_sources(${name} PRIVATE "${PROJECT_SOURCE_DIR}/src/Core/logging_instance_impl.cpp")
+    
 endmacro()
 
 # Add sources to the module
