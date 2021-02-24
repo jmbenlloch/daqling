@@ -1,4 +1,4 @@
-image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:erstest
+image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:ers
 
 stages:
     - compilation
