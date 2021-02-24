@@ -20,8 +20,7 @@
 
 #include "Configuration.hpp"
 #include "Utils/DataStore.hpp"
-#include "Utils/Logging.hpp"
-
+#include "Utils/Ers.hpp"
 /*
  * DataLogger
  * Description: DataLogger interface with generic datastore

@@ -26,12 +26,23 @@
 
 #include "Command.hpp"
 #include "Utils/Binary.hpp"
+#include "Utils/Ers.hpp"
 #include "Utils/ProducerConsumerQueue.hpp"
 #include <zmq.hpp>
-
 #define MSGQ
 
 namespace daqling {
+#include <ers/Issue.h>
+
+ERS_DECLARE_ISSUE(core, ConnectionIssue, "", ERS_EMPTY)
+
+ERS_DECLARE_ISSUE_BASE(core, CannotAddChannel, core::ConnectionIssue,
+                       "Failed to add channel! ZMQ returned: " << eWhat, ERS_EMPTY,
+                       ((const char *)eWhat))
+
+ERS_DECLARE_ISSUE_BASE(core, CannotAddStatsChannel, core::CannotAddChannel,
+                       "Failed to add stats channel! ZMQ returned: " << eWhat,
+                       ((const char *)eWhat), ERS_EMPTY)
 namespace core {
 
 /*

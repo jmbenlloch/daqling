@@ -112,6 +112,9 @@ else()
   set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} Threads::Threads)
 endif()
 
+#Add ers library
+set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} ers)
+
 if(CERN_ENVIRONMENT)
   include_directories(SYSTEM /opt/spdlog/include)
   include_directories(SYSTEM /opt/json/single_include)
@@ -177,6 +180,7 @@ endif()
 if(CMAKE_BUILD_TYPE MATCHES Release)
   message(STATUS "Running release build, adding optimization flags")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+  add_compile_definitions(ERS_NO_DEBUG)
 
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-prefetch -unroll-aggressive -march=native -mtune=native")
@@ -208,6 +212,10 @@ if (hasParent)
   set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} PARENT_SCOPE)
 endif (hasParent)
 
+# Build Streams
+add_subdirectory(src/Streams)
+set(DAQLING_LIBRARIES ${DAQLING_LIBRARIES} DaqlingStreams)
+
 # Build core daqling library
 add_subdirectory(src/Core)
 set(DAQLING_LIBRARIES ${DAQLING_LIBRARIES} DaqlingCore)
@@ -216,6 +224,7 @@ set(DAQLING_LIBRARIES ${DAQLING_LIBRARIES} DaqlingCore)
 add_subdirectory(src/Modules)
 
 # Build the executable
+add_compile_definitions(TDAQ_PACKAGE_NAME="core")
 add_subdirectory(src/Exec)
 
 # Build tests

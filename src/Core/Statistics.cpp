@@ -47,12 +47,12 @@ bool Statistics::configure(unsigned interval) {
 }
 
 void Statistics::start() {
-  INFO("Start");
+  ERS_INFO("Start");
   m_stat_thread = std::thread(&Statistics::CheckStatistics, this);
 }
 
 void Statistics::CheckStatistics() {
-  INFO("Statistics thread about to spawn...");
+  ERS_INFO("Statistics thread about to spawn...");
 
   while (!m_stop_thread) {
     std::unique_lock<std::mutex> lck(m_mtx);

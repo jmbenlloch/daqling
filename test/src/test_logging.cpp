@@ -16,22 +16,16 @@
  */
 
 #include "Core/ConnectionManager.hpp"
-#include "Utils/Logging.hpp"
-#include "spdlog/sinks/stdout_color_sinks.h"
-
-using logger = daqling::utilities::Logger;
+#include "Utils/Ers.hpp"
 
 int main(int, char **) {
-  auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-  auto logger = std::make_shared<spdlog::logger>("my_logger", sink);
-  logger::set_instance(logger);
 
-  INFO("WOOF WOOF");
-  WARNING("Ugh!" << 12345 << "bof bof" << '\n');
+  ERS_INFO("WOOF WOOF");
+  ERS_WARNING("Ugh!" << 12345 << "bof bof" << '\n');
 
-  INFO("Testing ConnectionManager.hpp");
+  ERS_INFO("Testing ConnectionManager.hpp");
   std::ignore = daqling::core::ConnectionManager::instance();
 
-  ERROR("About to die...");
+  ERS_WARNING("About to die...");
   return 0;
 }

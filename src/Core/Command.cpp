@@ -24,7 +24,6 @@
 #include "Configuration.hpp"
 #include "ConnectionManager.hpp"
 #include "PluginManager.hpp"
-
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
@@ -38,9 +37,11 @@ public:
     try {
       auto &command = daqling::core::Command::instance();
       response = command.getState();
+    } catch (ers::Issue &i) {
+      ers::error(CommandIssue(ERS_HERE, i));
+      response = "Failure: " + std::string(i.message());
     } catch (std::exception const &e) {
-      ERROR("Exception: " << e.what());
-      response = "Failure " + std::string(e.what());
+      ers::fatal(UnknownException(ERS_HERE, e.what()));
     }
     *retvalP = xmlrpc_c::value_string(response);
   };
@@ -61,25 +62,27 @@ public:
     std::string entry_state = command.getState();
     try {
       if (command.getState() != "booted") {
-        throw invalid_command();
+        throw InvalidCommand(ERS_HERE);
       }
       command.setState("configuring");
       auto &cfg = Configuration::instance();
       cfg.load(argument);
-      DEBUG("Get config: " << argument);
+      ERS_DEBUG(0, "Get config: " << argument);
 
       auto type = cfg.get<std::string>("type");
-      DEBUG("Loading type: " << type);
-      if (!plugin.load(type)) {
-        ERROR("Plugin load failure!");
-        throw module_loading_failure();
+      ERS_DEBUG(0, "Loading type: " << type);
+      try {
+        plugin.load(type);
+
+      } catch (ers::Issue &i) {
+        throw CannotLoadPlugin(ERS_HERE, type.c_str(), i);
       }
 
       auto j = cfg.getConfig();
       auto rcvs = j["connections"]["receivers"];
-      DEBUG("receivers empty " << rcvs.empty());
+      ERS_DEBUG(0, "receivers empty " << rcvs.empty());
       for (auto &it : rcvs) {
-        DEBUG("key" << it);
+        ERS_DEBUG(0, "key" << it);
         std::ostringstream connStr;
         ConnectionManager::EDirection dir;
         if (it["type"] == "pair") {
@@ -87,8 +90,7 @@ public:
         } else if (it["type"] == "pubsub") {
           dir = ConnectionManager::EDirection::SUBSCRIBER;
         } else {
-          ERROR("Unrecognized socket type");
-          throw connection_failure();
+          throw UnrecognizedSocketType(ERS_HERE, it["type"].dump().c_str());
         }
         if (it["transport"] == "ipc") {
           std::string path = it["path"];
@@ -97,28 +99,25 @@ public:
           std::string host = it["host"];
           connStr << "tcp://" << host << ":" << it["port"];
         } else {
-          ERROR("Unrecognized transport type");
-          throw connection_failure();
+          throw UnrecognizedTransportType(ERS_HERE, it["transport"].dump().c_str());
         }
         if (it.contains("filter") && it.contains("filter_size")) {
           if (!cm.addReceiverChannel(it["chid"], dir, connStr.str(), 1000, it["filter"],
                                      it["filter_size"])) {
-            ERROR("addChannel failure!");
-            throw connection_failure();
+            throw AddChannelFailed(ERS_HERE, it["chid"], it["filter"], it["filter_size"]);
           }
 
         } else {
           if (!cm.addReceiverChannel(it["chid"], dir, connStr.str(), 1000)) {
-            ERROR("addChannel failure!");
-            throw connection_failure();
+            throw AddChannelFailed(ERS_HERE, it["chid"], it["filter"], it["filter_size"]);
           }
         }
       }
 
       auto sndrs = j["connections"]["senders"];
-      DEBUG("senders empty " << sndrs.empty());
+      ERS_DEBUG(0, "senders empty " << sndrs.empty());
       for (auto &it : sndrs) {
-        DEBUG("key" << it);
+        ERS_DEBUG(0, "key" << it);
         std::ostringstream connStr;
         ConnectionManager::EDirection dir;
         if (it["type"] == "pair") {
@@ -126,8 +125,7 @@ public:
         } else if (it["type"] == "pubsub") {
           dir = ConnectionManager::EDirection::PUBLISHER;
         } else {
-          ERROR("Unrecognized socket type");
-          throw connection_failure();
+          throw UnrecognizedSocketType(ERS_HERE, it["type"].dump().c_str());
         }
         if (it["transport"] == "ipc") {
           std::string path = it["path"];
@@ -136,22 +134,22 @@ public:
           std::string host = it["host"];
           connStr << "tcp://" << host << ":" << it["port"];
         } else {
-          ERROR("Unrecognized transport type");
-          throw connection_failure();
+          throw UnrecognizedTransportType(ERS_HERE, it["transport"].dump().c_str());
         }
         if (!cm.addSenderChannel(it["chid"], dir, connStr.str(), 1000)) {
-          ERROR("addChannel failure!");
-          throw connection_failure();
+          throw AddChannelFailed(ERS_HERE, it["chid"], it["filter"], it["filter_size"]);
         }
       }
 
       plugin.configure();
       command.setState("ready");
       response = "Success";
-    } catch (std::exception const &e) {
-      response = "Failure: " + std::string(e.what());
-      ERROR("Exception: " << e.what());
+    } catch (ers::Issue &i) {
+      ers::error(CommandIssue(ERS_HERE, i));
+      response = "Failure: " + std::string(i.message());
       command.setState(entry_state);
+    } catch (std::exception const &e) {
+      ers::fatal(UnknownException(ERS_HERE, e.what()));
     }
     *retvalP = xmlrpc_c::value_string(response);
   };
@@ -170,7 +168,7 @@ public:
     std::string entry_state = command.getState();
     try {
       if (command.getState() != "ready") {
-        throw invalid_command();
+        throw InvalidCommand(ERS_HERE);
       }
       command.setState("unconfiguring");
       while (cm.getNumOfReceiverChannels() > 0) {
@@ -184,10 +182,12 @@ public:
       plugin.unload();
       command.setState("booted");
       response = "Success";
-    } catch (std::exception const &e) {
-      response = "Failure " + std::string(e.what());
-      ERROR("Exception: " << e.what());
+    } catch (ers::Issue &i) {
+      response = "Failure: " + std::string(i.message());
+      ers::error(CommandIssue(ERS_HERE, i));
       command.setState(entry_state);
+    } catch (std::exception const &e) {
+      ers::fatal(UnknownException(ERS_HERE, e.what()));
     }
     *retvalP = xmlrpc_c::value_string(response);
   };
@@ -207,16 +207,18 @@ public:
     std::string entry_state = command.getState();
     try {
       if (std::string s = command.getState(); s != "ready" or s == "running")
-        throw invalid_command();
+        throw InvalidCommand(ERS_HERE);
       command.setState("starting");
       cm.start();
       plugin.start(run_num);
       command.setState("running");
       response = "Success";
-    } catch (std::exception const &e) {
-      response = "Failure " + std::string(e.what());
-      ERROR("Exception: " << e.what());
+    } catch (ers::Issue &i) {
+      response = "Failure: " + std::string(i.message());
+      ers::error(CommandIssue(ERS_HERE, i));
       command.setState(entry_state);
+    } catch (std::exception const &e) {
+      ers::fatal(UnknownException(ERS_HERE, e.what()));
     }
     *retvalP = xmlrpc_c::value_string(response);
   };
@@ -235,17 +237,19 @@ public:
     std::string entry_state = command.getState();
     try {
       if (command.getState() != "running") {
-        throw invalid_command();
+        throw InvalidCommand(ERS_HERE);
       }
       command.setState("stopping");
       plugin.stop();
       cm.stop();
       command.setState("ready");
       response = "Success";
-    } catch (std::exception const &e) {
+    } catch (ers::Issue &i) {
       response = "Failure";
-      ERROR("Exception: " << e.what());
+      ers::error(CommandIssue(ERS_HERE, i));
       command.setState("error");
+    } catch (std::exception const &e) {
+      ers::fatal(UnknownException(ERS_HERE, e.what()));
     }
     *retvalP = xmlrpc_c::value_string(response);
   };
@@ -262,16 +266,18 @@ public:
     std::string entry_state = command.getState();
     try {
       if (std::string s = command.getState(); s != "booted" and s != "ready" and s != "running") {
-        throw invalid_command();
+        throw InvalidCommand(ERS_HERE);
       }
       command.setState("shutting");
       command.stop_and_notify();
       command.setState("added");
       response = "Success";
-    } catch (std::exception const &e) {
-      response = "Failure: " + std::string(e.what());
-      ERROR("Exception: " << e.what());
+    } catch (ers::Issue &i) {
+      response = "Failure: " + std::string(i.message());
+      ers::error(CommandIssue(ERS_HERE, i));
       command.setState(entry_state);
+    } catch (std::exception const &e) {
+      ers::fatal(UnknownException(ERS_HERE, e.what()));
     }
     *retvalP = xmlrpc_c::value_string(response);
   };
@@ -296,13 +302,14 @@ public:
         command.setState(plugin.getCommandTargetState(command_name));
         response = "Success";
       } else {
-        ERROR("Command " << command_name << " is not registered");
-        response = "Failure: " + command_name + " is not registered";
+        throw UnregisteredCommand(ERS_HERE, command_name.c_str());
       }
-    } catch (std::exception const &e) {
-      response = "Failure: " + std::string(e.what());
-      ERROR("Exception: " << e.what());
+    } catch (ers::Issue &i) {
+      response = "Failure: " + std::string(i.message());
+      ers::error(CommandIssue(ERS_HERE, i));
       command.setState(entry_state);
+    } catch (std::exception const &e) {
+      ers::fatal(UnknownException(ERS_HERE, e.what()));
     }
     *retvalP = xmlrpc_c::value_string(response);
   };
@@ -324,8 +331,10 @@ void daqling::core::Command::setupServer(unsigned port) {
     m_server_p = std::make_unique<xmlrpc_c::serverAbyss>(
         xmlrpc_c::serverAbyss::constrOpt().registryP(&m_registry).portNumber(port));
     m_cmd_handler = std::thread([&]() { m_server_p->run(); });
-    INFO("Server set up on port: " << port);
+    ERS_INFO("Server set up on port: " << port);
+  } catch (ers::Issue &i) {
+    ers::error(CommandIssue(ERS_HERE, i));
   } catch (std::exception const &e) {
-    ERROR("Exception: " << e.what());
+    ers::fatal(UnknownException(ERS_HERE, e.what()));
   }
 }

@@ -15,31 +15,30 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "CassandraDataLoggerModule.hpp"
+#include "Utils/Common.hpp"
+#include "Utils/Ers.hpp"
+#include "Utils/Hash.hpp"
+#include "Utils/Logging.hpp"
 #include <chrono>
 #include <sstream>
 
-#include "CassandraDataLoggerModule.hpp"
-#include "Utils/Common.hpp"
-#include "Utils/Hash.hpp"
-#include "Utils/Logging.hpp"
-
 using namespace std::chrono_literals;
 namespace daqutils = daqling::utilities;
-
-CassandraDataLoggerModule::CassandraDataLoggerModule() {
-  INFO(" setting up session.");
+using namespace daqling::module CassandraDataLoggerModule::CassandraDataLoggerModule() {
+  ERS_INFO(" setting up session.");
   m_cluster = cass_cluster_new();
   m_session = cass_session_new();
   setup();
 }
 
 CassandraDataLoggerModule::~CassandraDataLoggerModule() {
-  INFO(" Closing session and connection to cluster...");
+  ERS_INFO(" Closing session and connection to cluster...");
   CassFuture *future = cass_session_close(m_session);
   cass_future_wait(future);
   cass_future_free(future);
   cass_cluster_free(m_cluster);
-  INFO(" Cassandra connection closed.");
+  ERS_INFO(" Cassandra connection closed.");
 }
 
 void CassandraDataLoggerModule::readIntoBinary(daqutils::Binary &binary,
@@ -67,7 +66,7 @@ bool CassandraDataLoggerModule::prepareQuery(const std::string &qStr,
   CassFuture *future = cass_session_prepare(m_session, qStr.c_str());
   cass_future_wait(future);
   if (cass_future_error_code(future) != CASS_OK) {
-    ERROR(" Query preparation failed for: " << qStr << " CassError: " << getErrorStr(future));
+    throw FailedQueryPrep(ERS_HERE, getErrorStr(future).c_str(), qstr.c_str());
     return success;
   } else {
     *prepared = cass_future_get_prepared(future);
@@ -82,7 +81,7 @@ bool CassandraDataLoggerModule::executeStatement(CassStatement *&statement) {
   CassFuture *future = cass_session_execute(m_session, statement);
   cass_future_wait(future);
   if (cass_future_error_code(future) != CASS_OK)
-    ERROR(" Statement execution failed. CassError: " << getErrorStr(future));
+    throw ExecutionFailed(ERS_HERE, getErrorStr(future).c_str());
   else
     success = true;
   cass_future_free(future);
@@ -95,7 +94,7 @@ bool CassandraDataLoggerModule::executeStatement(CassStatement *&statement,
   CassFuture *future = cass_session_execute(m_session, statement);
   cass_future_wait(future);
   if (cass_future_error_code(future) != CASS_OK) {
-    ERROR(" Statement execution failed. CassError: " << getErrorStr(future));
+    throw ExecutionFailed(ERS_HERE, getErrorStr(future).c_str());
   } else {
     *result = cass_future_get_result(future);
     success = true;
@@ -110,7 +109,7 @@ bool CassandraDataLoggerModule::executeQuery(const std::string &queryStr) {
   CassFuture *future = cass_session_execute(m_session, statement);
   cass_future_wait(future);
   if (cass_future_error_code(future) != CASS_OK)
-    ERROR(" Query execution failed for: " << queryStr << " CassError: " << getErrorStr(future));
+    throw FailedQueryExec(ERS_HERE, getErrorStr(future).c_str(), queryStr.c_str());
   else
     success = true;
   cass_future_free(future);
@@ -174,7 +173,7 @@ bool CassandraDataLoggerModule::create() {
   */
 
   if (exists()) {
-    WARNING(" ColumnFamily exists! Won't recreate payload CF.");
+    ERS_WARNING(" ColumnFamily exists! Won't recreate payload CF.");
     return false;
   }
   std::stringstream qss;
@@ -197,16 +196,16 @@ bool CassandraDataLoggerModule::create() {
 
 void CassandraDataLoggerModule::start(unsigned run_num) {
   DAQProcess::start(run_num);
-  INFO(" getState: " << getState());
+  ERS_INFO(" getState: " << getState());
 }
 
 void CassandraDataLoggerModule::stop() {
   DAQProcess::stop();
-  INFO(" getState: " << this->getState());
+  ERS_INFO(" getState: " << this->getState());
 }
 
 void CassandraDataLoggerModule::runner() {
-  INFO(" Running...");
+  ERS_INFO(" Running...");
   uint64_t incr = 0;
   while (m_run) {
     incr++;
@@ -215,16 +214,16 @@ void CassandraDataLoggerModule::runner() {
       std::this_thread::sleep_for(1ms);
     }
     write(incr, pl);
-    DEBUG("Wrote data from channel 1...");
+    ERS_DEBUG(0, "Wrote data from channel 1...");
   }
-  INFO(" Runner stopped");
+  ERS_INFO(" Runner stopped");
 }
 
 void CassandraDataLoggerModule::setup() {
-  INFO(" Connecting to storage cluster based on configuration.");
+  ERS_INFO(" Connecting to storage cluster based on configuration.");
   std::string clusterStr = m_config.getConfig()["settings"]["ring"];
 
-  INFO(" -> connecting to ring: " << clusterStr);
+  ERS_INFO(" -> connecting to ring: " << clusterStr);
   cass_cluster_set_write_bytes_high_water_mark(m_cluster,
                                                10485760); // Write bytes water mark set to 10MByte
 
@@ -234,17 +233,16 @@ void CassandraDataLoggerModule::setup() {
   CassFuture *future = cass_session_connect(m_session, m_cluster);
   cass_future_wait(future);
   if (cass_future_error_code(future) != CASS_OK) {
-    ERROR(" Unable to connect to Cassandra cluster for: " << clusterStr
-                                                          << " CassError:" << getErrorStr(future));
+    throw CannotConnectToCluster(ERS_HERE, getErrorStr(future).c_str(), clusterStr.c_str());
   } else {
-    INFO(" *wink wink* ");
+    ERS_INFO(" *wink wink* ");
   }
-  INFO(" Checking PAYLOAD ColumnFamily existence...");
+  ERS_INFO(" Checking PAYLOAD ColumnFamily existence...");
   if (exists()) {
-    INFO("   -> CF is up.");
+    ERS_INFO("   -> CF is up.");
   } else {
     bool done = create();
-    INFO("   -> CF created -> " << done);
+    ERS_INFO("   -> CF created -> " << done);
   }
   cass_future_free(future);
 }

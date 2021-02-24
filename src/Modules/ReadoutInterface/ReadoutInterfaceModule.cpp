@@ -15,17 +15,17 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "ReadoutInterfaceModule.hpp"
+#include "Common/DataFormat.hpp"
+#include "Utils/Ers.hpp"
 #include <chrono>
 #include <random>
-
-#include "Common/DataFormat.hpp"
-#include "ReadoutInterfaceModule.hpp"
-
 using namespace std::chrono_literals;
 using namespace std::chrono;
+using namespace daqling::module;
 
 ReadoutInterfaceModule::ReadoutInterfaceModule() {
-  DEBUG("With config: " << m_config.dump());
+  ERS_DEBUG(0, "With config: " << m_config.dump());
 
   m_board_id = m_config.getSettings()["board_id"];
   m_delay_us = std::chrono::microseconds(m_config.getSettings()["delay_us"]);
@@ -59,10 +59,10 @@ void ReadoutInterfaceModule::runner() noexcept {
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> dis(static_cast<int>(m_min_payload),
                                       static_cast<int>(m_max_payload));
-  DEBUG("Running...");
+  ERS_DEBUG(0, "Running...");
   while (m_run) {
     if (m_pause) {
-      INFO("Paused at sequence number " << sequence_number);
+      ERS_INFO("Paused at sequence number " << sequence_number);
       while (m_pause && m_run) {
         std::this_thread::sleep_for(10ms);
       }
@@ -71,9 +71,9 @@ void ReadoutInterfaceModule::runner() noexcept {
     const unsigned payload_size = static_cast<unsigned>(dis(gen));
     const unsigned total_size = sizeof(header_t) + sizeof(char) * payload_size;
 
-    DEBUG("sequence number " << sequence_number << "  >>  timestamp " << std::hex << "0x"
-                             << timestamp.count() << std::dec << "  >>  payload size "
-                             << payload_size);
+    ERS_DEBUG(0, "sequence number " << sequence_number << "  >>  timestamp " << std::hex << "0x"
+                                    << timestamp.count() << std::dec << "  >>  payload size "
+                                    << payload_size);
 
     std::unique_ptr<data_t> data(new data_t);
     data->header.payload_size = payload_size;
@@ -86,19 +86,18 @@ void ReadoutInterfaceModule::runner() noexcept {
     auto binary = daqling::utilities::Binary(static_cast<const void *>(data.get()), total_size);
 
     // print binary
-    // INFO("\n" << binary);
+    // ERS_INFO("\n" << binary);
 
     while (!m_connections.send(0, binary) && m_run) {
-      WARNING("put() failed. Trying again");
+      ERS_WARNING("put() failed. Trying again");
       std::this_thread::sleep_for(1ms);
     };
 
     sequence_number++;
     if (sequence_number == UINT32_MAX) {
-      ERROR("Reached maximum sequence number! That's enough for an example...");
-      std::terminate();
+      ers::fatal(SequenceLimitReached(ERS_HERE));
     }
     std::this_thread::sleep_for(m_delay_us);
   }
-  DEBUG("Runner stopped");
+  ERS_DEBUG(0, "Runner stopped");
 }

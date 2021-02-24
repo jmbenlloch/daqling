@@ -20,10 +20,11 @@
 #include "Common/DataFormat.hpp"
 #include "EventBuilderModule.hpp"
 
+#include "Utils/Ers.hpp"
 using namespace std::chrono_literals;
-
+using namespace daqling::module;
 EventBuilderModule::EventBuilderModule() : m_eventmap_size{0}, m_complete_ev_size_guess{0} {
-  DEBUG("With config: " << m_config.dump());
+  ERS_DEBUG(0, "With config: " << m_config.dump());
   m_nreceivers = m_config.getNumReceiverConnections();
 }
 
@@ -47,7 +48,7 @@ void EventBuilderModule::start(unsigned run_num) { DAQProcess::start(run_num); }
 void EventBuilderModule::stop() { DAQProcess::stop(); }
 
 void EventBuilderModule::runner() noexcept {
-  DEBUG("Running...");
+  ERS_DEBUG(0, "Running...");
 
   std::unordered_map<uint32_t, std::vector<daqling::utilities::Binary>> events;
   daqling::utilities::ReusableThread rt(0);
@@ -74,7 +75,7 @@ void EventBuilderModule::runner() noexcept {
       }
       lck.unlock();
       while (!m_connections.send(0, out) && m_run) {
-        WARNING("send() failed. Trying again");
+        ERS_WARNING("send() failed. Trying again");
         std::this_thread::sleep_for(1ms);
       }
     }
@@ -94,9 +95,7 @@ void EventBuilderModule::runner() noexcept {
         seq_number = d->header.seq_number;
         // check sequence number
         if (prev_seq[ch] + 1 != seq_number && seq_number != 0) {
-          ERROR("Sequence number for channel " << ch << " is broken! Previous = " << prev_seq[ch]
-                                               << " while current = " << seq_number);
-          std::terminate();
+          ers::fatal(BrokenSequenceNumber(ERS_HERE, ch, prev_seq[ch], seq_number));
         }
         prev_seq[ch] = seq_number;
         std::unique_lock<std::mutex> lck(mtx);
@@ -113,5 +112,5 @@ void EventBuilderModule::runner() noexcept {
     }
   }
   consumer.join();
-  DEBUG("Runner stopped");
+  ERS_DEBUG(0, "Runner stopped");
 }

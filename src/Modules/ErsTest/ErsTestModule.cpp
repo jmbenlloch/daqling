@@ -15,39 +15,43 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "DummyModule.hpp"
+#include "ErsTestModule.hpp"
 #include "Utils/Ers.hpp"
+
 using namespace daqling::core;
 using namespace daqling::module;
-DummyModule::DummyModule() { ERS_INFO(""); }
 
-DummyModule::~DummyModule() { ERS_INFO(""); }
+ErsTestModule::ErsTestModule() { ERS_INFO(""); }
+
+ErsTestModule::~ErsTestModule() { ERS_INFO(""); }
 
 // optional (configuration can be handled in the constructor)
-void DummyModule::configure() {
+void ErsTestModule::configure() {
   daqling::core::DAQProcess::configure();
-  ERS_INFO("");
 
-  registerCommand("foobar", "foobarring", "foobarred", &DummyModule::foobar, this, _1);
+  ERS_INFO("");
 }
 
-void DummyModule::start(unsigned run_num) {
+void ErsTestModule::start(unsigned run_num) {
   daqling::core::DAQProcess::start(run_num);
-  ERS_INFO("");
+  ErsTestIssue i(ERS_HERE, "Hi");
+  ers::info(i);
+  ERS_WARNING("ErsTestModule Package Name: " << i.context().package_name());
+
+  ERS_INFO("Package name:" << i.context().package_name());
 }
 
-void DummyModule::stop() {
+void ErsTestModule::stop() {
   daqling::core::DAQProcess::stop();
   ERS_INFO("");
+  ers::warning(ErsTestInherittedIssue(ERS_HERE, "fish", "salmon"));
 }
 
-void DummyModule::runner() noexcept {
+void ErsTestModule::runner() noexcept {
   ERS_INFO("Running...");
+  ERS_DEBUG(0, "Hi from debug");
   while (m_run) {
+    ers::error(ErsTestInherittedIssue(ERS_HERE, "fish", "salmon"));
   }
   ERS_INFO("Runner stopped");
-}
-
-void DummyModule::foobar(const std::string &arg) {
-  ERS_INFO("Inside custom command. Got argument: " << arg);
 }

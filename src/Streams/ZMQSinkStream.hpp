@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,26 +14,22 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
-
 #pragma once
+#include <ers/OutputStream.h>
 
-#include "Core/DAQProcess.hpp"
-namespace daqling {
-#include <ers/Issue.h>
+#include "Utils/ZmqSink.hpp"
 
-ERS_DECLARE_ISSUE(module, DummyIssue, "DummyIssue message", ERS_EMPTY)
-}
+namespace ers {
 
-class DummyModule : public daqling::core::DAQProcess {
-  void foobar(const std::string &arg);
-
+class ZMQSinkStream : public OutputStream {
 public:
-  DummyModule();
-  ~DummyModule();
+  explicit ZMQSinkStream(const std::string &format);
 
-  void configure(); // optional (configuration can be handled in the constructor)
-  void start(unsigned run_num);
-  void stop();
+  void write(const Issue &issue) override;
 
-  void runner() noexcept;
+private:
+  zmq_sink _sink;
+  std::string _name;
 };
+
+} // namespace ers

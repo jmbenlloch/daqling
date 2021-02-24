@@ -6,7 +6,7 @@ if (ENABLE_CASSANDRA)
   daqling_target_sources(${module_name}
       CassandraDataLoggerModule.cpp
   )
-
+  
   # Provide install target
   daqling_target_install(${module_name})
 endif (ENABLE_CASSANDRA)

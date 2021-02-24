@@ -8,7 +8,7 @@ alias daqtree='python3 $PWD/$daqtree_path'
 
 echo "Custom compiler, installed by Ansible from OHPC."
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/ohpc/pub/compiler/gcc/8.3.0/lib64/:/usr/local/lib64/:/usr/local/lib/
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/ohpc/pub/compiler/gcc/8.3.0/lib64/:/usr/local/lib64/:/usr/local/lib/:/opt/boost/lib/
 export PATH=$PATH:/opt/ohpc/pub/compiler/gcc/8.3.0/bin
 
 # Export package specific environmental variables

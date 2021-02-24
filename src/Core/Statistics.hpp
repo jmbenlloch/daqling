@@ -28,6 +28,7 @@
 #include <thread>
 #include <vector>
 
+#include "Utils/Ers.hpp"
 #ifdef BUILD_WITH_CPR
 #include <cpr/cpr.h>
 #endif
@@ -36,6 +37,13 @@
 #include <zmq.hpp>
 
 namespace daqling {
+#include <ers/Issue.h>
+
+ERS_DECLARE_ISSUE(core, StatisticIssue, "", ERS_EMPTY)
+
+ERS_DECLARE_ISSUE_BASE(core, NoHTTPSupport, core::StatisticIssue,
+                       "Failed to publish over HTTP. The library is not built with CURL support!",
+                       ERS_EMPTY, ERS_EMPTY)
 namespace core {
 
 class Statistics {
@@ -67,13 +75,13 @@ public:
     else if (typeid(T) == typeid(std::atomic<size_t>))
       registerVariable<T, size_t>(pointer, name, mtype, metrics::SIZE, delta_t);
     else {
-      WARNING("Failed to register metric " << name
-                                           << ": Unsupported metric type! Supported types:\n"
-                                              " - std::atomic<int>\n"
-                                              " - std::atomic<float>\n"
-                                              " - std::atomic<double>\n"
-                                              " - std::atomic<bool>\n"
-                                              " - std::atomic<size_t>");
+      ERS_WARNING("Failed to register metric " << name
+                                               << ": Unsupported metric type! Supported types:\n"
+                                                  " - std::atomic<int>\n"
+                                                  " - std::atomic<float>\n"
+                                                  " - std::atomic<double>\n"
+                                                  " - std::atomic<bool>\n"
+                                                  " - std::atomic<size_t>");
     }
   }
 
@@ -82,8 +90,8 @@ public:
                         metrics::variable_type vtype, float delta_t = 1) {
     if (delta_t < m_interval / 1000) {
       delta_t = m_interval;
-      WARNING("delta_t parameter of registerVariable(...) function can not be smaller than "
-              "m_interval! Setting delta_t to m_interval value.");
+      ERS_WARNING("delta_t parameter of registerVariable(...) function can not be smaller than "
+                  "m_interval! Setting delta_t to m_interval value.");
     }
     std::shared_ptr<Metric<T, U>> metric(new Metric<T, U>(pointer, name, mtype, vtype, delta_t));
     std::shared_ptr<Metric_base> metric_base = std::dynamic_pointer_cast<Metric_base>(metric);
@@ -105,7 +113,7 @@ public:
   }
 
   template <class T, class U> void publishValue(Metric_base *m) {
-    DEBUG("publish value");
+    ERS_DEBUG(0, "publish value");
     U value = 0;
     Metric<T, U> *metric = static_cast<Metric<T, U> *>(m);
     if (metric->m_mtype == metrics::AVERAGE) {
@@ -137,7 +145,7 @@ public:
         value = (value - last_value) /
                 static_cast<U>(std::difftime(std::time(nullptr), metric->m_timestamp));
       else {
-        WARNING(
+        ERS_WARNING(
             "Too short time interval to calculate RATE! Extend delta_t parameter of your metric");
         return;
       }
@@ -150,21 +158,21 @@ public:
       msg << metric->m_name << ": " << value;
       zmq::message_t message(msg.str().size());
       memcpy(message.data(), msg.str().data(), msg.str().size());
-      DEBUG(" MSG " << msg.str());
+      ERS_DEBUG(0, " MSG " << msg.str());
       bool rc = m_stat_socket->send(message);
       if (!rc)
-        WARNING("Failed to publish metric: " << metric->m_name);
+        ERS_WARNING("Failed to publish metric: " << metric->m_name);
     }
     if (m_influxDb) {
-      DEBUG("Sending the metric: " << metric->m_name << " value: " << std::to_string(value)
-                                   << " to influxDB");
-      DEBUG(m_influxDb_uri + m_influxDb_name);
+      ERS_DEBUG(0, "Sending the metric: " << metric->m_name << " value: " << std::to_string(value)
+                                          << " to influxDB");
+      ERS_DEBUG(0, m_influxDb_uri + m_influxDb_name);
 #ifdef BUILD_WITH_CPR
       auto r = cpr::Post(cpr::Url{m_influxDb_uri + m_influxDb_name},
                          cpr::Payload{{metric->m_name + " value", std::to_string(value)}});
-      DEBUG("InfluxDB response: " << r.status_code << "\t" << r.text);
+      ERS_DEBUG(0, "InfluxDB response: " << r.status_code << "\t" << r.text);
 #else
-      ERROR("Failed to publish over HTTP. The library is not built with CURL support!");
+      throw NoHTTPSupport(ERS_HERE);
 #endif
     }
   }

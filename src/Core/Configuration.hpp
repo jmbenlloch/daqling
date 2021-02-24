@@ -18,6 +18,8 @@
 #ifndef DAQLING_CORE_CONFIGURATION_HPP
 #define DAQLING_CORE_CONFIGURATION_HPP
 
+#include "Utils/Ers.hpp"
+#include "Utils/Singleton.hpp"
 #include "nlohmann/json.hpp"
 #include <istream>
 #include <ostream>
@@ -25,9 +27,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include "Utils/Logging.hpp"
-#include "Utils/Singleton.hpp"
 
 namespace daqling {
 namespace core {
