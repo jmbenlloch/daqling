@@ -1,9 +1,15 @@
 
-### Install ers
+### Manually install ERS (temporary)
+
+A Boost installation is required. Execute:
+
+    ansible-playboook install-boost-1_70.yml --ask-become
 
 Step 1:
 Clone ERS-git repository from https://gitlab.cern.ch/ep-dt-di/daq/ers.git
+
     git clone https://gitlab.cern.ch/ep-dt-di/daq/ers.git
+
 Step 2:
 Generate build information with cmake
 setup.sh from daqling can be used to set environment.
@@ -11,8 +17,11 @@ install ers by going to the ers root folder and run the following commands:
 
     mkdir build
     cd build
-    cmake3 ../
+    cmake3 ../ -DCMAKE_INSTALL_PREFIX=/opt/ers
+    sudo mkdir /opt/ers
     sudo make install
+
+This will install ERS files to `/opt/` in order to maintain separation from system files.
 
 ### Build daqling
 

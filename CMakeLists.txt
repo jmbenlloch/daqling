@@ -114,6 +114,8 @@ endif()
 
 #Add ers library
 set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} ers)
+include_directories(SYSTEM /opt/ers/include)
+link_directories(/opt/ers/lib64)
 
 if(CERN_ENVIRONMENT)
   include_directories(SYSTEM /opt/spdlog/include)

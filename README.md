@@ -142,6 +142,7 @@ The following authors, in alphabetical order, have contributed to DAQling:
 
 - Wojciech Brylinski, Warsaw University of Technology, @wobrylin
 - Zbynek Kral, Czech Technical University in Prague, @zkral
+- Jens Noerby Kristensen, CERN, @jkristen
 - Giovanna Lehmann Miotto, CERN, @glehmann
 - Viktor Vilhelm Sonesten, CERN, @vsoneste
 - Clement Claude Thorens, Université de Genève, @cthorens
