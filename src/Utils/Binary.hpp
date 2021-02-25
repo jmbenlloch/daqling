@@ -181,7 +181,7 @@ inline std::ostream &operator<<(std::ostream &out, const daqling::utilities::Bin
         std::replace_if(str.begin(), str.end(), [&loc](auto c) { return !std::isprint(c, loc); },
                         '.');
 
-        return std::move(str);
+        return str;
       });
 
       // Print the character string representation of the byte line

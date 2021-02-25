@@ -7,6 +7,9 @@ project(${PACKAGE} VERSION ${PACKAGE_VERSION}
         DESCRIPTION "Data acquisition framework"
         LANGUAGES C CXX)
 
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Set default build type
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build. Options are: Debug Release" FORCE)
@@ -235,3 +238,4 @@ add_subdirectory(test)
 # Add formatting targets
 file(GLOB_RECURSE FORMAT_CXX_SOURCE_FILES src/*.[ch]pp test/*.[ch]pp)
 include(cmake/clang-format.cmake)
+include(cmake/clang-tidy.cmake)

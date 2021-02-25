@@ -149,8 +149,8 @@ private:
 
   // Thread control
   std::atomic<bool> m_stop_handlers;
-  std::atomic<bool> m_stop_processors;
-  std::atomic<bool> m_cpu_lock;
+  // unused var std::atomic<bool> m_stop_processors;
+  // unused var std::atomic<bool> m_cpu_lock;
 
   std::mutex m_mutex;
   std::mutex m_mtx_cleaning;
