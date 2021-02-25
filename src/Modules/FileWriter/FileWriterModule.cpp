@@ -151,7 +151,7 @@ void FileWriterModule::start(unsigned run_num) {
   for (uint64_t chid = 0; chid < m_channels; chid++) {
     // For each channel, construct a context of a payload queue, a consumer thread, and a producer
     // thread.
-    std::array<unsigned int, 2> tids = {threadid++, threadid++};
+    std::array<unsigned int, 2> tids = {{threadid++, threadid++}};
     const auto & [ it, success ] =
         m_channelContexts.emplace(chid, std::forward_as_tuple(queue_size, std::move(tids)));
     ERS_DEBUG(0, " success: " << success);
@@ -194,24 +194,23 @@ void FileWriterModule::runner() noexcept {
   }
 
   // Start the producer thread of each context
-  for (auto & [ chid, ctx ] : m_channelContexts) {
-    std::get<ThreadContext>(ctx).producer.set_work([&]() {
-      auto &pq = std::get<PayloadQueue>(ctx);
+  for (auto &it : m_channelContexts) {
+    std::get<ThreadContext>(it.second).producer.set_work([&]() {
+      auto &pq = std::get<PayloadQueue>(it.second);
 
       while (m_run) {
         daqutils::Binary pl;
-        while (!m_connections.receive(chid, std::ref(pl)) && m_run) {
+        while (!m_connections.receive(it.first, std::ref(pl)) && m_run) {
           if (m_statistics) {
-            m_channelMetrics.at(chid).payload_queue_size = pq.sizeGuess();
+            m_channelMetrics.at(it.first).payload_queue_size = pq.sizeGuess();
           }
           std::this_thread::sleep_for(1ms);
         }
-
-        ERS_DEBUG(0, " Received " << pl.size() << "B payload on channel: " << chid);
+        ERS_DEBUG(0, " Received " << pl.size() << "B payload on channel: " << it.first);
         while (!pq.write(pl) && m_run)
           ; // try until successful append
         if (m_statistics) {
-          m_channelMetrics.at(chid).payload_size = pl.size();
+          m_channelMetrics.at(it.first).payload_size = pl.size();
         }
       }
     });

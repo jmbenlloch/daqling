@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
   // Setup fatal stream to terminate
   setenv("TDAQ_ERS_FATAL", "dlstderr,exit", 0);
 
-  unsigned port = strtoul(argv[2], NULL, 0);
+  unsigned port = strtoul(argv[2], nullptr, 0);
   daqling::core::Core c(port);
 
   c.setupCommandServer();

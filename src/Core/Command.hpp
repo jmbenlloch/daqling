@@ -60,8 +60,7 @@ namespace core {
 class Command : public daqling::utilities::Singleton<Command> {
 public:
   Command()
-      : m_should_stop{false},
-        m_handled(false), m_state{"booted"}, m_command{""}, m_argument{""}, m_response{""} {}
+      : m_should_stop{false}, m_state{"booted"}, m_command{""}, m_argument{""}, m_response{""} {}
   ~Command() {
     m_server_p->terminate();
     m_cmd_handler.join();
@@ -93,7 +92,6 @@ public:
 
 private:
   bool m_should_stop;
-  bool m_handled;
   std::string m_state;
   std::string m_command;
   std::string m_argument;

@@ -1,0 +1,3 @@
+Checks: '-*,modernize-*,performance-*,readability-*,portability-*,bugprone-*,cppcoreguidelines-*,analyzer-*,misc-*,google-*,diagnostic-*,-misc-macro-parentheses,-google-readability-namespace-comments,-readability-identifier-naming
+,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-google-explicit-constructor,-google-build-namespaces,-misc-definitions-in-headers'
+HeaderFilterRegex: '.*'

@@ -74,9 +74,9 @@ bool ConnectionManager::addReceiverChannel(unsigned chn, EDirection dir, const s
   uint8_t ioT = 1;
   m_receiver_contexts[chn] = std::make_unique<zmq::context_t>(ioT); // Create context
   m_receiver_pcqs[chn] = std::make_unique<MessageQueue>(queueSize); // Create SPSC queue.
-  m_receiver_pcqSizes[chn] = {0};       // Create stats. counter for queue
-  m_receiver_numMsgsHandled[chn] = {0}; //               counter for msgs
-  m_receiver_directions[chn] = dir;     // Setup direction.
+  m_receiver_pcqSizes[chn] = 0;       // Create stats. counter for queue
+  m_receiver_numMsgsHandled[chn] = 0; //               counter for msgs
+  m_receiver_directions[chn] = dir;   // Setup direction.
   try {
     if (dir == EDirection::CLIENT) {
       m_receiver_sockets[chn] =
@@ -103,8 +103,8 @@ bool ConnectionManager::addSenderChannel(unsigned chn, EDirection dir, const std
   uint8_t ioT = 1;
   m_sender_contexts[chn] = std::make_unique<zmq::context_t>(ioT); // Create context
   m_sender_pcqs[chn] = std::make_unique<MessageQueue>(queueSize); // Create SPSC queue.
-  m_sender_pcqSizes[chn] = {0};                                   // Create stats. counter for queue
-  m_sender_numMsgsHandled[chn] = {0};                             //               counter for msgs
+  m_sender_pcqSizes[chn] = 0;                                     // Create stats. counter for queue
+  m_sender_numMsgsHandled[chn] = 0;                               //               counter for msgs
   m_sender_directions[chn] = dir;                                 // Setup direction.
   try {
     if (dir == EDirection::SERVER) {

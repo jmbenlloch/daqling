@@ -1,4 +1,4 @@
-image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:ers
+image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:clang
 
 stages:
     - compilation
@@ -35,6 +35,16 @@ format:
     script:
         - cd build
         - make check-format
+    dependencies:
+        - compile
+    before_script:
+        - source cmake/setup.sh
+    allow_failure: true
+tidy:
+    stage: testing
+    script:
+        - cd build
+        - make check-lint
     dependencies:
         - compile
     before_script:
