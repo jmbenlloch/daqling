@@ -28,8 +28,6 @@ EventBuilderModule::EventBuilderModule() : m_eventmap_size{0}, m_complete_ev_siz
   m_nreceivers = m_config.getNumReceiverConnections();
 }
 
-EventBuilderModule::~EventBuilderModule() {}
-
 void EventBuilderModule::configure() {
   DAQProcess::configure();
 
@@ -58,9 +56,10 @@ void EventBuilderModule::runner() noexcept {
   std::thread consumer{[&]() {
     while (m_run || !complete_seq.isEmpty()) { // finish to process complete events
       unsigned seq;
-      while (!complete_seq.read(seq) && m_run)
+      while (!complete_seq.read(seq) && m_run) {
         std::this_thread::sleep_for(1ms);
-      if (m_run == false) {
+      }
+      if (!m_run) {
         return;
       }
       daqling::utilities::Binary out;
@@ -91,7 +90,7 @@ void EventBuilderModule::runner() noexcept {
       daqling::utilities::Binary b;
       if (m_connections.receive(ch, std::ref(b))) {
         unsigned seq_number;
-        data_t *d = static_cast<data_t *>(b.data());
+        auto *d = static_cast<data_t *>(b.data());
         seq_number = d->header.seq_number;
         // check sequence number
         if (prev_seq[ch] + 1 != seq_number && seq_number != 0) {

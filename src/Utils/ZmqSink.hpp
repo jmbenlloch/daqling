@@ -17,12 +17,13 @@
 #pragma once
 #include "nlohmann/json.hpp"
 #include <ers/Issue.h>
+#include <utility>
 #include <zmq.hpp>
 
 class zmq_sink {
 
 public:
-  zmq_sink(std::string name) : m_name{name} {
+  zmq_sink(std::string name) : m_name{std::move(name)} {
     m_context = std::make_unique<zmq::context_t>(1);
     m_socket = std::make_unique<zmq::socket_t>(*(m_context.get()), ZMQ_PUB);
     m_socket->connect("tcp://localhost:6542");
@@ -37,6 +38,10 @@ public:
     m_socket->close();
     m_context->close();
   }
+  zmq_sink(zmq_sink const &) = delete;            // Copy construct
+  zmq_sink(zmq_sink &&) = delete;                 // Move construct
+  zmq_sink &operator=(zmq_sink const &) = delete; // Copy assign
+  zmq_sink &operator=(zmq_sink &&) = delete;      // Move assign
 
 private:
   std::unique_ptr<zmq::context_t> m_context;

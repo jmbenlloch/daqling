@@ -28,7 +28,7 @@
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
-bool ConnectionManager::setupStatsConnection(uint8_t ioT, std::string connStr) {
+bool ConnectionManager::setupStatsConnection(uint8_t ioT, const std::string &connStr) {
   if (m_is_stats_setup) {
     ERS_INFO(" Statistics socket is already online... Won't do anything.");
     return false;
@@ -66,10 +66,9 @@ bool ConnectionManager::addReceiverChannel(unsigned chn, EDirection dir, const s
         return false;
       }
       return true;
-    } else {
-      ERS_INFO(" Socket for channel already exists... Won't add this channel again.");
-      return false;
     }
+    ERS_INFO(" Socket for channel already exists... Won't add this channel again.");
+    return false;
   }
   uint8_t ioT = 1;
   m_receiver_contexts[chn] = std::make_unique<zmq::context_t>(ioT); // Create context
@@ -283,7 +282,7 @@ bool ConnectionManager::start() {
       return false;
     }
   }
-  return true; // TODO put some meaning or return void
+  return true; // TODO: put some meaning or return void
 }
 
 bool ConnectionManager::stop() {
@@ -296,5 +295,5 @@ bool ConnectionManager::stop() {
   }
   m_receiver_handlers.clear();
   m_sender_handlers.clear();
-  return true; // TODO put some meaning or return void
+  return true; // TODO: put some meaning or return void
 }

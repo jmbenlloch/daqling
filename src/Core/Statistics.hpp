@@ -26,6 +26,7 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "Utils/Ers.hpp"
@@ -49,32 +50,35 @@ namespace core {
 class Statistics {
 public:
   Statistics(std::unique_ptr<zmq::socket_t> &statSock, unsigned interval = 500);
-
   ~Statistics();
+  Statistics(Statistics const &) = delete;            // Copy construct
+  Statistics(Statistics &&) = delete;                 // Move construct
+  Statistics &operator=(Statistics const &) = delete; // Copy assign
+  Statistics &operator=(Statistics &&) = delete;      // Move assign
 
   bool configure(unsigned interval);
 
   void setZMQpublishing(bool zmq_publisher) { m_zmq_publisher = zmq_publisher; }
   void setInfluxDBsending(bool influxDb) { m_influxDb = influxDb; }
-  void setInfluxDBname(std::string influxDb_name) { m_influxDb_name = influxDb_name; }
-  void setInfluxDBuri(std::string influxDb_uri) { m_influxDb_uri = influxDb_uri; }
+  void setInfluxDBname(std::string influxDb_name) { m_influxDb_name = std::move(influxDb_name); }
+  void setInfluxDBuri(std::string influxDb_uri) { m_influxDb_uri = std::move(influxDb_uri); }
 
   void start();
 
   template <class T>
   void registerMetric(T *pointer, std::string name, metrics::metric_type mtype, float delta_t = 1) {
     name = m_name + "-" + name;
-    if (typeid(T) == typeid(std::atomic<int>))
+    if (typeid(T) == typeid(std::atomic<int>)) {
       registerVariable<T, int>(pointer, name, mtype, metrics::INT, delta_t);
-    else if (typeid(T) == typeid(std::atomic<float>))
+    } else if (typeid(T) == typeid(std::atomic<float>)) {
       registerVariable<T, float>(pointer, name, mtype, metrics::FLOAT, delta_t);
-    else if (typeid(T) == typeid(std::atomic<double>))
+    } else if (typeid(T) == typeid(std::atomic<double>)) {
       registerVariable<T, double>(pointer, name, mtype, metrics::DOUBLE, delta_t);
-    else if (typeid(T) == typeid(std::atomic<bool>))
+    } else if (typeid(T) == typeid(std::atomic<bool>)) {
       registerVariable<T, bool>(pointer, name, mtype, metrics::BOOL, delta_t);
-    else if (typeid(T) == typeid(std::atomic<size_t>))
+    } else if (typeid(T) == typeid(std::atomic<size_t>)) {
       registerVariable<T, size_t>(pointer, name, mtype, metrics::SIZE, delta_t);
-    else {
+    } else {
       ERS_WARNING("Failed to register metric " << name
                                                << ": Unsupported metric type! Supported types:\n"
                                                   " - std::atomic<int>\n"
@@ -100,13 +104,13 @@ public:
   }
 
   template <class T, class U> void accumulateValue(Metric_base *m) {
-    Metric<T, U> *metric = static_cast<Metric<T, U> *>(m);
+    auto *metric = static_cast<Metric<T, U> *>(m);
     U value = *(metric->m_metrics_ptr);
     metric->m_values.push_back(value);
   }
 
   template <class T, class U> void accumulateValueAndReset(Metric_base *m) {
-    Metric<T, U> *metric = static_cast<Metric<T, U> *>(m);
+    auto *metric = static_cast<Metric<T, U> *>(m);
     U value = *(metric->m_metrics_ptr);
     *(metric->m_metrics_ptr) = 0.;
     metric->m_values.push_back(value);
@@ -115,7 +119,7 @@ public:
   template <class T, class U> void publishValue(Metric_base *m) {
     ERS_DEBUG(0, "publish value");
     U value = 0;
-    Metric<T, U> *metric = static_cast<Metric<T, U> *>(m);
+    auto *metric = static_cast<Metric<T, U> *>(m);
     if (metric->m_mtype == metrics::AVERAGE) {
       U average = std::accumulate(metric->m_values.begin(), metric->m_values.end(), 0.0) /
                   metric->m_values.size();
@@ -141,10 +145,10 @@ public:
       metric->m_values.clear();
       metric->m_values.shrink_to_fit();
       metric->m_values.push_back(value);
-      if (std::difftime(std::time(nullptr), metric->m_timestamp) != 0)
+      if (std::difftime(std::time(nullptr), metric->m_timestamp) != 0) {
         value = (value - last_value) /
                 static_cast<U>(std::difftime(std::time(nullptr), metric->m_timestamp));
-      else {
+      } else {
         ERS_WARNING(
             "Too short time interval to calculate RATE! Extend delta_t parameter of your metric");
         return;
@@ -160,8 +164,9 @@ public:
       memcpy(message.data(), msg.str().data(), msg.str().size());
       ERS_DEBUG(0, " MSG " << msg.str());
       bool rc = m_stat_socket->send(message);
-      if (!rc)
+      if (!rc) {
         ERS_WARNING("Failed to publish metric: " << metric->m_name);
+      }
     }
     if (m_influxDb) {
       ERS_DEBUG(0, "Sending the metric: " << metric->m_name << " value: " << std::to_string(value)
@@ -180,12 +185,12 @@ public:
 private:
   // Thread control
   std::thread m_stat_thread;
-  std::atomic<bool> m_stop_thread;
+  std::atomic<bool> m_stop_thread{};
   std::mutex m_mtx;
 
   // Config for data publishing
-  std::atomic<bool> m_influxDb;
-  std::atomic<bool> m_zmq_publisher;
+  std::atomic<bool> m_influxDb{};
+  std::atomic<bool> m_zmq_publisher{};
 
   // Config for influxDB
   std::string m_influxDb_name;

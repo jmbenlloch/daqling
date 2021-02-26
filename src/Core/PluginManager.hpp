@@ -50,7 +50,7 @@ namespace core {
 
 class PluginManager : public daqling::utilities::Singleton<PluginManager> {
 private:
-  using CreateFunc = DAQProcess *(void); //(daqling::utilities::LoggerType);
+  using CreateFunc = DAQProcess *(); //(daqling::utilities::LoggerType);
   using DeleteFunc = void(DAQProcess *);
 
   CreateFunc *m_create;
@@ -81,12 +81,16 @@ private:
 public:
   PluginManager();
   ~PluginManager();
+  PluginManager(PluginManager const &) = delete;            // Copy construct
+  PluginManager(PluginManager &&) = delete;                 // Move construct
+  PluginManager &operator=(PluginManager const &) = delete; // Copy assign
+  PluginManager &operator=(PluginManager &&) = delete;      // Move assign
 
   /**
    * Tries to load a module of name `name`.
    * Returns whether the operation succeeded.
    */
-  bool load(std::string name);
+  bool load(const std::string &name);
 
   /**
    * Unloads the loaded module.

@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
   auto core_tup = std::make_tuple(&coreLvl, std::string(argv[3]), "INFO", "Core");
   auto module_tup = std::make_tuple(&moduleLvl, std::string(argv[4]), "DEBUG", "Module");
 
-  for (auto[lvl, supplied_lvl, default_lvl, name] : {core_tup, module_tup}) {
+  for (const auto & [ lvl, supplied_lvl, default_lvl, name ] : {core_tup, module_tup}) {
     if ((*lvl = find(table.begin(), table.end(), supplied_lvl)) == table.end()) {
       *lvl = find(table.begin(), table.end(), default_lvl);
       ERS_WARNING("Unknown loglevel '" << supplied_lvl << "', defaulting to level '" << default_lvl
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
   // set up the streams:
   for (auto level = table.begin(); level != table.end(); ++level) {
     std::string stream = (static_cast<std::string>("TDAQ_ERS_")) + (*level);
-    std::string configs = "";
+    std::string configs = ""; // NOLINT  sets configs=configs for some reason
     if (level < lowestLvl) {
       configs += "null";
     } else {

@@ -53,6 +53,7 @@ namespace core {
  */
 
 // template <class CT, class ST>
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class ConnectionManager : public daqling::utilities::Singleton<ConnectionManager> {
 public:
   ConnectionManager()
@@ -61,17 +62,17 @@ public:
   ~ConnectionManager() { m_stop_handlers = true; }
 
   // Custom types
-  typedef folly::ProducerConsumerQueue<zmq::message_t> MessageQueue;
-  typedef std::unique_ptr<MessageQueue> UniqueMessageQueue;
-  typedef folly::ProducerConsumerQueue<std::string> StringQueue;
-  typedef std::unique_ptr<StringQueue> UniqueStringQueue;
+  using MessageQueue = folly::ProducerConsumerQueue<zmq::message_t>;
+  using UniqueMessageQueue = std::unique_ptr<MessageQueue>;
+  using StringQueue = folly::ProducerConsumerQueue<std::string>;
+  using UniqueStringQueue = std::unique_ptr<StringQueue>;
   typedef std::map<unsigned, std::atomic<size_t>> SizeStatMap;
 
   // Enums
   enum EDirection { SERVER, CLIENT, PUBLISHER, SUBSCRIBER };
 
   // Functionalities
-  bool setupStatsConnection(uint8_t ioT, std::string connStr);
+  bool setupStatsConnection(uint8_t ioT, const std::string &connStr);
   bool unsetStatsConnection();
 
   // Add a channel (sockets and queues)
@@ -149,8 +150,6 @@ private:
 
   // Thread control
   std::atomic<bool> m_stop_handlers;
-  // unused var std::atomic<bool> m_stop_processors;
-  // unused var std::atomic<bool> m_cpu_lock;
 
   std::mutex m_mutex;
   std::mutex m_mtx_cleaning;

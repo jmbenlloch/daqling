@@ -51,14 +51,14 @@ void ers::DaqlingStandardStream<Device>::report(std::ostream &out, const Issue &
   }
 }
 namespace {
-struct OutDevice {
+struct OutDevice { // NOLINT(cppcoreguidelines-special-member-functions)
   explicit OutDevice(std::ostream &out) : out_(out) { ; }
 
   std::ostream &stream() const { return out_; }
 
   const OutDevice &device() { return *this; }
 
-private:
+public:
   OutDevice(const OutDevice &) = delete;
   OutDevice &operator=(const OutDevice &) = delete;
 
@@ -66,13 +66,13 @@ private:
   std::ostream &out_;
 };
 
-struct ObjectLock {
+struct ObjectLock { // NOLINT(cppcoreguidelines-special-member-functions)
 protected:
   ObjectLock() = default;
 
   std::mutex &mutex() { return mutex_; }
 
-private:
+public:
   ObjectLock(const ObjectLock &) = delete;
   ObjectLock &operator=(const ObjectLock &) = delete;
 
@@ -80,16 +80,17 @@ private:
   std::mutex mutex_;
 };
 
-template <int LockDiscriminator> struct ClassLock {
+template <int LockDiscriminator>
+struct ClassLock { // NOLINT(cppcoreguidelines-special-member-functions)
 protected:
   ClassLock() = default;
 
   std::mutex &mutex() {
-    static std::mutex *m = new std::mutex;
+    static auto *m = new std::mutex;
     return *m;
   }
 
-private:
+public:
   ClassLock(const ClassLock &) = delete;
   ClassLock &operator=(const ClassLock &) = delete;
 };
@@ -97,10 +98,11 @@ private:
 template <class L = ObjectLock> struct LockableDevice : public L, public OutDevice {
   using L::mutex;
 
+  // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
   struct LockedDevice : public OutDevice {
     LockedDevice(std::ostream &out, std::mutex &mutex) : OutDevice(out), m_lock(mutex) { ; }
 
-  private:
+  public:
     LockedDevice(const LockedDevice &) = delete;
     LockedDevice &operator=(const LockedDevice &) = delete;
 
@@ -114,11 +116,11 @@ template <class L = ObjectLock> struct LockableDevice : public L, public OutDevi
 };
 
 template <class D> struct OutputDevice : public D {
-  OutputDevice(const std::string & = "") : D(std::cout) { ; }
+  OutputDevice(const std::string & /*unused*/ = "") : D(std::cout) { ; }
 };
 
 template <class D> struct ErrorDevice : public D {
-  ErrorDevice(const std::string & = "") : D(std::cerr) { ; }
+  ErrorDevice(const std::string & /*unused*/ = "") : D(std::cerr) { ; }
 };
 
 template <class D> struct FileDevice : public D {

@@ -21,6 +21,7 @@
 #include "Utils/Ers.hpp"
 #include <ctime>
 #include <string>
+#include <utility>
 #include <vector>
 namespace daqling {
 namespace core {
@@ -31,16 +32,16 @@ enum variable_type { FLOAT, INT, DOUBLE, BOOL, SIZE };
 
 } // namespace metrics
 
-class Metric_base {
+class Metric_base { // NOLINT(cppcoreguidelines-special-member-functions)  virtual destructor
   friend class Statistics;
 
 public:
   Metric_base(std::string name, metrics::metric_type mtype, metrics::variable_type vtype,
               float delta_t)
-      : m_name(name), m_mtype(mtype), m_vtype(vtype), m_delta_t(delta_t) {
+      : m_name(std::move(name)), m_mtype(mtype), m_vtype(vtype), m_delta_t(delta_t) {
     m_timestamp = std::time(nullptr);
   }
-  ~Metric_base() {}
+  virtual ~Metric_base() = default;
 
 protected:
   std::string m_name;
@@ -57,7 +58,6 @@ public:
   Metric(T *pointer, std::string name, metrics::metric_type mtype, metrics::variable_type vtype,
          float delta_t)
       : Metric_base(name, mtype, vtype, delta_t), m_metrics_ptr(pointer) {}
-  ~Metric() {}
 
 protected:
   std::vector<U> m_values;

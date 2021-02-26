@@ -58,6 +58,8 @@ public:
 
   ReusableThread(const ReusableThread &) = delete;
   ReusableThread &operator=(const ReusableThread &) = delete;
+  ReusableThread(ReusableThread &&) = delete;
+  ReusableThread &operator=(ReusableThread &&) = delete;
 
   unsigned int get_thread_id() const { return m_thread_id; }
 

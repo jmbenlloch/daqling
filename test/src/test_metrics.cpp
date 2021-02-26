@@ -22,9 +22,9 @@
 #include <atomic>
 #include <unistd.h>
 
-int main(int, char **) {
+int main(int /*unused*/, char ** /*unused*/) {
 
-  std::atomic<float> buffer_occupation;
+  std::atomic<float> buffer_occupation{};
   std::atomic<int> packets;
   buffer_occupation = 0.1;
   packets = 0;

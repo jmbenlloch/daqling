@@ -31,7 +31,7 @@
 namespace daqling {
 namespace utilities {
 
-template <typename T> class Singleton {
+template <typename T> class Singleton { // NOLINT(cppcoreguidelines-special-member-functions)
 public:
   static T &instance();
 
@@ -42,7 +42,7 @@ public:
   Singleton &operator=(Singleton &&) = delete;      // Move assign
 
 protected:
-  Singleton() {}
+  Singleton() = default;
 };
 
 template <typename T> T &Singleton<T>::instance() {

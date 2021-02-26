@@ -29,9 +29,9 @@ using namespace std::chrono_literals;
 
 class status : public xmlrpc_c::method {
 public:
-  status() {}
+  status() = default;
 
-  void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) {
+  void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
     paramList.verifyEnd(0);
     try {
@@ -49,9 +49,9 @@ public:
 
 class configure : public xmlrpc_c::method {
 public:
-  configure() {}
+  configure() = default;
 
-  void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) {
+  void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
     std::string argument = paramList.getString(0);
     paramList.verifyEnd(1);
@@ -157,9 +157,9 @@ public:
 
 class unconfigure : public xmlrpc_c::method {
 public:
-  unconfigure() {}
+  unconfigure() = default;
 
-  void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) {
+  void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
     paramList.verifyEnd(0);
     auto &plugin = daqling::core::PluginManager::instance();
@@ -195,19 +195,20 @@ public:
 
 class start : public xmlrpc_c::method {
 public:
-  start() {}
+  start() = default;
 
-  void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) {
+  void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
-    const unsigned run_num = static_cast<unsigned>(paramList.getInt(0));
+    const auto run_num = static_cast<unsigned>(paramList.getInt(0));
     paramList.verifyEnd(1);
     auto &plugin = daqling::core::PluginManager::instance();
     auto &cm = daqling::core::ConnectionManager::instance();
     auto &command = daqling::core::Command::instance();
     std::string entry_state = command.getState();
     try {
-      if (std::string s = command.getState(); s != "ready" or s == "running")
+      if (std::string s = command.getState(); s != "ready" or s == "running") {
         throw InvalidCommand(ERS_HERE);
+      }
       command.setState("starting");
       cm.start();
       plugin.start(run_num);
@@ -226,9 +227,9 @@ public:
 
 class stop : public xmlrpc_c::method {
 public:
-  stop() {}
+  stop() = default;
 
-  void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) {
+  void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
     paramList.verifyEnd(0);
     auto &plugin = daqling::core::PluginManager::instance();
@@ -257,9 +258,9 @@ public:
 
 class down : public xmlrpc_c::method {
 public:
-  down() {}
+  down() = default;
 
-  void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) {
+  void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
     paramList.verifyEnd(0);
     auto &command = daqling::core::Command::instance();
@@ -285,9 +286,9 @@ public:
 
 class custom : public xmlrpc_c::method {
 public:
-  custom() {}
+  custom() = default;
 
-  void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) {
+  void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
     const std::string command_name = paramList.getString(0);
     const std::string argument = paramList.getString(1);
