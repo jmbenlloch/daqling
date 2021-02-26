@@ -37,8 +37,9 @@ Statistics::~Statistics() {
   m_reg_metrics.shrink_to_fit();
   lck.unlock();
   m_stop_thread = true;
-  if (m_stat_thread.joinable())
+  if (m_stat_thread.joinable()) {
     m_stat_thread.join();
+  }
 }
 
 bool Statistics::configure(unsigned interval) {

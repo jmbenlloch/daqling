@@ -33,16 +33,15 @@ class ReadoutInterfaceModule : public daqling::core::DAQProcess {
 
 public:
   ReadoutInterfaceModule();
-  ~ReadoutInterfaceModule();
-  void configure();
-  void start(unsigned run_num);
-  void stop();
+  void configure() override;
+  void start(unsigned run_num) override;
+  void stop() override;
 
-  void runner() noexcept;
+  void runner() noexcept override;
 
 private:
   unsigned m_board_id;
-  std::chrono::microseconds m_delay_us;
+  std::chrono::microseconds m_delay_us{};
   size_t m_min_payload, m_max_payload;
   bool m_pause;
 };

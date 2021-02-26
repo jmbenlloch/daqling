@@ -7,7 +7,6 @@
 
 #include DAQLING_MODULE_HEADER
 
-namespace daqutils = daqling::utilities;
 using namespace std::chrono_literals;
 
 /*
@@ -20,7 +19,7 @@ namespace daqling::core {
 extern "C" {
 // forward-declare to satisfy -Werror=missing-declarations
 DAQProcess *daqling_module_create();
-void daqling_module_delete(DAQProcess *);
+void daqling_module_delete(DAQProcess * /*module*/);
 }
 
 DAQProcess *daqling_module_create() {

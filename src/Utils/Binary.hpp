@@ -54,7 +54,7 @@ public:
 
   /// Constructor initializing a BLOB with `size` bytes from `data`
   explicit Binary(const void *data, const size_t size) noexcept {
-    if (!data) {
+    if (data == nullptr) {
       m_error = error_code::invalid_arg;
       return;
     }
@@ -77,8 +77,7 @@ public:
   }
 
   /// Move constructor
-  explicit Binary(Binary &&rhs) noexcept
-      : m_data{std::move(rhs.m_data)}, m_error{std::move(rhs.m_error)} {}
+  explicit Binary(Binary &&rhs) noexcept : m_data{std::move(rhs.m_data)}, m_error{rhs.m_error} {}
 
   /// Assignment operator
   Binary &operator=(const Binary &rhs) noexcept {
@@ -99,7 +98,7 @@ public:
      */
     if (this != &rhs) {
       m_data = std::move(rhs.m_data);
-      m_error = std::move(rhs.m_error);
+      m_error = rhs.m_error;
     }
 
     return *this;

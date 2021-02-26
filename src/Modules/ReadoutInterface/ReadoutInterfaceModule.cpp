@@ -36,8 +36,6 @@ ReadoutInterfaceModule::ReadoutInterfaceModule() {
   registerCommand("resume", "resuming", "running", &ReadoutInterfaceModule::resume, this);
 }
 
-ReadoutInterfaceModule::~ReadoutInterfaceModule() {}
-
 void ReadoutInterfaceModule::configure() {
   DAQProcess::configure();
   std::this_thread::sleep_for(2s); // some sleep to demonstrate transition states
@@ -53,7 +51,7 @@ void ReadoutInterfaceModule::stop() { DAQProcess::stop(); }
 
 void ReadoutInterfaceModule::runner() noexcept {
   unsigned sequence_number = 0;
-  microseconds timestamp;
+  microseconds timestamp{};
 
   std::random_device rd;
   std::mt19937 gen(rd());
@@ -68,7 +66,7 @@ void ReadoutInterfaceModule::runner() noexcept {
       }
     }
     timestamp = duration_cast<microseconds>(system_clock::now().time_since_epoch());
-    const unsigned payload_size = static_cast<unsigned>(dis(gen));
+    const auto payload_size = static_cast<unsigned>(dis(gen));
     const unsigned total_size = sizeof(header_t) + sizeof(char) * payload_size;
 
     ERS_DEBUG(0, "sequence number " << sequence_number << "  >>  timestamp " << std::hex << "0x"

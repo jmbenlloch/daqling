@@ -33,7 +33,7 @@ std::ofstream FileWriterModule::FileGenerator::next() {
     {
       std::time_t t = std::time(nullptr);
       char tstr[32];
-      if (!std::strftime(tstr, sizeof(tstr), "%F-%T", std::localtime(&t))) {
+      if (std::strftime(tstr, sizeof(tstr), "%F-%T", std::localtime(&t)) == 0u) {
         throw std::runtime_error("Failed to format timestamp");
       }
       return std::string(tstr);
@@ -95,8 +95,6 @@ FileWriterModule::FileWriterModule() : m_stopWriters{false} {
   std::ios_base::sync_with_stdio(false);
 }
 
-FileWriterModule::~FileWriterModule() { ERS_DEBUG(0, ""); }
-
 void FileWriterModule::configure() {
   DAQProcess::configure();
   // Read out required and optional configurations
@@ -153,7 +151,7 @@ void FileWriterModule::start(unsigned run_num) {
     // thread.
     std::array<unsigned int, 2> tids = {{threadid++, threadid++}};
     const auto & [ it, success ] =
-        m_channelContexts.emplace(chid, std::forward_as_tuple(queue_size, std::move(tids)));
+        m_channelContexts.emplace(chid, std::forward_as_tuple(queue_size, tids));
     ERS_DEBUG(0, " success: " << success);
     assert(success);
 
@@ -207,8 +205,9 @@ void FileWriterModule::runner() noexcept {
           std::this_thread::sleep_for(1ms);
         }
         ERS_DEBUG(0, " Received " << pl.size() << "B payload on channel: " << it.first);
-        while (!pq.write(pl) && m_run)
-          ; // try until successful append
+        while (!pq.write(pl) && m_run) {
+        } // try until successful append
+
         if (m_statistics) {
           m_channelMetrics.at(it.first).payload_size = pl.size();
         }

@@ -54,6 +54,8 @@ template <class T> struct ProducerConsumerQueue {
 
   ProducerConsumerQueue(const ProducerConsumerQueue &) = delete;
   ProducerConsumerQueue &operator=(const ProducerConsumerQueue &) = delete;
+  ProducerConsumerQueue(ProducerConsumerQueue &&) = delete;
+  ProducerConsumerQueue &operator=(ProducerConsumerQueue &&) = delete;
 
   // size must be >= 2.
   //
@@ -196,14 +198,14 @@ template <class T> struct ProducerConsumerQueue {
 
 private: // hardware_destructive_interference_size is set to 128.
          // (Assuming cache line size of 64, so we use a cache line pair size of 128 )
-  char pad0_[hardware_destructive_interference_size];
+  char pad0_[hardware_destructive_interference_size]{};
   const uint32_t size_;
   T *const records_;
 
   alignas(hardware_destructive_interference_size) std::atomic<unsigned int> readIndex_;
   alignas(hardware_destructive_interference_size) std::atomic<unsigned int> writeIndex_;
 
-  char pad1_[hardware_destructive_interference_size - sizeof(writeIndex_)];
+  char pad1_[hardware_destructive_interference_size - sizeof(writeIndex_)]{};
 };
 
 } // namespace folly

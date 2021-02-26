@@ -35,11 +35,10 @@ class EventBuilderModule : public daqling::core::DAQProcess {
 
 public:
   EventBuilderModule();
-  ~EventBuilderModule();
 
-  void configure();
-  void start(unsigned run_num);
-  void stop();
+  void configure() override;
+  void start(unsigned run_num) override;
+  void stop() override;
 
-  void runner() noexcept;
+  void runner() noexcept override;
 };

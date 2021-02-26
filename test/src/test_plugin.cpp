@@ -26,7 +26,7 @@
 
 using namespace std::chrono_literals;
 
-using CreateFunc = daqling::core::DAQProcess *(void);
+using CreateFunc = daqling::core::DAQProcess *();
 using DestroyFunc = void(daqling::core::DAQProcess *);
 
 int main(int argc, char **argv) {

@@ -18,10 +18,10 @@
 #ifndef DAQLING_UTILITIES_COMMON_HPP
 #define DAQLING_UTILITIES_COMMON_HPP
 
-#include <limits.h>
+#include <climits>
+#include <ctime>
 #include <pthread.h>
 #include <thread>
-#include <time.h>
 #include <unistd.h>
 
 #include "Types.hpp"
@@ -60,9 +60,9 @@ public:
  */
 class RateLimiter {
 public:
-  RateLimiter() {}
+  RateLimiter() = default;
   timestamp_t gettime() {
-    ::timespec ts;
+    ::timespec ts{};
     ::clock_gettime(CLOCK_MONOTONIC, &ts);
     return timestamp_t(ts.tv_sec) * s + timestamp_t(ts.tv_nsec) * ns;
   }
@@ -77,7 +77,7 @@ public:
   double elapsed() const { return std::chrono::duration_cast<DT>(clock_::now() - beg_).count(); }
 
 private:
-  typedef std::chrono::high_resolution_clock clock_;
+  using clock_ = std::chrono::high_resolution_clock;
   // typedef std::chrono::duration<double, std::ratio<1> > second_;
   std::chrono::time_point<clock_> beg_;
 };
@@ -110,7 +110,7 @@ inline void getThreadName(std::thread &thread, const char *name) {
  * getTime
  * */
 inline timestamp_t getTime() {
-  ::timespec ts;
+  ::timespec ts{};
   ::clock_gettime(CLOCK_MONOTONIC, &ts);
   return timestamp_t(ts.tv_sec) * s + timestamp_t(ts.tv_nsec) * ns;
 }
@@ -121,24 +121,26 @@ inline timestamp_t getTime() {
 inline std::string getExecutablePath() {
   char exePath[PATH_MAX];
   ssize_t len = ::readlink("/proc/self/exe", exePath, sizeof(exePath));
-  if (len == -1 || len == static_cast<ssize_t>(sizeof(exePath)))
+  if (len == -1 || len == static_cast<ssize_t>(sizeof(exePath))) {
     len = 0;
+  }
   exePath[len] = '\0';
   return std::string(exePath);
 }
 
 inline std::string methodName(const std::string &prettyFunction) {
   size_t colons = prettyFunction.find("::");
-  size_t begin = prettyFunction.substr(0, colons).rfind(" ") + 1;
-  size_t end = prettyFunction.rfind("(") - begin;
+  size_t begin = prettyFunction.substr(0, colons).rfind(' ') + 1;
+  size_t end = prettyFunction.rfind('(') - begin;
   return prettyFunction.substr(begin, end) + "()";
 }
 
 inline std::string className(const std::string &prettyFunction) {
   size_t colons = prettyFunction.find("::");
-  if (colons == std::string::npos)
+  if (colons == std::string::npos) {
     return "::";
-  size_t begin = prettyFunction.substr(0, colons).rfind(" ") + 1;
+  }
+  size_t begin = prettyFunction.substr(0, colons).rfind(' ') + 1;
   size_t end = colons - begin;
 
   return prettyFunction.substr(begin, end);

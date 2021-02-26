@@ -30,11 +30,11 @@
 
 namespace daqling {
 namespace core {
-
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class Configuration : public daqling::utilities::Singleton<Configuration> {
 public:
-  Configuration() {}
-  ~Configuration() {}
+  Configuration() = default;
+  ~Configuration() = default;
 
   void clear() { m_config.clear(); }
   std::string dump() { return m_config.dump(); }

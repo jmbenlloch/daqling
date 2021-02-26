@@ -31,15 +31,16 @@ int main(int argc, char *argv[]) {
   zmq::context_t context(1);
   zmq::socket_t publisher(context, ZMQ_PUB);
 
-  if (argc == 2)
+  if (argc == 2) {
     publisher.bind(argv[1]);
-  else
+  } else {
     publisher.bind("tcp://*:5556");
+  }
 
   //  Ensure subscriber connection has time to complete
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
-  data_t d;
+  data_t d{};
   d.tag = 126;
   d.blab = 115453;
   d.whatever = 24;

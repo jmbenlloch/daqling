@@ -6,7 +6,7 @@
 
 using daqling::utilities::Binary;
 
-int main(int, char *[]) {
+int main(int /*unused*/, char * /*unused*/ []) {
   // ctors, operator==, operator!=
   {
     const Binary ba;

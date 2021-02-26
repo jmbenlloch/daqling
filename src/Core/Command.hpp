@@ -56,7 +56,7 @@ ERS_DECLARE_ISSUE_BASE(core, UnregisteredCommand, core::CommandIssue,
                        ((const char *)CommandName))
 
 namespace core {
-
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class Command : public daqling::utilities::Singleton<Command> {
 public:
   Command()

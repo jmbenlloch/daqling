@@ -33,11 +33,10 @@ class ErsTestModule : public daqling::core::DAQProcess {
 
 public:
   ErsTestModule();
-  ~ErsTestModule();
 
-  void configure(); // optional (configuration can be handled in the constructor)
-  void start(unsigned run_num);
-  void stop();
+  void configure() override; // optional (configuration can be handled in the constructor)
+  void start(unsigned run_num) override;
+  void stop() override;
 
-  void runner() noexcept;
+  void runner() noexcept override;
 };

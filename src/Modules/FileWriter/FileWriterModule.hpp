@@ -23,6 +23,7 @@
 #include <memory>
 #include <queue>
 #include <tuple>
+#include <utility>
 
 #include "Core/DAQProcess.hpp"
 #include "Utils/Binary.hpp"
@@ -41,12 +42,11 @@ ERS_DECLARE_ISSUE(module, OfstreamFail, "std::ofstream::fail()", ERS_EMPTY)
 class FileWriterModule : public daqling::core::DAQProcess {
 public:
   FileWriterModule();
-  ~FileWriterModule();
 
-  void configure();
-  void start(unsigned run_num);
-  void stop();
-  void runner() noexcept;
+  void configure() override;
+  void start(unsigned run_num) override;
+  void stop() override;
+  void runner() noexcept override;
 
   void monitor_runner();
 
@@ -65,17 +65,17 @@ private:
     std::atomic<size_t> payload_size = 0;
   };
 
-  size_t m_buffer_size;
+  size_t m_buffer_size{};
   std::string m_pattern;
-  std::atomic<bool> m_start_completed;
+  std::atomic<bool> m_start_completed{};
 
   /**
    * Output file generator with a printf-like filename pattern.
    */
   class FileGenerator {
   public:
-    FileGenerator(const std::string pattern, const uint64_t chid, const unsigned run_number)
-        : m_pattern(pattern), m_chid(chid), m_run_number(run_number) {}
+    FileGenerator(std::string pattern, const uint64_t chid, const unsigned run_number)
+        : m_pattern(std::move(pattern)), m_chid(chid), m_run_number(run_number) {}
 
     /**
      * Generates the next output file in the sequence.
@@ -100,7 +100,7 @@ private:
   };
 
   // Configs
-  size_t m_max_filesize;
+  size_t m_max_filesize{};
   uint64_t m_channels = 0;
 
   // Thread control
@@ -110,8 +110,7 @@ private:
   mutable std::map<uint64_t, Metrics> m_channelMetrics;
 
   // Internals
-  void flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size,
-               FileGenerator fg) const;
+  void flusher(uint64_t chid, PayloadQueue &pq, size_t max_buffer_size, FileGenerator fg) const;
   std::map<uint64_t, Context> m_channelContexts;
   std::thread m_monitor_thread;
 };

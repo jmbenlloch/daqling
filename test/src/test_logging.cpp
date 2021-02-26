@@ -18,7 +18,7 @@
 #include "Core/ConnectionManager.hpp"
 #include "Utils/Ers.hpp"
 
-int main(int, char **) {
+int main(int /*unused*/, char ** /*unused*/) {
 
   ERS_INFO("WOOF WOOF");
   ERS_WARNING("Ugh!" << 12345 << "bof bof" << '\n');
