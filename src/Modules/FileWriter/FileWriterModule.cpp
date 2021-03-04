@@ -300,7 +300,7 @@ void FileWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const size
 }
 
 void FileWriterModule::monitor_runner() {
-  std::map<uint64_t, unsigned long> prev_value;
+  std::map<uint64_t, uint64_t> prev_value;
   while (m_run) {
     std::this_thread::sleep_for(1s);
     for (auto & [ chid, metrics ] : m_channelMetrics) {

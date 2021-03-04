@@ -32,6 +32,7 @@ template <typename... Ts> struct max_align_t_ {
   static constexpr std::size_t value = max_align_(0u, alignof(Ts)...);
 };
 using max_align_v_ =
+    // NOLINTNEXTLINE(google-runtime-int)
     max_align_t_<long double, double, float, long long int, long int, int, short int, bool, char,
                  char16_t, char32_t, wchar_t, void *, std::max_align_t>;
 

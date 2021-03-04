@@ -15,10 +15,12 @@ int main(int /*unused*/, char * /*unused*/ []) {
 
     const std::vector<uint8_t> bytes = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
     Binary bb{bytes.data(), bytes.size()};
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     assert(std::strncmp(reinterpret_cast<const char *>(bytes.data()), bb.data<char *>(),
                         bytes.size()) == 0);
     const Binary bc{std::move(bb)};
-    assert(bb.data() == nullptr);
+    assert(bb.data() == nullptr); // NOLINT(misc-use-after-move)
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     assert(std::strncmp(reinterpret_cast<const char *>(bytes.data()), bc.data<const char *>(),
                         bytes.size()) == 0);
 
@@ -41,6 +43,6 @@ int main(int /*unused*/, char * /*unused*/ []) {
 
     ba = std::move(bc);
     assert(std::strncmp("some stringsome string", ba.data<char *>(), std::strlen(str) * 2) == 0);
-    assert(bc.data() == nullptr);
+    assert(bc.data() == nullptr); // NOLINT(misc-use-after-move)
   }
 }

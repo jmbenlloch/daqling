@@ -87,6 +87,7 @@ private:
  * */
 inline void setThreadName(std::thread &thread, const char *name, uint32_t tid) {
   char tname[16];
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
   snprintf(tname, 16, "daq-%s-%d", name, tid);
   auto handle = thread.native_handle();
   pthread_setname_np(handle, tname);
@@ -124,7 +125,7 @@ inline std::string getExecutablePath() {
   if (len == -1 || len == static_cast<ssize_t>(sizeof(exePath))) {
     len = 0;
   }
-  exePath[len] = '\0';
+  exePath[len] = '\0'; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
   return std::string(exePath);
 }
 

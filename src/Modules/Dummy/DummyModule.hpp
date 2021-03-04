@@ -23,17 +23,17 @@ namespace daqling {
 
 ERS_DECLARE_ISSUE(module, DummyIssue, "DummyIssue message", ERS_EMPTY)
 }
-
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class DummyModule : public daqling::core::DAQProcess {
   void foobar(const std::string &arg);
 
 public:
   DummyModule();
-  ~DummyModule();
+  ~DummyModule() override;
 
-  void configure(); // optional (configuration can be handled in the constructor)
-  void start(unsigned run_num);
-  void stop();
+  void configure() override; // optional (configuration can be handled in the constructor)
+  void start(unsigned run_num) override;
+  void stop() override;
 
-  void runner() noexcept;
+  void runner() noexcept override;
 };

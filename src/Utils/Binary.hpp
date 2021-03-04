@@ -35,7 +35,8 @@
 #include <optional>
 #include <vector>
 
-namespace daqling::utilities {
+namespace daqling {
+namespace utilities {
 
 class Binary {
 
@@ -61,6 +62,7 @@ public:
 
     try {
       m_data = std::vector<byte>(static_cast<const byte *>(data),
+                                 // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
                                  static_cast<const byte *>(data) + size);
     } catch (const std::bad_alloc &) {
       m_error = error_code::alloc;
@@ -127,12 +129,14 @@ public:
   /// Returns the internally stored data
   template <typename T = void *> const T data() const noexcept {
     static_assert(std::is_pointer<T>(), "Type parameter must be a pointer type");
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-*-cast)
     return reinterpret_cast<T>(const_cast<byte *>(m_data.data()));
   }
 
   /// Returns the internally stored data
   template <typename T = void *> T data() noexcept {
     static_assert(std::is_pointer<T>(), "Type parameter must be a pointer type");
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     return reinterpret_cast<T>(m_data.data());
   }
 
@@ -149,8 +153,8 @@ private:
   /// Error flag
   std::optional<error_code> m_error;
 };
-
-} // namespace daqling::utilities
+} // namespace utilities
+} // namespace daqling
 
 /// xxd(1)-like output representation of a `Binary`
 inline std::ostream &operator<<(std::ostream &out, const daqling::utilities::Binary &rhs) {

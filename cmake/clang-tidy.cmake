@@ -28,13 +28,13 @@ IF(CLANG_TIDY) #AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 
         ADD_CUSTOM_TARGET(
             lint COMMAND
-            ${RUN_CLANG_TIDY} -fix -format -header-filter=${CMAKE_SOURCE_DIR} -j${NPROC}
+            ${RUN_CLANG_TIDY} -fix -format -header-filter=${CMAKE_SOURCE_DIR} -extra-arg=-Wno-unknown-warning-option -j${NPROC}
             COMMENT "Auto fixing problems in all source files"
         )
 
         ADD_CUSTOM_TARGET(
             check-lint COMMAND
-            ${RUN_CLANG_TIDY} -header-filter=${CMAKE_SOURCE_DIR} -j${NPROC}
+            ${RUN_CLANG_TIDY} -header-filter=${CMAKE_SOURCE_DIR} -extra-arg=-Wno-unknown-warning-option -j${NPROC}
             | tee ${CMAKE_BINARY_DIR}/check_lint_file.txt
             # WARNING: fix to stop with error if there are problems
             COMMAND ! grep -c ": error: " ${CMAKE_BINARY_DIR}/check_lint_file.txt > /dev/null
