@@ -46,7 +46,7 @@ int main(int /*unused*/, char ** /*unused*/) {
   stat.registerVariable<std::atomic<int>, int>(
       &packets, "PacketsRate", daqling::core::metrics::RATE, daqling::core::metrics::INT);
   // stat.registerVariable("NumberOfPackets", &packets);
-  while (1) {
+  while (true) {
     usleep(500000);
     packets += 2;
     buffer_occupation = buffer_occupation + 3.1;

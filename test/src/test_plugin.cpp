@@ -35,7 +35,9 @@ int main(int argc, char **argv) {
     ERS_WARNING("No plugin name entered");
     return 1;
   }
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   ERS_INFO("Loading " << argv[1]);
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   std::string pluginName = "lib/lib" + std::string(argv[1]) + ".so";
   void *handle = dlopen(pluginName.c_str(), RTLD_NOW);
   if (handle == nullptr) {
@@ -43,7 +45,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
   auto create = reinterpret_cast<CreateFunc *>(dlsym(handle, "daqling_module_create"));
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
   auto destroy = reinterpret_cast<DestroyFunc *>(dlsym(handle, "daqling_module_create"));
 
   auto *dp = create();

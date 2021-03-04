@@ -66,7 +66,7 @@ public:
   using UniqueMessageQueue = std::unique_ptr<MessageQueue>;
   using StringQueue = folly::ProducerConsumerQueue<std::string>;
   using UniqueStringQueue = std::unique_ptr<StringQueue>;
-  typedef std::map<unsigned, std::atomic<size_t>> SizeStatMap;
+  using SizeStatMap = std::map<unsigned, std::atomic<size_t>>;
 
   // Enums
   enum EDirection { SERVER, CLIENT, PUBLISHER, SUBSCRIBER };

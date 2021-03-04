@@ -153,6 +153,7 @@ bool ConnectionManager::addReceiveHandler(unsigned chn) {
     while (!m_stop_handlers) {
       zmq::message_t msg;
       if (m_receiver_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) {
+        // NOLINTNEXTLINE(misc-use-after-move)
         while (!m_receiver_pcqs[chn]->write(std::move(msg)) && !m_stop_handlers) {
           ERS_WARNING("Waiting queue to allow write");
           std::this_thread::sleep_for(1ms);
@@ -198,6 +199,7 @@ bool ConnectionManager::addSubscribeHandler(unsigned chn) {
     while (!m_stop_handlers) {
       zmq::message_t msg;
       if (m_receiver_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) {
+        // NOLINTNEXTLINE(misc-use-after-move)
         while (!m_receiver_pcqs[chn]->write(std::move(msg)) && !m_stop_handlers) {
           ERS_WARNING("Waiting queue to allow write");
           std::this_thread::sleep_for(1ms);

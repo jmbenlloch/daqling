@@ -40,7 +40,7 @@ template <typename T> std::string type_name() {
   char *demangled_name = abi::__cxa_demangle(tname.c_str(), nullptr, nullptr, &status);
   if (status == 0) {
     tname = demangled_name;
-    std::free(demangled_name);
+    std::free(demangled_name); // NOLINT(cppcoreguidelines-no-malloc)
   }
   return tname;
 }
@@ -63,6 +63,7 @@ template <class T> struct ProducerConsumerQueue {
   // given time is actually (size-1), so if you start with an empty queue,
   // isFull() will return true after size-1 insertions.
   explicit ProducerConsumerQueue(uint32_t size)
+      // NOLINTNEXTLINE(cppcoreguidelines-no-malloc)
       : size_(size), records_(static_cast<T *>(std::malloc(sizeof(T) * size))), readIndex_(0),
         writeIndex_(0) {
     assert(size >= 2);
@@ -79,14 +80,14 @@ template <class T> struct ProducerConsumerQueue {
       size_t readIndex = readIndex_;
       size_t endIndex = writeIndex_;
       while (readIndex != endIndex) {
-        records_[readIndex].~T();
+        records_[readIndex].~T(); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         if (++readIndex == size_) {
           readIndex = 0;
         }
       }
     }
 
-    std::free(records_);
+    std::free(records_); // NOLINT(cppcoreguidelines-no-malloc)
   }
 
   template <class... Args> bool write(Args &&... recordArgs) {
@@ -103,7 +104,9 @@ template <class T> struct ProducerConsumerQueue {
     // return true;
 
     // ORIGINAL:
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     if (nextRecord != readIndex_.load(std::memory_order_acquire)) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       new (&records_[currentWrite]) T(std::forward<Args>(recordArgs)...);
       writeIndex_.store(nextRecord, std::memory_order_release);
       return true;
@@ -124,8 +127,9 @@ template <class T> struct ProducerConsumerQueue {
     if (nextRecord == size_) {
       nextRecord = 0;
     }
-    record = std::move(records_[currentRead]);
-    records_[currentRead].~T();
+    record =
+        std::move(records_[currentRead]); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    records_[currentRead].~T();           // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     readIndex_.store(nextRecord, std::memory_order_release);
     return true;
   }
@@ -138,7 +142,7 @@ template <class T> struct ProducerConsumerQueue {
       // queue is empty
       return nullptr;
     }
-    return &records_[currentRead];
+    return &records_[currentRead]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   }
 
   // queue must not be empty
@@ -151,7 +155,7 @@ template <class T> struct ProducerConsumerQueue {
       nextRecord = 0;
     }
 
-    records_[currentRead].~T();
+    records_[currentRead].~T(); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     readIndex_.store(nextRecord, std::memory_order_release);
   }
 
@@ -173,7 +177,7 @@ template <class T> struct ProducerConsumerQueue {
       nextRecord = 0;
     }
     if (nextRecord != readIndex_.load(std::memory_order_acquire)) {
-      return false;
+      return false; // NOLINT(readability-simplify-boolean-expr)
     }
     // queue is full
     return true;

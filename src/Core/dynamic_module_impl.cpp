@@ -15,7 +15,8 @@ using namespace std::chrono_literals;
  * Must be hidden from the symbol table so that it is not aliased to daqling's own when the module
  * is dynamically loaded.
  */
-namespace daqling::core {
+namespace daqling {
+namespace core {
 extern "C" {
 // forward-declare to satisfy -Werror=missing-declarations
 DAQProcess *daqling_module_create();
@@ -36,4 +37,5 @@ void daqling_module_delete(DAQProcess *module) {
   }
   delete module;
 }
-} // namespace daqling::core
+} // namespace core
+} // namespace daqling

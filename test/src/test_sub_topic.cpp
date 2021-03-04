@@ -32,6 +32,7 @@ int main(int argc, char *argv[]) {
   zmq::socket_t subscriber(context, ZMQ_SUB);
 
   if (argc == 2) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     subscriber.connect(argv[1]);
   } else {
     subscriber.connect("tcp://localhost:5556");
@@ -42,7 +43,7 @@ int main(int argc, char *argv[]) {
   //   subscriber.setsockopt(ZMQ_SUBSCRIBE, "", 0);
   std::cout << "sock opt" << std::endl;
 
-  while (1) {
+  while (true) {
     zmq::message_t msg;
     std::cout << "-----------\nReceived " << subscriber.recv(&msg) << std::endl;
     std::cout << "-> size " << msg.size() << std::endl;

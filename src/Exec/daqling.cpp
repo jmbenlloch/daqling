@@ -23,17 +23,20 @@ using namespace std::chrono_literals;
 
 int main(int argc, char **argv) {
   if (argc < 5) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     std::cerr << "Usage: " << argv[0]
               << " <name> <command-port> <core-log-level> <module-log-level>\n";
     return EXIT_FAILURE;
   }
-
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   std::string name = argv[1];
   // assign log-levels from arguments
   std::vector<std::string> const table = {"DEBUG", "LOG", "INFO", "WARNING", "ERROR"};
   std::vector<std::string>::const_iterator coreLvl;
   std::vector<std::string>::const_iterator moduleLvl;
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   auto core_tup = std::make_tuple(&coreLvl, std::string(argv[3]), "INFO", "Core");
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   auto module_tup = std::make_tuple(&moduleLvl, std::string(argv[4]), "DEBUG", "Module");
 
   for (const auto & [ lvl, supplied_lvl, default_lvl, name ] : {core_tup, module_tup}) {
@@ -70,7 +73,7 @@ int main(int argc, char **argv) {
   }
   // Setup fatal stream to terminate
   setenv("TDAQ_ERS_FATAL", "dlstderr,exit", 0);
-
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   unsigned port = strtoul(argv[2], nullptr, 0);
   daqling::core::Core c(port);
 

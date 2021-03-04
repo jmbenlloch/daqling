@@ -43,7 +43,7 @@ ERS_DECLARE_ISSUE_BASE(persistency, CannotFinalizeSHA1, persistency::HashIssue,
                        "SHA1 finalization error.", ERS_EMPTY, ERS_EMPTY)
 namespace persistency {
 
-typedef std::string Hash;
+using Hash = std::string;
 static constexpr unsigned int HASH_SIZE = 40;
 
 inline Hash makeHash(const std::string &objectType, const daqling::utilities::Binary &data) {

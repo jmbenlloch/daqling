@@ -32,6 +32,7 @@ int main(int argc, char *argv[]) {
   zmq::socket_t publisher(context, ZMQ_PUB);
 
   if (argc == 2) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     publisher.bind(argv[1]);
   } else {
     publisher.bind("tcp://*:5556");
@@ -46,7 +47,7 @@ int main(int argc, char *argv[]) {
   d.whatever = 24;
 
   std::cout << "size of data_t " << sizeof(data_t) << std::endl;
-  while (1) {
+  while (true) {
     zmq::message_t msg(sizeof(data_t));
     memcpy(msg.data(), &d, sizeof(data_t));
 

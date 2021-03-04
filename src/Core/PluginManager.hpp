@@ -74,7 +74,7 @@ private:
     if (error) {
       throw CannotResolveModule(ERS_HERE, symbol, error);
     }
-
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     return reinterpret_cast<FuncSig *>(handle);
   }
 
