@@ -1,11 +1,10 @@
-cmake_minimum_required(VERSION 3.4.3 FATAL_ERROR)
-cmake_policy(SET CMP0077 NEW) # option() honors normal variables
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 set(PACKAGE daqling)
 set(PACKAGE_VERSION 0.10.1)
 
 project(${PACKAGE} VERSION ${PACKAGE_VERSION}
         DESCRIPTION "Data acquisition framework"
-        LANGUAGES C CXX)
+        LANGUAGES CXX)
 
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -53,17 +52,20 @@ ENDIF()
 
 include(cmake/daqling.cmake)
 
-option(CERN_ENVIRONMENT "Whether or not ${PACKAGE} is to be built in a CERN computer environment. If so, looks for some extra libraries in /opt/ instead of ${CMAKE_SOURCE_DIR}/3rdparty/" ON)
-message(STATUS "Configuring for CERN computer environments?  ${CERN_ENVIRONMENT}")
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
-  message(FATAL_ERROR "GCC version must be at least 4.8!")
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7)
+  message(FATAL_ERROR "GCC version must be at least 7!")
 endif()
 
 # Require a C++17 compliant compiler
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+#Find ZMQ Libraries
+find_library(ZMQ_LIBRARY NAMES zmq)
+set(ZMQ_LIBRARIES ${ZMQ_LIBRARY})
 
 # Include Threads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -116,43 +118,8 @@ else()
 endif()
 
 #Add ers library
+
 set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} ers)
-include_directories(SYSTEM /opt/ers/include)
-link_directories(/opt/ers/lib64)
-
-if(CERN_ENVIRONMENT)
-  include_directories(SYSTEM /opt/spdlog/include)
-  include_directories(SYSTEM /opt/json/single_include)
-  if(BUILD_WITH_CPR)
-    include_directories(SYSTEM /opt/cpr/include)
-  endif()
-  include_directories(SYSTEM /opt/libzmq/include)
-  include_directories(SYSTEM /opt/hedley)
-  if(BUILD_WITH_CPR)
-    link_directories(/opt/cpr/build/lib)
-  endif()
-  link_directories(/opt/libzmq/build/lib)
-
-  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} zmq)
-else()
-  # Build libzmq with libsodium instead of the built-in tweetnacl.
-  # Fixes zmq::context_t dtor when libzmq curve security is enabled.
-  set(WITH_LIBSODIUM ON)
-
-  add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/zmq)
-  if(BUILD_WITH_CPR)
-    add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/cpr)
-    include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cpr/include)
-  endif()
-
-  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/spdlog/include)
-  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/json/single_include)
-  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/zmq/include)
-  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cppzmq)
-  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/hedley)
-
-  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} libzmq)
-endif()
 
 # https://cmake.org/cmake/help/v3.0/module/FindXMLRPC.html
 find_package(XMLRPC 1.51.06 EXACT REQUIRED c++2 abyss-server)
@@ -199,6 +166,9 @@ if(NOT BUILD_Dummy)
 endif()
 if(NOT BUILD_MetricsSimulator)
   set(BUILD_MetricsSimulator OFF)
+endif()
+if(NOT BUILD_ErsTest)
+  set(BUILD_ErsTest OFF)
 endif()
 
 include_directories(${daqling_dir}/src)

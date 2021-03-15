@@ -142,7 +142,7 @@ else:
 print("Using path "+dir)
 scripts_dir = env['DAQ_SCRIPT_DIR']
 exe = "/bin/daqling"
-lib_path = 'LD_LIBRARY_PATH='+env['LD_LIBRARY_PATH']+':'+dir+'/lib/'
+lib_path = 'LD_LIBRARY_PATH='+env['LD_LIBRARY_PATH']+':'+dir+'/lib/,TDAQ_ERS_STREAM_LIBS=DaqlingStreams'
 
 # instanciate a daqcontrol object
 if arg == "configure":
