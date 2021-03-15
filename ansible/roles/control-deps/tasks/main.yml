@@ -1,23 +1,23 @@
-- name: Install python3-devel
-  yum:
+- name: Install python3-devel [CentOS]
+  package:
     name: python3-devel
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Install python3-dev [Ubuntu]
+  package:
+    name: python3-dev
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Install pyzmq
   pip:
-    name: pyzmq
+    name: "{{ packages }}"
     executable: pip3
+  vars:
+    packages:
+    - pyzmq
+    - jsonschema
+    - jsonref
+    - psutil
+    - influxdb
+    - redis
 
-- name: Install jsonschema
-  pip: 
-    name: jsonschema
-    executable: pip3
-
-- name: Install jsonref
-  pip: 
-    name: jsonref
-    executable: pip3
-
-- name: Install psutil
-  pip: 
-    name: psutil
-    executable: pip3

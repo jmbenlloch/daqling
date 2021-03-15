@@ -3,3 +3,4 @@ build
 .vscode
 *pyc
 .env
+cmake/setup.cfg
