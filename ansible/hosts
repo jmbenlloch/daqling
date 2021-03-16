@@ -14,10 +14,3 @@
 [vms]
 #dummyvm.cern.ch
 
-[cassandra]
-#ring1.cern.ch
-#ring2.cern.ch
-#ring3.cern.ch
-#ring4.cern.ch
-#ring5.cern.ch
-
