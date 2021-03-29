@@ -1,4 +1,4 @@
-image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:spack2
+image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:develop
 
 stages:
     - compilation

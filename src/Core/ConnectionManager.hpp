@@ -27,7 +27,7 @@
 #include "Command.hpp"
 #include "Utils/Binary.hpp"
 #include "Utils/Ers.hpp"
-#include "Utils/ProducerConsumerQueue.hpp"
+#include "folly/ProducerConsumerQueue.h"
 #include <zmq.hpp>
 #define MSGQ
 
