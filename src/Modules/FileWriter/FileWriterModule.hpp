@@ -27,7 +27,7 @@
 
 #include "Core/DAQProcess.hpp"
 #include "Utils/Binary.hpp"
-#include "Utils/ProducerConsumerQueue.hpp"
+#include "folly/ProducerConsumerQueue.h"
 
 namespace daqling {
 #include <ers/Issue.h>

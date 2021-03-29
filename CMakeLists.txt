@@ -93,16 +93,16 @@ if (ENABLE_BOOST)
   include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 endif (ENABLE_BOOST)
 
-set(BUILD_TESTS OFF) # disable zmq tests
 if(DEFINED BUILD_WITH_CPR)
   set(BUILD_WITH_CPR ${BUILD_WITH_CPR})
 else()
   set(BUILD_WITH_CPR ON)
   add_compile_definitions(BUILD_WITH_CPR)
 endif()
-set(USE_SYSTEM_CURL ON)
-set(BUILD_CPR_TESTS OFF)
-set(ZMQ_BUILD_TESTS OFF)
+# set(USE_SYSTEM_CURL ON)
+# set(BUILD_CPR_TESTS OFF)
+
+add_compile_definitions(FOLLY_NO_CONFIG) # Required for building with Folly library
 
 set(BUILD_SHARED_LIBS ON)
 
@@ -118,7 +118,6 @@ else()
 endif()
 
 #Add ers library
-
 set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} ers)
 
 # https://cmake.org/cmake/help/v3.0/module/FindXMLRPC.html
