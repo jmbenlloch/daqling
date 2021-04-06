@@ -17,7 +17,7 @@
 
 /**
  * @file DAQProcess.hpp
- * @brief Base class for Modules loaded via the PluginManager
+ * @brief Base class for Modules loaded via the ModuleLoader
  * @date 2019-02-20
  */
 
@@ -35,6 +35,10 @@ ERS_DECLARE_ISSUE(core, DAQProcessIssue, "", ERS_EMPTY)
 
 ERS_DECLARE_ISSUE_BASE(core, CannotSetupStatPublishing, core::DAQProcessIssue,
                        "Connection setup failed for Statistics publishing!", ERS_EMPTY, ERS_EMPTY)
+
+ERS_DECLARE_ISSUE_BASE(core, CannotGetStatPointer, core::DAQProcessIssue,
+                       "Cannot get stat pointer! cause: " << ewhat, ERS_EMPTY,
+                       ((const char *)ewhat))
 namespace core {
 
 using namespace std::placeholders;
@@ -99,7 +103,6 @@ public:
   }
 
   bool setupStatistics() { // TODO
-
     auto statsURI = m_config.getMetricsSettings()["stats_uri"];
     auto influxDbURI = m_config.getMetricsSettings()["influxDb_uri"];
     auto influxDbName = m_config.getMetricsSettings()["influxDb_name"];
@@ -178,7 +181,7 @@ protected:
 
   // Stats
   bool m_stats_on{};
-  std::unique_ptr<Statistics> m_statistics;
+  std::shared_ptr<Statistics> m_statistics;
 
   std::atomic<bool> m_run{};
   std::thread m_runner_thread;

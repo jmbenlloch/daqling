@@ -197,6 +197,12 @@ set(DAQLING_LIBRARIES ${DAQLING_LIBRARIES} DaqlingCore)
 # Build modules
 add_subdirectory(src/Modules)
 
+# Build connections
+add_subdirectory(src/Connections)
+
+# Build queues
+add_subdirectory(src/Queues)
+
 # Build the executable
 add_compile_definitions(TDAQ_PACKAGE_NAME="core")
 add_subdirectory(src/Exec)

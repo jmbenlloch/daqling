@@ -37,6 +37,50 @@ macro(daqling_module name)
     set_property(SOURCE "${daqling_dir}/src/Core/dynamic_module_impl.cpp" APPEND PROPERTY OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_daqling_module_class}.hpp")
 endmacro()
 
+macro(daqling_connection name)
+
+    get_filename_component(_daqling_connection_dir ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+
+
+    set(${name} "DaqlingConnection${_daqling_connection_dir}")
+
+    set(_daqling_sender_class "${_daqling_connection_dir}Sender")
+    set(_daqling_receiver_class "${_daqling_connection_dir}Receiver")
+
+    if (NOT ((EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${_daqling_sender_class}.hpp") OR (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${_daqling_receiver_class}.hpp")))
+        message(FATAL_ERROR "neither Header file ${_daqling_sender_class}.hpp or ${_daqling_receiver_class}.hpp exists, cannot build connection!")
+    endif()
+
+    # Define the library
+    add_library(${${name}} SHARED "")
+
+    target_include_directories(${${name}} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+endmacro()
+
+macro(daqling_queue name)
+
+    get_filename_component(_daqling_queue_dir ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+
+
+    set(${name} "DaqlingQueue${_daqling_queue_dir}")
+
+    set(_daqling_queue_class "${_daqling_queue_dir}")
+    
+
+    # Check if main header file is defined
+    if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${_daqling_queue_class}.hpp")
+        message(FATAL_ERROR "Header file ${_daqling_queue_class}.hpp does not exist, cannot build module!")
+    endif()
+
+    # Define the library
+    add_library(${${name}} SHARED "")
+
+    target_include_directories(${${name}} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+endmacro()
+
+
 macro(daqling_executable name)
     # Define the executable
     add_executable(${name} "")

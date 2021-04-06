@@ -17,6 +17,7 @@
 
 #include "ConnectionManager.hpp"
 #include "Command.hpp"
+#include "ConnectionLoader.hpp"
 #include "Utils/Binary.hpp"
 #include "Utils/Ers.hpp"
 #include <chrono>
@@ -53,249 +54,116 @@ bool ConnectionManager::unsetStatsConnection() {
   return true;
 }
 
-bool ConnectionManager::addReceiverChannel(unsigned chn, EDirection dir, const std::string &connStr,
-                                           size_t queueSize, unsigned filter, size_t filter_size) {
-  // subscriber socket is an exception, as it can be connected to multiple endpoints
-  if (m_receiver_sockets.find(chn) != m_receiver_sockets.end()) {
-    if (dir == EDirection::SUBSCRIBER) {
-      try {
-        m_receiver_sockets[chn]->connect(connStr.c_str());
-        ERS_INFO(" Adding SUBSCRIBER channel for: [" << chn << "] connect: " << connStr);
-      } catch (std::exception &e) {
-        throw CannotAddChannel(ERS_HERE, e.what());
-        return false;
-      }
-      return true;
-    }
+bool ConnectionManager::addReceiverChannel(const nlohmann::json &j) {
+  auto &cl = daqling::core::ConnectionLoader::instance();
+  std::string type;
+  uint chid;
+  try {
+    chid = j.at("chid").get<uint>();
+    type = j.at("type").get<std::string>();
+  } catch (const std::exception &e) {
+    throw CannotGetChidAndType(ERS_HERE, e.what());
+    return false;
+  }
+
+  if (m_receivers.find(chid) != m_receivers.end()) {
     ERS_INFO(" Socket for channel already exists... Won't add this channel again.");
     return false;
   }
-  uint8_t ioT = 1;
-  m_receiver_contexts[chn] = std::make_unique<zmq::context_t>(ioT); // Create context
-  m_receiver_pcqs[chn] = std::make_unique<MessageQueue>(queueSize); // Create SPSC queue.
-  m_receiver_pcqSizes[chn] = 0;       // Create stats. counter for queue
-  m_receiver_numMsgsHandled[chn] = 0; //               counter for msgs
-  m_receiver_directions[chn] = dir;   // Setup direction.
+
   try {
-    if (dir == EDirection::CLIENT) {
-      m_receiver_sockets[chn] =
-          std::make_unique<zmq::socket_t>(*(m_receiver_contexts[chn].get()), ZMQ_PAIR);
-      m_receiver_sockets[chn]->connect(connStr.c_str());
-      ERS_INFO(" Adding CLIENT channel for: [" << chn << "] connect: " << connStr);
-    } else if (dir == EDirection::SUBSCRIBER) {
-      m_receiver_sockets[chn] =
-          std::make_unique<zmq::socket_t>(*(m_receiver_contexts[chn].get()), ZMQ_SUB);
-      m_receiver_sockets[chn]->connect(connStr.c_str());
-      m_receiver_sockets[chn]->setsockopt(ZMQ_SUBSCRIBE, &filter, filter_size);
-      ERS_INFO(" Adding SUBSCRIBER channel for: [" << chn << "] connect: " << connStr);
-    }
-  } catch (std::exception &e) {
-    throw CannotAddChannel(ERS_HERE, e.what());
+    m_receivers[chid] = cl.getReceiver(type, chid, j);
+    ERS_INFO(" Adding RECEIVER channel for: [" << chid << "] type: " << type);
+  } catch (ers::Issue &i) {
+    throw CannotAddChannel(ERS_HERE, "Caught Issue", i);
     return false;
   }
+  m_receivers[chid]->set_sleep_duration(1);
   m_receiver_channels++;
   return true;
 }
 
-bool ConnectionManager::addSenderChannel(unsigned chn, EDirection dir, const std::string &connStr,
-                                         size_t queueSize) {
-  uint8_t ioT = 1;
-  m_sender_contexts[chn] = std::make_unique<zmq::context_t>(ioT); // Create context
-  m_sender_pcqs[chn] = std::make_unique<MessageQueue>(queueSize); // Create SPSC queue.
-  m_sender_pcqSizes[chn] = 0;                                     // Create stats. counter for queue
-  m_sender_numMsgsHandled[chn] = 0;                               //               counter for msgs
-  m_sender_directions[chn] = dir;                                 // Setup direction.
+bool ConnectionManager::addSenderChannel(const nlohmann::json &j) {
+  auto &cl = daqling::core::ConnectionLoader::instance();
+  uint chid;
+  std::string type;
   try {
-    if (dir == EDirection::SERVER) {
-      m_sender_sockets[chn] =
-          std::make_unique<zmq::socket_t>(*(m_sender_contexts[chn].get()), ZMQ_PAIR);
-      m_sender_sockets[chn]->bind(connStr.c_str());
-      ERS_INFO(" Adding SERVER channel for: [" << chn << "] bind: " << connStr);
-    } else if (dir == EDirection::PUBLISHER) {
-      m_sender_sockets[chn] =
-          std::make_unique<zmq::socket_t>(*(m_sender_contexts[chn].get()), ZMQ_PUB);
-      m_sender_sockets[chn]->bind(connStr.c_str());
-      ERS_INFO(" Adding PUBLISHER channel for: [" << chn << "] bind: " << connStr);
-    }
-  } catch (std::exception &e) {
-    throw CannotAddChannel(ERS_HERE, e.what());
+    chid = j.at("chid").get<uint>();
+    type = j.at("type").get<std::string>();
+  } catch (const std::exception &e) {
+    throw CannotGetChidAndType(ERS_HERE, e.what());
     return false;
   }
+
+  if (m_senders.find(chid) != m_senders.end()) {
+    ERS_INFO(" Socket for channel already exists... Won't add this channel again.");
+    return false;
+  }
+
+  try {
+    m_senders[chid] = cl.getSender(type, chid, j);
+    ERS_INFO(" Adding SENDER channel for: [" << chid << "] type: " << type);
+  } catch (ers::Issue &i) {
+    throw CannotAddChannel(ERS_HERE, "Caught issue", i);
+    return false;
+  }
+  m_senders[chid]->set_sleep_duration(1);
   m_sender_channels++;
   return true;
 }
 
 bool ConnectionManager::removeReceiverChannel(unsigned chn) {
-  m_receiver_directions.erase(chn);
-  m_receiver_numMsgsHandled.erase(chn);
-  m_receiver_pcqSizes.erase(chn);
-  m_receiver_pcqs.erase(chn);
-  m_receiver_sockets.erase(chn);
-  m_receiver_contexts.erase(chn);
+  m_receivers.erase(chn);
   m_receiver_channels--;
   return true;
 }
 
 bool ConnectionManager::removeSenderChannel(unsigned chn) {
-  m_sender_directions.erase(chn);
-  m_sender_numMsgsHandled.erase(chn);
-  m_sender_pcqSizes.erase(chn);
-  m_sender_pcqs.erase(chn);
-  m_sender_sockets.erase(chn);
-  m_sender_contexts.erase(chn);
+  m_senders.erase(chn);
   m_sender_channels--;
   return true;
 }
 
-bool ConnectionManager::addReceiveHandler(unsigned chn) {
-  ERS_INFO(" [CLIENT] ReceiveHandler for channel [" << chn << "] starting...");
-  m_receiver_handlers[chn] = std::thread([&, chn]() {
-    while (!m_stop_handlers) {
-      zmq::message_t msg;
-      if (m_receiver_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) {
-        // NOLINTNEXTLINE(misc-use-after-move)
-        while (!m_receiver_pcqs[chn]->write(std::move(msg)) && !m_stop_handlers) {
-          ERS_WARNING("Waiting queue to allow write");
-          std::this_thread::sleep_for(1ms);
-        }
-        m_receiver_numMsgsHandled[chn]++;
-      } else {
-        std::this_thread::sleep_for(1ms);
-      }
-      m_receiver_pcqSizes[chn].store(m_receiver_pcqs[chn]->sizeGuess());
-      if (m_receiver_pcqs[chn]->sizeGuess() > m_receiver_pcqs[chn]->capacity() * 0.9) {
-        ERS_WARNING("CLIENT -> queue population: " << m_receiver_pcqs[chn]->sizeGuess());
-      }
-    }
-    ERS_INFO(" joining channel [" << chn << "] handler.");
-  });
-  return true;
-}
-
-bool ConnectionManager::addSendHandler(unsigned chn) {
-  ERS_INFO(" [SERVER] SendHandler for channel [" << chn << "] starting...");
-  m_sender_handlers[chn] = std::thread([&, chn]() {
-    while (!m_stop_handlers) {
-      zmq::message_t msg;
-      if (m_sender_pcqs[chn]->read(msg)) {
-        m_sender_sockets[chn]->send(msg);
-        m_sender_numMsgsHandled[chn]++;
-      } else {
-        std::this_thread::sleep_for(1ms);
-      }
-      m_sender_pcqSizes[chn].store(m_sender_pcqs[chn]->sizeGuess());
-      if (m_sender_pcqs[chn]->sizeGuess() > m_sender_pcqs[chn]->capacity() * 0.9) {
-        ERS_WARNING("SERVER -> queue population: " << m_sender_pcqs[chn]->sizeGuess());
-      }
-    }
-    ERS_INFO(" joining channel [" << chn << "] handler.");
-  });
-  return true;
-}
-
-bool ConnectionManager::addSubscribeHandler(unsigned chn) {
-  ERS_INFO(" [SUB] SubscribeHandler for channel [" << chn << "] starting...");
-  m_receiver_handlers[chn] = std::thread([&, chn]() {
-    while (!m_stop_handlers) {
-      zmq::message_t msg;
-      if (m_receiver_sockets[chn]->recv(&msg, ZMQ_DONTWAIT)) {
-        // NOLINTNEXTLINE(misc-use-after-move)
-        while (!m_receiver_pcqs[chn]->write(std::move(msg)) && !m_stop_handlers) {
-          ERS_WARNING("Waiting queue to allow write");
-          std::this_thread::sleep_for(1ms);
-        }
-        m_receiver_numMsgsHandled[chn]++;
-      } else {
-        std::this_thread::sleep_for(1ms);
-      }
-      m_receiver_pcqSizes[chn].store(m_receiver_pcqs[chn]->sizeGuess());
-      if (m_receiver_pcqs[chn]->sizeGuess() > m_receiver_pcqs[chn]->capacity() * 0.9) {
-        ERS_WARNING("SUB -> queue population: " << m_receiver_pcqs[chn]->sizeGuess());
-      }
-    }
-    ERS_INFO(" joining channel [" << chn << "] handler.");
-  });
-  return true;
-}
-
-bool ConnectionManager::addPublishHandler(unsigned chn) {
-  ERS_INFO(" [PUB] PublishHandler for channel [" << chn << "] starting...");
-  m_sender_handlers[chn] = std::thread([&, chn]() {
-    while (!m_stop_handlers) {
-      zmq::message_t msg;
-      if (m_sender_pcqs[chn]->read(msg)) {
-        m_sender_sockets[chn]->send(msg);
-        m_sender_numMsgsHandled[chn]++;
-      } else {
-        std::this_thread::sleep_for(1ms);
-      }
-      m_sender_pcqSizes[chn].store(m_sender_pcqs[chn]->sizeGuess());
-      if (m_sender_pcqs[chn]->sizeGuess() > m_sender_pcqs[chn]->capacity() * 0.9) {
-        ERS_WARNING("PUB -> queue population: " << m_sender_pcqs[chn]->sizeGuess());
-      }
-    }
-    ERS_INFO(" joining channel [" << chn << "] handler.");
-  });
-  return true;
-}
-
 bool ConnectionManager::receive(const unsigned &chn, daqling::utilities::Binary &bin) {
-  if (m_receiver_pcqs[chn]->sizeGuess() != 0) {
-    utilities::Binary msgBin(m_receiver_pcqs[chn]->frontPtr()->data(),
-                             m_receiver_pcqs[chn]->frontPtr()->size());
-    m_receiver_pcqs[chn]->popFront();
-    bin = msgBin;
-    return true;
-  }
-  return false;
+  return m_receivers[chn]->receive(bin);
+}
+bool ConnectionManager::sleep_receive(const unsigned &chn, daqling::utilities::Binary &bin) {
+  return m_receivers[chn]->sleep_receive(bin);
 }
 
 bool ConnectionManager::send(const unsigned &chn, const daqling::utilities::Binary &msgBin) {
-  zmq::message_t message(msgBin.size());
-  memcpy(message.data(), msgBin.data(), msgBin.size());
-  return m_sender_pcqs[chn]->write(std::move(message));
+  return m_senders[chn]->send(msgBin);
 }
-
+bool ConnectionManager::sleep_send(const unsigned &chn, const daqling::utilities::Binary &msgBin) {
+  return m_senders[chn]->sleep_send(msgBin);
+}
+void ConnectionManager::set_receiver_sleep_duration(const unsigned &chn, uint ms) {
+  m_receivers[chn]->set_sleep_duration(ms);
+}
+void ConnectionManager::set_sender_sleep_duration(const unsigned &chn, uint ms) {
+  m_senders[chn]->set_sleep_duration(ms);
+}
 bool ConnectionManager::start() {
-  m_stop_handlers.store(false);
-  for (auto const &dirIt : m_receiver_directions) //([first: chn, second:dir])
+  for (auto const &it : m_receivers) //([first: chn, second:dir])
   {
-    switch (dirIt.second) {
-    case CLIENT:
-      addReceiveHandler(dirIt.first);
-      break;
-    case SUBSCRIBER:
-      addSubscribeHandler(dirIt.first);
-      break;
-    default:
-      return false;
-    }
+    it.second->start();
   }
-  for (auto const &dirIt : m_sender_directions) //([first: chn, second:dir])
+  for (auto const &it : m_senders) //([first: chn, second:dir])
   {
-    switch (dirIt.second) {
-    case SERVER:
-      addSendHandler(dirIt.first);
-      break;
-    case PUBLISHER:
-      addPublishHandler(dirIt.first);
-      break;
-    default:
-      return false;
-    }
+
+    it.second->start();
   }
   return true; // TODO: put some meaning or return void
 }
 
 bool ConnectionManager::stop() {
-  m_stop_handlers.store(true);
-  for (auto &tIt : m_receiver_handlers) {
-    tIt.second.join();
+  for (auto const &it : m_receivers) //([first: chn, second:dir])
+  {
+    it.second->stop();
   }
-  for (auto &tIt : m_sender_handlers) {
-    tIt.second.join();
+  for (auto const &it : m_senders) //([first: chn, second:dir])
+  {
+    it.second->stop();
   }
-  m_receiver_handlers.clear();
-  m_sender_handlers.clear();
   return true; // TODO: put some meaning or return void
 }

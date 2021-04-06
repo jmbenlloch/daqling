@@ -28,11 +28,15 @@
         "connections": {
           "senders": [
             {
-              "type": "pubsub",
+              "type": "ZMQPubSub",
               "chid": 0,
               "transport": "tcp",
               "host": "*",
-              "port": 8101
+              "port": 8101,
+              "queue":{
+                "type":"FollyProducerConsumer",
+                "queue_size":1000
+              }
             }
           ]
         }
@@ -62,11 +66,15 @@
         "connections": {
           "senders": [
             {
-              "type": "pair",
+              "type": "ZMQPair",
               "chid": 0,
               "transport": "tcp",
               "host": "*",
-              "port": 8102
+              "port": 8102,
+              "queue":{
+                "type":"FollyProducerConsumer",
+                "queue_size":1000
+              }
             }
           ]
         }
@@ -86,26 +94,42 @@
         "connections": {
           "receivers": [
             {
-              "type": "pubsub",
+              "type": "ZMQPubSub",
               "chid": 0,
-              "transport": "tcp",
-              "host": "localhost",
-              "port": 8101
+              "connections":[
+                {
+                "transport": "tcp",
+                "host": "localhost",
+                "port": 8101
+                }
+              ],
+              "queue":{
+                "type":"FollyProducerConsumer",
+                "queue_size":1000
+              }
             },
             {
-              "type": "pair",
+              "type": "ZMQPair",
               "chid": 1,
               "transport": "tcp",
               "host": "localhost",
-              "port": 8102
+              "port": 8102,
+              "queue":{
+                "type":"FollyProducerConsumer",
+                "queue_size":1000
+              }
             }
           ],
           "senders": [
             {
-              "type": "pair",
+              "type": "ZMQPair",
               "chid": 0,
               "transport": "ipc",
-              "path": "/tmp/feed3"
+              "path": "/tmp/feed3",
+              "queue":{
+                "type":"FollyProducerConsumer",
+                "queue_size":1000
+              }
             }
           ]
         }
@@ -127,10 +151,14 @@
         "connections": {
           "receivers": [
             {
-              "type": "pair",
+              "type": "ZMQPair",
               "chid": 0,
               "transport": "ipc",
-              "path": "/tmp/feed3"
+              "path": "/tmp/feed3",
+              "queue":{
+                "type":"FollyProducerConsumer",
+                "queue_size":1000
+              }
             }
           ]
         }

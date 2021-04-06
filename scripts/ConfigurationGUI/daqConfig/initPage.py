@@ -34,7 +34,7 @@ def index():
     DAQ_CONFIG_DIR = os.environ.get("DAQ_CONFIG_DIR")
     # List files in the DAQ_CONFIG_DIR directory
     jsonFiles = [f for f in listdir(DAQ_CONFIG_DIR) if isfile(join(DAQ_CONFIG_DIR, f)) and join(DAQ_CONFIG_DIR, f).endswith(".json")]
-    schemaFiles = [schema for schema in listdir(DAQ_CONFIG_DIR+"/schemas") if isfile(join(DAQ_CONFIG_DIR+"/schemas", schema))]
+    schemaFiles = [schema for schema in listdir(DAQ_CONFIG_DIR+"/schemas/resolved") if isfile(join(DAQ_CONFIG_DIR+"/schemas/resolved", schema))]
     if request.method == 'POST':
             if request.form["actionType"] == "New": # Working on a new configuration file
                 currentFileName = request.form["fileName"]

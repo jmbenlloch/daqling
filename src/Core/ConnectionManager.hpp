@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,24 +25,29 @@
 #include <thread>
 
 #include "Command.hpp"
+#include "Core/Receiver.hpp"
+#include "Core/Sender.hpp"
 #include "Utils/Binary.hpp"
 #include "Utils/Ers.hpp"
 #include "folly/ProducerConsumerQueue.h"
+#include "nlohmann/json.hpp"
+#include <ers/Issue.h>
 #include <zmq.hpp>
-#define MSGQ
 
 namespace daqling {
-#include <ers/Issue.h>
 
+// change to be more general, e.g. couldn't add connection with name bla. bla. -> cause
 ERS_DECLARE_ISSUE(core, ConnectionIssue, "", ERS_EMPTY)
 
-ERS_DECLARE_ISSUE_BASE(core, CannotAddChannel, core::ConnectionIssue,
-                       "Failed to add channel! ZMQ returned: " << eWhat, ERS_EMPTY,
-                       ((const char *)eWhat))
+ERS_DECLARE_ISSUE_BASE(core, CannotAddChannel, core::ConnectionIssue, "Failed to add channel!",
+                       ERS_EMPTY, ERS_EMPTY)
 
-ERS_DECLARE_ISSUE_BASE(core, CannotAddStatsChannel, core::CannotAddChannel,
-                       "Failed to add stats channel! ZMQ returned: " << eWhat,
-                       ((const char *)eWhat), ERS_EMPTY)
+ERS_DECLARE_ISSUE_BASE(core, CannotAddStatsChannel, core::ConnectionIssue,
+                       "Failed to add stats channel! ZMQ returned: " << eWhat, ERS_EMPTY,
+                       ((const char *)eWhat))
+ERS_DECLARE_ISSUE_BASE(core, CannotGetChidAndType, core::ConnectionIssue,
+                       "Failed to get chid and connection type " << eWhat, ERS_EMPTY,
+                       ((const char *)eWhat))
 namespace core {
 
 /*
@@ -56,46 +61,53 @@ namespace core {
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class ConnectionManager : public daqling::utilities::Singleton<ConnectionManager> {
 public:
-  ConnectionManager()
-      : m_receiver_channels{0}, m_sender_channels{0}, m_is_stats_setup{false}, m_stop_handlers{
-                                                                                   false} {}
-  ~ConnectionManager() { m_stop_handlers = true; }
-
+  ConnectionManager() : m_receiver_channels{0}, m_sender_channels{0}, m_is_stats_setup{false} {}
   // Custom types
   using MessageQueue = folly::ProducerConsumerQueue<zmq::message_t>;
   using UniqueMessageQueue = std::unique_ptr<MessageQueue>;
   using StringQueue = folly::ProducerConsumerQueue<std::string>;
   using UniqueStringQueue = std::unique_ptr<StringQueue>;
   using SizeStatMap = std::map<unsigned, std::atomic<size_t>>;
-
-  // Enums
-  enum EDirection { SERVER, CLIENT, PUBLISHER, SUBSCRIBER };
+  using SenderMap = std::map<unsigned, std::shared_ptr<Sender>>;
+  using ReceiverMap = std::map<unsigned, std::shared_ptr<Receiver>>;
 
   // Functionalities
   bool setupStatsConnection(uint8_t ioT, const std::string &connStr);
   bool unsetStatsConnection();
 
   // Add a channel (sockets and queues)
-  bool addReceiverChannel(unsigned chn, EDirection dir, const std::string &connStr,
-                          size_t queueSize, unsigned filter = 0, size_t filter_size = 0);
-  bool addSenderChannel(unsigned chn, EDirection dir, const std::string &connStr, size_t queueSize);
-
   bool removeReceiverChannel(unsigned chn);
   bool removeSenderChannel(unsigned chn);
 
+  bool addSenderChannel(const nlohmann::json &j);
+  bool addReceiverChannel(const nlohmann::json &j);
   /**
    * @brief Receive binary from receiver channel
    * @param chn receiver channel id
    * @return true when binary file is successfully passed
    */
   bool receive(const unsigned &chn, daqling::utilities::Binary &bin);
+  bool sleep_receive(const unsigned &chn, daqling::utilities::Binary &bin);
   /**
    * @brief Send binary to channel
    * @param chn sender channel id
    * @return true when binary file is successfully passed
    */
   bool send(const unsigned &chn, const daqling::utilities::Binary &msgBin);
+  bool sleep_send(const unsigned &chn, const daqling::utilities::Binary &msgBin);
 
+  /**
+   * @brief Set sleep duration for receiver
+   * @param chn receiver channel id
+   * @param ms delay in ms
+   */
+  void set_receiver_sleep_duration(const unsigned &chn, uint ms);
+  /**
+   * @brief Set sleep duration for sender
+   * @param chn sender channel id
+   * @param ms delay in ms
+   */
+  void set_sender_sleep_duration(const unsigned &chn, uint ms);
   // Start/stop socket processors
   bool start();
   bool stop();
@@ -103,62 +115,29 @@ public:
   // Utilities
   unsigned getNumOfReceiverChannels() { return m_receiver_channels; }
   unsigned getNumOfSenderChannels() { return m_sender_channels; }
-  std::atomic<size_t> &getReceiverQueueStat(unsigned chn) { return m_receiver_pcqSizes[chn]; }
-  std::atomic<size_t> &getSenderQueueStat(unsigned chn) { return m_sender_pcqSizes[chn]; }
-  std::atomic<size_t> &getReceiverMsgStat(unsigned chn) { return m_receiver_numMsgsHandled[chn]; }
-  std::atomic<size_t> &getSenderMsgStat(unsigned chn) { return m_sender_numMsgsHandled[chn]; }
-  const SizeStatMap &getReceiverStatsMap() { return std::ref(m_receiver_pcqSizes); }
-  const SizeStatMap &getSenderStatsMap() { return std::ref(m_sender_pcqSizes); }
-  const SizeStatMap &getReceiverMsgStatsMap() { return std::ref(m_receiver_numMsgsHandled); }
-  const SizeStatMap &getSenderMsgStatsMap() { return std::ref(m_sender_numMsgsHandled); }
+  std::atomic<size_t> &getReceiverQueueStat(unsigned chn) { return m_receivers[chn]->getPcqSize(); }
+  std::atomic<size_t> &getSenderQueueStat(unsigned chn) { return m_senders[chn]->getPcqSize(); }
+  std::atomic<size_t> &getReceiverMsgStat(unsigned chn) {
+    return m_receivers[chn]->getMsgsHandled();
+  }
+  std::atomic<size_t> &getSenderMsgStat(unsigned chn) { return m_senders[chn]->getMsgsHandled(); }
   std::unique_ptr<zmq::socket_t> &getStatSocket() { return std::ref(m_stats_socket); }
 
 private:
   const std::string m_className = "ConnectionManager";
   size_t m_receiver_channels;
   size_t m_sender_channels;
-
-  std::map<unsigned, UniqueMessageQueue> m_receiver_pcqs; // Queues for elink RX.
-  std::map<unsigned, UniqueMessageQueue> m_sender_pcqs;   // Queues for elink TX.
-
-  // Stats
-  SizeStatMap m_receiver_pcqSizes;
-  SizeStatMap m_sender_pcqSizes;
-  SizeStatMap m_receiver_numMsgsHandled;
-  SizeStatMap m_sender_numMsgsHandled;
+  SenderMap m_senders;
+  ReceiverMap m_receivers;
 
   // Network library handling
   // Statistics
   std::unique_ptr<zmq::context_t> m_stats_context;
   std::unique_ptr<zmq::socket_t> m_stats_socket;
   std::atomic<bool> m_is_stats_setup;
-  // Dataflow
-  std::map<unsigned, std::unique_ptr<zmq::context_t>> m_receiver_contexts; // context descriptors
-  std::map<unsigned, std::unique_ptr<zmq::context_t>> m_sender_contexts;   // context descriptors
-
-  std::map<unsigned, std::unique_ptr<zmq::socket_t>> m_receiver_sockets; // sockets.
-  std::map<unsigned, std::unique_ptr<zmq::socket_t>> m_sender_sockets;   // sockets.
-
-  std::map<unsigned, EDirection> m_receiver_directions;
-  std::map<unsigned, EDirection> m_sender_directions;
-
-  // Threads
-  std::map<unsigned, std::thread> m_receiver_handlers;
-  std::map<unsigned, std::thread> m_sender_handlers;
-  std::map<unsigned, std::unique_ptr<daqling::utilities::ReusableThread>> m_processors;
-  std::map<unsigned, std::function<void()>> m_functors;
-
-  // Thread control
-  std::atomic<bool> m_stop_handlers;
 
   std::mutex m_mutex;
   std::mutex m_mtx_cleaning;
-
-  // Internal
-  bool addSendHandler(unsigned chn); // std::function<void()> task);
-  bool addReceiveHandler(unsigned chn);
-  bool addPublishHandler(unsigned chn);
-  bool addSubscribeHandler(unsigned chn);
 };
 
 } // namespace core

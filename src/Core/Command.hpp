@@ -37,16 +37,8 @@ ERS_DECLARE_ISSUE_BASE(core, CannotLoadPlugin, core::CommandIssue,
                        "Module load failure: Could not load plugin of type: " << type, ERS_EMPTY,
                        ((const char *)type))
 
-ERS_DECLARE_ISSUE_BASE(core, UnrecognizedSocketType, core::CommandIssue,
-                       "Unrecognized socket type: " << type, ERS_EMPTY, ((const char *)type))
-
-ERS_DECLARE_ISSUE_BASE(core, UnrecognizedTransportType, core::CommandIssue,
-                       "Unrecognized transport type: " << type, ERS_EMPTY, ((const char *)type))
-
 ERS_DECLARE_ISSUE_BASE(core, AddChannelFailed, core::CommandIssue,
-                       "Failed to add channel... chid: " << chid << "  filter: " << filter
-                                                         << "  filter size: " << filter_size,
-                       ERS_EMPTY, ((unsigned)chid)((unsigned)filter)((size_t)filter_size))
+                       "Failed to add channel... chid: " << chid, ERS_EMPTY, ((unsigned)chid))
 
 ERS_DECLARE_ISSUE_BASE(core, InvalidCommand, core::CommandIssue, "Invalid Command.", ERS_EMPTY,
                        ERS_EMPTY)

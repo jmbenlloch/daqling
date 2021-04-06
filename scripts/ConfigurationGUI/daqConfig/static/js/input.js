@@ -20,6 +20,8 @@ function initJsoneditor(){
 
   JSONEditor.defaults.options.theme = 'spectre';
   JSONEditor.defaults.options.iconlib = 'spectre';
+  JSONEditor.defaults.options.ajax = true;
+
   // new instance of JSONEditor
   jsoneditor = new JSONEditor(jsonEditorForm, data);
 }

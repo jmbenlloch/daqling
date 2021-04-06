@@ -27,14 +27,13 @@
  */
 
 #include <memory>
-
+#include <mutex>
 namespace daqling {
 namespace utilities {
 
 template <typename T> class Singleton { // NOLINT(cppcoreguidelines-special-member-functions)
 public:
   static T &instance();
-
   // Prevent copying and moving.
   Singleton(Singleton const &) = delete;            // Copy construct
   Singleton(Singleton &&) = delete;                 // Move construct
@@ -42,10 +41,13 @@ public:
   Singleton &operator=(Singleton &&) = delete;      // Move assign
 
 protected:
+  static std::mutex s_mutex;
   Singleton() = default;
 };
+template <typename T> std::mutex Singleton<T>::s_mutex;
 
 template <typename T> T &Singleton<T>::instance() {
+  std::scoped_lock lock(s_mutex);
   static const std::unique_ptr<T> instance{new T{}};
   return *instance;
 }

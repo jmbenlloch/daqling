@@ -27,7 +27,6 @@
 namespace daqling {
 namespace utilities {
 
-
 using timestamp_t = std::uint64_t;
 
 static const timestamp_t ns = 1;

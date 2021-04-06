@@ -16,7 +16,7 @@
  */
 
 #include "Core/Core.hpp"
-
+#include "Utils/Binary.hpp"
 #include "Utils/Ers.hpp"
 
 using namespace std::chrono_literals;
@@ -75,8 +75,8 @@ int main(int argc, char **argv) {
   setenv("TDAQ_ERS_FATAL", "dlstderr,exit", 0);
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   unsigned port = strtoul(argv[2], nullptr, 0);
+  ERS_DEBUG(0, "Setup commandserver with port: " << port);
   daqling::core::Core c(port);
-
   c.setupCommandServer();
 
   std::mutex *mtx = c.getMutex();
