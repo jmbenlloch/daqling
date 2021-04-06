@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,6 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "ZMQSinkStream.hpp"
 #include "Utils/Singleton.hpp"
 #include <ers/StreamFactory.h>
