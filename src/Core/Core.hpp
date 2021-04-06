@@ -18,7 +18,7 @@
 #ifndef DAQLING_CORE_CORE_HPP
 #define DAQLING_CORE_CORE_HPP
 
-#include "PluginManager.hpp"
+#include "ModuleLoader.hpp"
 #include "Utils/Ers.hpp"
 #include <atomic>
 
@@ -44,7 +44,7 @@ private:
   // JSON Configuration map
   daqling::core::Configuration &m_config = daqling::core::Configuration::instance();
   // Plugin manager
-  daqling::core::PluginManager &m_plugin = daqling::core::PluginManager::instance();
+  daqling::core::ModuleLoader &m_plugin = daqling::core::ModuleLoader::instance();
 };
 
 } // namespace core

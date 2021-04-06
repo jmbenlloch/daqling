@@ -20,6 +20,7 @@ import signal
 from os import environ as env
 import json
 import jsonref
+import jsonschema
 from jsonschema import validate
 from functools import partial
 from daqcontrol import daqcontrol
@@ -130,8 +131,11 @@ if "scripts" in data:
 with open(env['DAQ_CONFIG_DIR']+'schemas/validation-schema.json') as f:
   schema = json.load(f)
 f.close()
+
 print("Configuration Version:", data['version'])
-validate(instance=data, schema=schema)
+
+resolver=jsonschema.RefResolver(base_uri='file://'+env['DAQ_CONFIG_DIR']+'schemas/',referrer=schema)
+validate(instance=data, schema=schema,resolver=resolver)
 
 # define required parameters from configuration
 group = data['group']

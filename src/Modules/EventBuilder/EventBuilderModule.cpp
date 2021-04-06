@@ -73,9 +73,8 @@ void EventBuilderModule::runner() noexcept {
         m_complete_ev_size_guess = complete_seq.sizeGuess();
       }
       lck.unlock();
-      while (!m_connections.send(0, out) && m_run) {
+      while (!m_connections.sleep_send(0, out) && m_run) {
         ERS_WARNING("send() failed. Trying again");
-        std::this_thread::sleep_for(1ms);
       }
     }
   }};
@@ -85,10 +84,9 @@ void EventBuilderModule::runner() noexcept {
   prev_seq.reserve(m_nreceivers);
 
   while (m_run) {
-    bool received = false;
     for (unsigned ch = 0; ch < m_nreceivers; ch++) {
       daqling::utilities::Binary b;
-      if (m_connections.receive(ch, std::ref(b))) {
+      if (m_connections.sleep_receive(ch, std::ref(b))) {
         unsigned seq_number;
         auto *d = static_cast<data_t *>(b.data());
         seq_number = d->header.seq_number;
@@ -103,11 +101,7 @@ void EventBuilderModule::runner() noexcept {
           complete_seq.write(seq_number);
         }
         lck.unlock();
-        received = true;
       }
-    }
-    if (!received) {
-      std::this_thread::sleep_for(1ms);
     }
   }
   consumer.join();

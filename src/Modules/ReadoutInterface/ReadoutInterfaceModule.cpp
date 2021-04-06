@@ -86,9 +86,8 @@ void ReadoutInterfaceModule::runner() noexcept {
     // print binary
     // ERS_INFO("\n" << binary);
 
-    while (!m_connections.send(0, binary) && m_run) {
+    while (!m_connections.sleep_send(0, binary) && m_run) {
       ERS_WARNING("put() failed. Trying again");
-      std::this_thread::sleep_for(1ms);
     };
 
     sequence_number++;

@@ -15,7 +15,7 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "PluginManager.hpp"
+#include "ModuleLoader.hpp"
 #include "Command.hpp"
 #include "Utils/Ers.hpp"
 #include <chrono>
@@ -26,15 +26,15 @@
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
-PluginManager::PluginManager() : m_create{}, m_delete{}, m_loaded{false} {}
+ModuleLoader::ModuleLoader() : m_create{}, m_delete{}, m_loaded{false} {}
 
-PluginManager::~PluginManager() {
+ModuleLoader::~ModuleLoader() {
   if (m_loaded) {
     unload();
   }
 }
 
-bool PluginManager::load(const std::string &name) {
+bool ModuleLoader::load(const std::string &name) {
   // Load the shared object
   std::string pluginName = "libDaqlingModule" + name + ".so";
   m_handle = dlopen(pluginName.c_str(), RTLD_NOW);
@@ -58,7 +58,7 @@ bool PluginManager::load(const std::string &name) {
   return true;
 }
 
-bool PluginManager::unload() {
+bool ModuleLoader::unload() {
   if (m_loaded) {
     m_delete(*m_dp);
     dlclose(*m_handle);

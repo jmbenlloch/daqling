@@ -6,8 +6,12 @@ add_library(DaqlingCore SHARED
   Core.cpp
   Command.cpp
   ConnectionManager.cpp
-  PluginManager.cpp
+  ModuleLoader.cpp
   Statistics.cpp
+  ConnectionLoader.cpp
+  Sender.cpp
+  Receiver.cpp
+  Queue.cpp
 )
 add_compile_definitions(TDAQ_PACKAGE_NAME="core")
 

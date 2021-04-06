@@ -16,7 +16,7 @@
  */
 
 /**
- * @file PluginManager.hpp
+ * @file ModuleLoader.hpp
  * @brief Loads module (shared object) of type DAQProcess
  */
 
@@ -32,23 +32,10 @@
 #include "Utils/Ers.hpp"
 
 namespace daqling {
-
-#include <ers/Issue.h>
-
-ERS_DECLARE_ISSUE(core, DynamicLinkIssue, "Dynamic library name: " << dlName,
-                  ((const char *)dlName))
-
-ERS_DECLARE_ISSUE_BASE(core, CannotResolveModule, core::DynamicLinkIssue,
-                       "Failed to resolve module - Reason: " << reason << " - ",
-                       ((const char *)dlName), ((const char *)reason))
-
-ERS_DECLARE_ISSUE_BASE(core, CannotOpenModule, core::DynamicLinkIssue,
-                       "Failed to dlopen module - Reason: " << reason << " - ",
-                       ((const char *)dlName), ((const char *)reason))
-ERS_DECLARE_ISSUE(core, MissingCreateOrDelete, "Failed to resolve create and/or delete", ERS_EMPTY)
+#include "DynamicLinkIssues.hpp"
 namespace core {
 
-class PluginManager : public daqling::utilities::Singleton<PluginManager> {
+class ModuleLoader : public daqling::utilities::Singleton<ModuleLoader> {
 private:
   using CreateFunc = DAQProcess *(); //(daqling::utilities::LoggerType);
   using DeleteFunc = void(DAQProcess *);
@@ -79,12 +66,12 @@ private:
   }
 
 public:
-  PluginManager();
-  ~PluginManager();
-  PluginManager(PluginManager const &) = delete;            // Copy construct
-  PluginManager(PluginManager &&) = delete;                 // Move construct
-  PluginManager &operator=(PluginManager const &) = delete; // Copy assign
-  PluginManager &operator=(PluginManager &&) = delete;      // Move assign
+  ModuleLoader();
+  ~ModuleLoader();
+  ModuleLoader(ModuleLoader const &) = delete;            // Copy construct
+  ModuleLoader(ModuleLoader &&) = delete;                 // Move construct
+  ModuleLoader &operator=(ModuleLoader const &) = delete; // Copy assign
+  ModuleLoader &operator=(ModuleLoader &&) = delete;      // Move assign
 
   /**
    * Tries to load a module of name `name`.

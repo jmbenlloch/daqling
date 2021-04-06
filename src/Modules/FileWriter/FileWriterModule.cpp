@@ -198,11 +198,10 @@ void FileWriterModule::runner() noexcept {
 
       while (m_run) {
         daqutils::Binary pl;
-        while (!m_connections.receive(it.first, std::ref(pl)) && m_run) {
+        while (!m_connections.sleep_receive(it.first, std::ref(pl)) && m_run) {
           if (m_statistics) {
             m_channelMetrics.at(it.first).payload_queue_size = pq.sizeGuess();
           }
-          std::this_thread::sleep_for(1ms);
         }
         ERS_DEBUG(0, " Received " << pl.size() << "B payload on channel: " << it.first);
         while (!pq.write(pl) && m_run) {

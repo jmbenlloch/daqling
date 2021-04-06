@@ -22,8 +22,10 @@
 
 #include "Command.hpp"
 #include "Configuration.hpp"
+#include "ConnectionLoader.hpp"
 #include "ConnectionManager.hpp"
-#include "PluginManager.hpp"
+#include "ModuleLoader.hpp"
+
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
@@ -58,7 +60,8 @@ public:
 
     auto &command = daqling::core::Command::instance();
     auto &cm = daqling::core::ConnectionManager::instance();
-    auto &plugin = daqling::core::PluginManager::instance();
+    auto &plugin = daqling::core::ModuleLoader::instance();
+
     std::string entry_state = command.getState();
     try {
       if (command.getState() != "booted") {
@@ -83,34 +86,11 @@ public:
       ERS_DEBUG(0, "receivers empty " << rcvs.empty());
       for (auto &it : rcvs) {
         ERS_DEBUG(0, "key" << it);
-        std::ostringstream connStr;
-        ConnectionManager::EDirection dir;
-        if (it["type"] == "pair") {
-          dir = ConnectionManager::EDirection::CLIENT;
-        } else if (it["type"] == "pubsub") {
-          dir = ConnectionManager::EDirection::SUBSCRIBER;
-        } else {
-          throw UnrecognizedSocketType(ERS_HERE, it["type"].dump().c_str());
-        }
-        if (it["transport"] == "ipc") {
-          std::string path = it["path"];
-          connStr << "ipc://" << path;
-        } else if (it["transport"] == "tcp") {
-          std::string host = it["host"];
-          connStr << "tcp://" << host << ":" << it["port"];
-        } else {
-          throw UnrecognizedTransportType(ERS_HERE, it["transport"].dump().c_str());
-        }
-        if (it.contains("filter") && it.contains("filter_size")) {
-          if (!cm.addReceiverChannel(it["chid"], dir, connStr.str(), 1000, it["filter"],
-                                     it["filter_size"])) {
-            throw AddChannelFailed(ERS_HERE, it["chid"], it["filter"], it["filter_size"]);
-          }
-
-        } else {
-          if (!cm.addReceiverChannel(it["chid"], dir, connStr.str(), 1000)) {
-            throw AddChannelFailed(ERS_HERE, it["chid"], it["filter"], it["filter_size"]);
-          }
+        try {
+          cm.addReceiverChannel(it);
+        } catch (ers::Issue &i) {
+          // couldn't add receiver issue
+          throw AddChannelFailed(ERS_HERE, it["chid"].get<uint>(), i);
         }
       }
 
@@ -118,26 +98,11 @@ public:
       ERS_DEBUG(0, "senders empty " << sndrs.empty());
       for (auto &it : sndrs) {
         ERS_DEBUG(0, "key" << it);
-        std::ostringstream connStr;
-        ConnectionManager::EDirection dir;
-        if (it["type"] == "pair") {
-          dir = ConnectionManager::EDirection::SERVER;
-        } else if (it["type"] == "pubsub") {
-          dir = ConnectionManager::EDirection::PUBLISHER;
-        } else {
-          throw UnrecognizedSocketType(ERS_HERE, it["type"].dump().c_str());
-        }
-        if (it["transport"] == "ipc") {
-          std::string path = it["path"];
-          connStr << "ipc://" << path;
-        } else if (it["transport"] == "tcp") {
-          std::string host = it["host"];
-          connStr << "tcp://" << host << ":" << it["port"];
-        } else {
-          throw UnrecognizedTransportType(ERS_HERE, it["transport"].dump().c_str());
-        }
-        if (!cm.addSenderChannel(it["chid"], dir, connStr.str(), 1000)) {
-          throw AddChannelFailed(ERS_HERE, it["chid"], it["filter"], it["filter_size"]);
+        try {
+          cm.addSenderChannel(it);
+        } catch (ers::Issue &i) {
+          // couldn't add receiver issue
+          throw AddChannelFailed(ERS_HERE, it["chid"].get<uint>(), i);
         }
       }
 
@@ -162,7 +127,7 @@ public:
   void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
     paramList.verifyEnd(0);
-    auto &plugin = daqling::core::PluginManager::instance();
+    auto &plugin = daqling::core::ModuleLoader::instance();
     auto &cm = daqling::core::ConnectionManager::instance();
     auto &command = daqling::core::Command::instance();
     std::string entry_state = command.getState();
@@ -201,7 +166,7 @@ public:
     std::string response;
     const auto run_num = static_cast<unsigned>(paramList.getInt(0));
     paramList.verifyEnd(1);
-    auto &plugin = daqling::core::PluginManager::instance();
+    auto &plugin = daqling::core::ModuleLoader::instance();
     auto &cm = daqling::core::ConnectionManager::instance();
     auto &command = daqling::core::Command::instance();
     std::string entry_state = command.getState();
@@ -232,7 +197,7 @@ public:
   void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
     paramList.verifyEnd(0);
-    auto &plugin = daqling::core::PluginManager::instance();
+    auto &plugin = daqling::core::ModuleLoader::instance();
     auto &cm = daqling::core::ConnectionManager::instance();
     auto &command = daqling::core::Command::instance();
     std::string entry_state = command.getState();
@@ -293,7 +258,7 @@ public:
     const std::string command_name = paramList.getString(0);
     const std::string argument = paramList.getString(1);
     paramList.verifyEnd(2);
-    auto &plugin = daqling::core::PluginManager::instance();
+    auto &plugin = daqling::core::ModuleLoader::instance();
     auto &command = daqling::core::Command::instance();
     std::string entry_state = command.getState();
     try {
