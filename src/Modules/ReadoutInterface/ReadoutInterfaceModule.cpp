@@ -69,8 +69,8 @@ void ReadoutInterfaceModule::runner() noexcept {
     const auto payload_size = static_cast<unsigned>(dis(gen));
     const unsigned total_size = sizeof(header_t) + sizeof(char) * payload_size;
 
-    ERS_DEBUG(0, "sequence number " << sequence_number << "  >>  timestamp " << std::hex << "0x"
-                                    << timestamp.count() << std::dec << "  >>  payload size "
+    ERS_DEBUG(0, "sequence number " << sequence_number << " | timestamp " << std::hex << "0x"
+                                    << timestamp.count() << std::dec << " | payload size "
                                     << payload_size);
 
     std::unique_ptr<data_t> data(new data_t);

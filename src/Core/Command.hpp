@@ -44,7 +44,7 @@ ERS_DECLARE_ISSUE_BASE(core, InvalidCommand, core::CommandIssue, "Invalid Comman
                        ERS_EMPTY)
 
 ERS_DECLARE_ISSUE_BASE(core, UnregisteredCommand, core::CommandIssue,
-                       "Unregistered command: " << CommandName << "        ", ERS_EMPTY,
+                       "Unregistered command: " << CommandName, ERS_EMPTY,
                        ((const char *)CommandName))
 
 namespace core {

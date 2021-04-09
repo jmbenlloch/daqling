@@ -25,34 +25,8 @@
 #include <exception>
 #include <iomanip>
 #include <thread>
-
 using namespace daqling::core;
 using namespace std::chrono_literals;
-
-bool ConnectionManager::setupStatsConnection(uint8_t ioT, const std::string &connStr) {
-  if (m_is_stats_setup) {
-    ERS_INFO(" Statistics socket is already online... Won't do anything.");
-    return false;
-  }
-  try {
-    m_stats_context = std::make_unique<zmq::context_t>(ioT);
-    m_stats_socket = std::make_unique<zmq::socket_t>(*(m_stats_context.get()), ZMQ_PUB);
-    m_stats_socket->connect(connStr);
-    ERS_INFO(" Statistics are published on: " << connStr);
-  } catch (std::exception &e) {
-    throw CannotAddStatsChannel(ERS_HERE, e.what());
-    return false;
-  }
-  m_is_stats_setup = true;
-  return true;
-}
-
-bool ConnectionManager::unsetStatsConnection() {
-  m_stats_socket.reset();
-  m_stats_context.reset();
-  m_is_stats_setup = false;
-  return true;
-}
 
 bool ConnectionManager::addReceiverChannel(const nlohmann::json &j) {
   auto &cl = daqling::core::ConnectionLoader::instance();

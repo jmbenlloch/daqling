@@ -19,8 +19,9 @@
 
 #include "Common/DataFormat.hpp"
 #include "EventBuilderModule.hpp"
-
 #include "Utils/Ers.hpp"
+#include "folly/ProducerConsumerQueue.h"
+
 using namespace std::chrono_literals;
 using namespace daqling::module;
 EventBuilderModule::EventBuilderModule() : m_eventmap_size{0}, m_complete_ev_size_guess{0} {

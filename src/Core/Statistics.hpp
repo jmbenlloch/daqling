@@ -45,11 +45,16 @@ ERS_DECLARE_ISSUE(core, StatisticIssue, "", ERS_EMPTY)
 ERS_DECLARE_ISSUE_BASE(core, NoHTTPSupport, core::StatisticIssue,
                        "Failed to publish over HTTP. The library is not built with CURL support!",
                        ERS_EMPTY, ERS_EMPTY)
+ERS_DECLARE_ISSUE_BASE(core, CannotAddStatsChannel, core::StatisticIssue,
+                       "Failed to add stats channel! ZMQ returned: " << eWhat, ERS_EMPTY,
+                       ((const char *)eWhat))
+ERS_DECLARE_ISSUE_BASE(core, CannotSetupStatPublishing, core::StatisticIssue,
+                       "Connection setup failed for Statistics publishing!", ERS_EMPTY, ERS_EMPTY)
 namespace core {
 
 class Statistics {
 public:
-  Statistics(std::unique_ptr<zmq::socket_t> &statSock, unsigned interval = 500);
+  Statistics(nlohmann::json &j, unsigned interval = 500);
   ~Statistics();
   Statistics(Statistics const &) = delete;            // Copy construct
   Statistics(Statistics &&) = delete;                 // Move construct
@@ -62,7 +67,7 @@ public:
   void setInfluxDBsending(bool influxDb) { m_influxDb = influxDb; }
   void setInfluxDBname(std::string influxDb_name) { m_influxDb_name = std::move(influxDb_name); }
   void setInfluxDBuri(std::string influxDb_uri) { m_influxDb_uri = std::move(influxDb_uri); }
-
+  bool isStatsOn() { return m_stats_on; }
   void start();
 
   template <class T>
@@ -181,6 +186,7 @@ public:
 #endif
     }
   }
+  bool unsetStatsConnection();
 
 private:
   // Thread control
@@ -196,8 +202,14 @@ private:
   std::string m_influxDb_name;
   std::string m_influxDb_uri;
 
+  // stats set to post
+  bool m_stats_on;
+  // zmq connection
+  bool setupStatsConnection(uint8_t ioT, const std::string &connStr);
   // Publish socket ref for stats
-  std::unique_ptr<zmq::socket_t> &m_stat_socket;
+  std::unique_ptr<zmq::socket_t> m_stat_socket;
+  std::unique_ptr<zmq::context_t> m_stats_context;
+  std::atomic<bool> m_is_stats_setup{};
 
   // Config
   unsigned m_interval;

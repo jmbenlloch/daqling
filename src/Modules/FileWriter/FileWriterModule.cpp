@@ -103,8 +103,8 @@ void FileWriterModule::configure() {
   m_channels = m_config.getNumReceiverConnections();
   m_pattern = m_config.getSettings()["filename_pattern"];
   ERS_INFO("Configuration --> Maximum filesize: " << m_max_filesize << "B"
-                                                  << "   Buffer size: " << m_buffer_size << "B"
-                                                  << "   channels: " << m_channels);
+                                                  << " | Buffer size: " << m_buffer_size << "B"
+                                                  << " | channels: " << m_channels);
 
   if (!FileGenerator::yields_unique(m_pattern)) {
     ERS_WARNING("Configured file name pattern '"
