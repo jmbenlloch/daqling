@@ -114,6 +114,16 @@ public:
     ERS_PRECONDITION(m_loaded);
     m_dp.value()->stop();
   };
+  /**
+   * Unconfigs the loaded module.
+   *
+   * @warning May only be called after a successful `load`.
+   */
+  void unconfigure() {
+    if (m_loaded) {
+      m_dp.value()->unconfigure();
+    }
+  };
 
   /**
    * Returns whether specified command was executed.

@@ -25,8 +25,8 @@ ERS_DECLARE_ISSUE(module, ErsTestIssue, "ERSTestIssue Here with msg: " << baseMs
                   ((const char *)baseMsg))
 
 ERS_DECLARE_ISSUE_BASE(module, ErsTestInherittedIssue, module::ErsTestIssue,
-                       "ERSTestInherritedIssue Here with msg: " << inhMsg << "     ",
-                       ((const char *)baseMsg), ((const char *)inhMsg))
+                       "ERSTestInherritedIssue Here with msg: " << inhMsg, ((const char *)baseMsg),
+                       ((const char *)inhMsg))
 }
 
 class ErsTestModule : public daqling::core::DAQProcess {

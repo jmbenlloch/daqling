@@ -29,9 +29,7 @@
 #include "Core/Sender.hpp"
 #include "Utils/Binary.hpp"
 #include "Utils/Ers.hpp"
-#include "folly/ProducerConsumerQueue.h"
 #include "nlohmann/json.hpp"
-#include <ers/Issue.h>
 #include <zmq.hpp>
 
 namespace daqling {
@@ -41,10 +39,6 @@ ERS_DECLARE_ISSUE(core, ConnectionIssue, "", ERS_EMPTY)
 
 ERS_DECLARE_ISSUE_BASE(core, CannotAddChannel, core::ConnectionIssue, "Failed to add channel!",
                        ERS_EMPTY, ERS_EMPTY)
-
-ERS_DECLARE_ISSUE_BASE(core, CannotAddStatsChannel, core::ConnectionIssue,
-                       "Failed to add stats channel! ZMQ returned: " << eWhat, ERS_EMPTY,
-                       ((const char *)eWhat))
 ERS_DECLARE_ISSUE_BASE(core, CannotGetChidAndType, core::ConnectionIssue,
                        "Failed to get chid and connection type " << eWhat, ERS_EMPTY,
                        ((const char *)eWhat))
@@ -61,24 +55,15 @@ namespace core {
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class ConnectionManager : public daqling::utilities::Singleton<ConnectionManager> {
 public:
-  ConnectionManager() : m_receiver_channels{0}, m_sender_channels{0}, m_is_stats_setup{false} {}
+  ConnectionManager() : m_receiver_channels{0}, m_sender_channels{0} {}
   // Custom types
-  using MessageQueue = folly::ProducerConsumerQueue<zmq::message_t>;
-  using UniqueMessageQueue = std::unique_ptr<MessageQueue>;
-  using StringQueue = folly::ProducerConsumerQueue<std::string>;
-  using UniqueStringQueue = std::unique_ptr<StringQueue>;
   using SizeStatMap = std::map<unsigned, std::atomic<size_t>>;
   using SenderMap = std::map<unsigned, std::shared_ptr<Sender>>;
   using ReceiverMap = std::map<unsigned, std::shared_ptr<Receiver>>;
 
-  // Functionalities
-  bool setupStatsConnection(uint8_t ioT, const std::string &connStr);
-  bool unsetStatsConnection();
-
   // Add a channel (sockets and queues)
   bool removeReceiverChannel(unsigned chn);
   bool removeSenderChannel(unsigned chn);
-
   bool addSenderChannel(const nlohmann::json &j);
   bool addReceiverChannel(const nlohmann::json &j);
   /**
@@ -121,20 +106,12 @@ public:
     return m_receivers[chn]->getMsgsHandled();
   }
   std::atomic<size_t> &getSenderMsgStat(unsigned chn) { return m_senders[chn]->getMsgsHandled(); }
-  std::unique_ptr<zmq::socket_t> &getStatSocket() { return std::ref(m_stats_socket); }
 
 private:
-  const std::string m_className = "ConnectionManager";
   size_t m_receiver_channels;
   size_t m_sender_channels;
   SenderMap m_senders;
   ReceiverMap m_receivers;
-
-  // Network library handling
-  // Statistics
-  std::unique_ptr<zmq::context_t> m_stats_context;
-  std::unique_ptr<zmq::socket_t> m_stats_socket;
-  std::atomic<bool> m_is_stats_setup;
 
   std::mutex m_mutex;
   std::mutex m_mtx_cleaning;

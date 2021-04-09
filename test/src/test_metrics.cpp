@@ -18,9 +18,11 @@
 #include "Core/Statistics.hpp"
 
 #include "Utils/Ers.hpp"
+#include "nlohmann/json.hpp"
 #include "zmq.hpp"
 #include <atomic>
 #include <unistd.h>
+using nlohmann::json;
 
 int main(int /*unused*/, char ** /*unused*/) {
 
@@ -28,13 +30,9 @@ int main(int /*unused*/, char ** /*unused*/) {
   std::atomic<int> packets;
   buffer_occupation = 0.1;
   packets = 0;
-
-  zmq::context_t context(1);
-  std::unique_ptr<zmq::socket_t> publisher;
-  publisher = std::make_unique<zmq::socket_t>(context, ZMQ_PUB);
-  publisher->bind("tcp://*:5556");
-
-  daqling::core::Statistics stat(std::ref(publisher));
+  json j;
+  j["stats_uri"] = "tcp://*:5556";
+  daqling::core::Statistics stat(j);
   stat.start();
 
   stat.registerVariable<std::atomic<float>, float>(&buffer_occupation, "AverageBufferOccupation",

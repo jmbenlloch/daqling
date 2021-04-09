@@ -136,14 +136,13 @@ public:
         throw InvalidCommand(ERS_HERE);
       }
       command.setState("unconfiguring");
+      plugin.unconfigure();
       while (cm.getNumOfReceiverChannels() > 0) {
         cm.removeReceiverChannel(cm.getNumOfReceiverChannels() - 1);
       }
       while (cm.getNumOfSenderChannels() > 0) {
         cm.removeSenderChannel(cm.getNumOfSenderChannels() - 1);
       }
-
-      cm.unsetStatsConnection();
       plugin.unload();
       command.setState("booted");
       response = "Success";
@@ -228,6 +227,7 @@ public:
   void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
     paramList.verifyEnd(0);
+    auto &plugin = daqling::core::ModuleLoader::instance();
     auto &command = daqling::core::Command::instance();
     std::string entry_state = command.getState();
     try {
@@ -235,6 +235,7 @@ public:
         throw InvalidCommand(ERS_HERE);
       }
       command.setState("shutting");
+      plugin.unconfigure();
       command.stop_and_notify();
       command.setState("added");
       response = "Success";
