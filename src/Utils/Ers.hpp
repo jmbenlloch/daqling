@@ -26,4 +26,34 @@
     ERS_REPORT_IMPL(ers::warning, ers::Message, message, ERS_EMPTY);                               \
   } while (0)
 
+#define ERS_ERROR(message)                                                                         \
+  do {                                                                                             \
+    ERS_REPORT_IMPL(ers::error, ers::Message, message, ERS_EMPTY);                                 \
+  } while (0)
+
+#define DEBUG(message)                                                                             \
+  do {                                                                                             \
+    ERS_DEBUG(0, message);                                                                         \
+  } while (0)
+
+#define INFO(message)                                                                              \
+  do {                                                                                             \
+    ERS_INFO(message);                                                                             \
+  } while (0)
+
+#define LOG(message)                                                                               \
+  do {                                                                                             \
+    ERS_LOG(message);                                                                              \
+  } while (0)
+
+#define WARNING(message)                                                                           \
+  do {                                                                                             \
+    ERS_WARNING(message);                                                                          \
+  } while (0)
+
+#define ERROR(message)                                                                             \
+  do {                                                                                             \
+    ERS_ERROR(message);                                                                            \
+  } while (0)
+
 #endif
