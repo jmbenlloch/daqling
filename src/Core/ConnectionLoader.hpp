@@ -23,11 +23,7 @@
 #include "Utils/Singleton.hpp"
 #include "nlohmann/json.hpp"
 #include <dlfcn.h>
-#include <functional>
-#include <memory>
-#include <optional>
 #include <string>
-#include <unordered_map>
 
 namespace daqling {
 #include "DynamicLinkIssues.hpp"

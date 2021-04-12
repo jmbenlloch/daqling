@@ -18,19 +18,15 @@
 #ifndef DAQLING_CORE_CONNECTIONMANAGER_HPP
 #define DAQLING_CORE_CONNECTIONMANAGER_HPP
 
-#include <algorithm>
 #include <map>
-#include <memory>
 #include <mutex>
-#include <thread>
 
-#include "Command.hpp"
 #include "Core/Receiver.hpp"
 #include "Core/Sender.hpp"
 #include "Utils/Binary.hpp"
 #include "Utils/Ers.hpp"
+#include "Utils/Singleton.hpp"
 #include "nlohmann/json.hpp"
-#include <zmq.hpp>
 
 namespace daqling {
 

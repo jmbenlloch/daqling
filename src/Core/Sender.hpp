@@ -19,9 +19,9 @@
 #include "Queue.hpp"
 #include "Utils/Binary.hpp"
 #include <atomic>
-#include <memory>
 #include <mutex>
 #include <thread>
+
 namespace daqling {
 namespace core {
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)

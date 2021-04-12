@@ -18,9 +18,9 @@
 #ifndef DAQLING_CORE_CORE_HPP
 #define DAQLING_CORE_CORE_HPP
 
+#include "Command.hpp"
 #include "ModuleLoader.hpp"
 #include "Utils/Ers.hpp"
-#include <atomic>
 
 namespace daqling {
 namespace core {

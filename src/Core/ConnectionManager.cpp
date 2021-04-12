@@ -16,17 +16,11 @@
  */
 
 #include "ConnectionManager.hpp"
-#include "Command.hpp"
 #include "ConnectionLoader.hpp"
 #include "Utils/Binary.hpp"
 #include "Utils/Ers.hpp"
-#include <chrono>
-#include <ctime>
-#include <exception>
-#include <iomanip>
-#include <thread>
+
 using namespace daqling::core;
-using namespace std::chrono_literals;
 
 bool ConnectionManager::addReceiverChannel(const nlohmann::json &j) {
   auto &cl = daqling::core::ConnectionLoader::instance();

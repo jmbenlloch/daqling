@@ -21,12 +21,7 @@
 #include "Utils/Ers.hpp"
 #include "Utils/Singleton.hpp"
 #include "nlohmann/json.hpp"
-#include <istream>
-#include <ostream>
-#include <stdexcept>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 namespace daqling {
 namespace core {

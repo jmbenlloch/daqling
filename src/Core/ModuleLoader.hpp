@@ -23,13 +23,10 @@
 #ifndef DAQLING_CORE_PLUGINMANAGER_HPP
 #define DAQLING_CORE_PLUGINMANAGER_HPP
 
-#include <dlfcn.h>
-#include <optional>
-#include <string>
-
 #include "DAQProcess.hpp"
-
 #include "Utils/Ers.hpp"
+#include <dlfcn.h>
+#include <string>
 
 namespace daqling {
 #include "DynamicLinkIssues.hpp"

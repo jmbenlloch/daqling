@@ -50,7 +50,6 @@ void EventBuilderModule::runner() noexcept {
   ERS_DEBUG(0, "Running...");
 
   std::unordered_map<uint32_t, std::vector<daqling::utilities::Binary>> events;
-  daqling::utilities::ReusableThread rt(0);
   folly::ProducerConsumerQueue<unsigned> complete_seq(1000);
   std::mutex mtx;
 

@@ -19,10 +19,7 @@
 #define DAQLING_UTILITIES_COMMON_HPP
 
 #include <climits>
-#include <ctime>
-#include <pthread.h>
 #include <thread>
-#include <unistd.h>
 
 namespace daqling {
 namespace utilities {

@@ -22,12 +22,11 @@
 class MetricsSimulatorModule : public daqling::core::DAQProcess {
 public:
   MetricsSimulatorModule();
-  ~MetricsSimulatorModule();
 
-  void start(unsigned run_num);
-  void stop();
+  void start(unsigned run_num) override;
+  void stop() override;
 
-  void runner();
+  void runner() noexcept override;
 
 protected:
   std::atomic<int> m_metric1;

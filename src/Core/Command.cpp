@@ -15,9 +15,6 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <chrono>
-#include <ctime>
-#include <iomanip>
 #include <thread>
 
 #include "Command.hpp"

@@ -16,7 +16,6 @@
  */
 
 #include "ConnectionLoader.hpp"
-#include <utility>
 
 namespace daqling {
 namespace core {

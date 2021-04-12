@@ -17,17 +17,13 @@
 
 #pragma once
 
-#include <condition_variable>
-#include <fstream>
-#include <map>
-#include <memory>
-#include <queue>
-#include <tuple>
-#include <utility>
-
 #include "Core/DAQProcess.hpp"
 #include "Utils/Binary.hpp"
+#include "Utils/ReusableThread.hpp"
 #include "folly/ProducerConsumerQueue.h"
+#include <fstream>
+#include <map>
+#include <tuple>
 
 namespace daqling {
 #include <ers/Issue.h>

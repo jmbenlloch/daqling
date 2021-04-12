@@ -16,15 +16,9 @@
  */
 
 #include "ModuleLoader.hpp"
-#include "Command.hpp"
 #include "Utils/Ers.hpp"
-#include <chrono>
-#include <ctime>
-#include <iomanip>
-#include <thread>
 
 using namespace daqling::core;
-using namespace std::chrono_literals;
 
 ModuleLoader::ModuleLoader() : m_create{}, m_delete{}, m_loaded{false} {}
 

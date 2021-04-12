@@ -18,24 +18,17 @@
 #ifndef STATISTICS_HPP
 #define STATISTICS_HPP
 
+#include "Configuration.hpp"
+#include "Metric.hpp"
+#include "Utils/Ers.hpp"
 #include <atomic>
-#include <ctime>
-#include <iostream>
-#include <map>
-#include <numeric>
-#include <sstream>
 #include <string>
 #include <thread>
-#include <utility>
 #include <vector>
-
-#include "Utils/Ers.hpp"
+#include <zmq.hpp>
 #ifdef BUILD_WITH_CPR
 #include <cpr/cpr.h>
 #endif
-#include "Configuration.hpp"
-#include "Metric.hpp"
-#include <zmq.hpp>
 
 namespace daqling {
 #include <ers/Issue.h>

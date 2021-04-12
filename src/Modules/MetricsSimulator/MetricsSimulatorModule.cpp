@@ -18,10 +18,8 @@
 #include "MetricsSimulatorModule.hpp"
 #include "Core/Statistics.hpp"
 #include "Utils/Ers.hpp"
-#include <stdlib.h>
-MetricsSimulatorModule::MetricsSimulatorModule() { ERS_INFO(""); }
 
-MetricsSimulatorModule::~MetricsSimulatorModule() { ERS_INFO(""); }
+MetricsSimulatorModule::MetricsSimulatorModule() { ERS_INFO(""); }
 
 void MetricsSimulatorModule::start(unsigned run_num) {
   daqling::core::DAQProcess::start(run_num);
@@ -63,7 +61,7 @@ void MetricsSimulatorModule::stop() {
   ERS_INFO("");
 }
 
-void MetricsSimulatorModule::runner() {
+void MetricsSimulatorModule::runner() noexcept {
   ERS_INFO("Running...");
   // downcast is fine here, but this RNG should be modified to use std random.
   srand(static_cast<unsigned int>(time(nullptr)));
@@ -74,15 +72,16 @@ void MetricsSimulatorModule::runner() {
     m_metric7 = static_cast<float>(rand()) / RAND_MAX;
     m_metric3 = 0.5 * static_cast<double>(rand()) / RAND_MAX;
     m_metric8 = 10. * static_cast<double>(rand()) / RAND_MAX;
-    if (m_metric4)
+    if (m_metric4) {
       m_metric4 = false;
-    else
+    } else {
       m_metric4 = true;
-    if (m_metric9)
+    }
+    if (m_metric9) {
       m_metric9 = false;
-    else
+    } else {
       m_metric9 = true;
-
+    }
     m_metric5 += 50;
     m_metric10 = static_cast<long unsigned int>(rand() % 100);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));

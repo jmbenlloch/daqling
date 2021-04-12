@@ -19,10 +19,8 @@
 #define METRIC_HPP
 
 #include "Utils/Ers.hpp"
-#include <ctime>
 #include <string>
-#include <utility>
-#include <vector>
+
 namespace daqling {
 namespace core {
 namespace metrics {

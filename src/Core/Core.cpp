@@ -15,13 +15,9 @@
  * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <chrono>
-#include <iomanip>
-
 #include "Core.hpp"
 
 using namespace daqling::core;
-using namespace std::chrono_literals;
 
 void Core::setupCommandServer() {
   ERS_INFO("Starting XML-RPC Server on port: " << m_port);
