@@ -9,7 +9,8 @@
       "type": "ReadoutInterface",
       "loglevel": {
         "core": "INFO",
-        "module": "INFO"
+        "module": "INFO",
+        "connection": "WARNING"
       },
       "settings": {
         "board_id": 0,
@@ -46,7 +47,8 @@
       "type": "ReadoutInterface",
       "loglevel": {
         "core": "INFO",
-        "module": "INFO"
+        "module": "INFO",
+        "connection": "WARNING"
       },
       "settings": {
         "board_id": 1,
@@ -83,7 +85,8 @@
       "type": "EventBuilder",
       "loglevel": {
         "core": "INFO",
-        "module": "INFO"
+        "module": "INFO",
+        "connection": "WARNING"
       },
       "settings": {},
       "metrics_settings": {
@@ -140,7 +143,8 @@
       "type": "FileWriter",
       "loglevel": {
         "core": "INFO",
-        "module": "INFO"
+        "module": "INFO",
+        "connection": "WARNING"
       },
       "settings": {
         "filename_pattern": "/tmp/test-%D.%r.%c.%n.bin"

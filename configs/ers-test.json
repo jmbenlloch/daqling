@@ -5,7 +5,7 @@
       {
         "name": "ersTester1",
         "type": "ErsTest",
-        "loglevel": {"core": "DEBUG", "module": "DEBUG"},
+        "loglevel": {"core": "DEBUG", "module": "DEBUG", "connection": "WARNING"},
         "host": "localhost",
         "port": 5555,
         "settings": {

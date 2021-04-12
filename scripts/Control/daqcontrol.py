@@ -96,7 +96,8 @@ class daqcontrol:
       port = p['port']
       loglvl_core = p['loglevel']['core']
       loglvl_module = p['loglevel']['module']
-      full_exe = exe+" "+name+" "+str(port)+" "+loglvl_core+" "+loglvl_module
+      loglvl_connection = p['loglevel']['connection']
+      full_exe = exe+" --name "+name+" --port "+str(port)+" --core_lvl "+loglvl_core+" --module_lvl "+loglvl_module+" --connection_lvl "+loglvl_connection
       log_files.append(self.addProcess(p['host'], name, full_exe, dir, lib_path=lib_path))
     return log_files
 
