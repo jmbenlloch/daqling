@@ -17,64 +17,19 @@
 
 #include "Core/Core.hpp"
 #include "Utils/Binary.hpp"
+#include "Utils/CommandlineInterpreter.hpp"
 #include "Utils/Ers.hpp"
-
+#include "Utils/LogSettings.hpp"
 using namespace std::chrono_literals;
 
 int main(int argc, char **argv) {
-  if (argc < 5) {
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    std::cerr << "Usage: " << argv[0]
-              << " <name> <command-port> <core-log-level> <module-log-level>\n";
-    return EXIT_FAILURE;
-  }
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-  std::string name = argv[1];
-  // assign log-levels from arguments
-  std::vector<std::string> const table = {"DEBUG", "LOG", "INFO", "WARNING", "ERROR"};
-  std::vector<std::string>::const_iterator coreLvl;
-  std::vector<std::string>::const_iterator moduleLvl;
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-  auto core_tup = std::make_tuple(&coreLvl, std::string(argv[3]), "INFO", "Core");
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-  auto module_tup = std::make_tuple(&moduleLvl, std::string(argv[4]), "DEBUG", "Module");
 
-  for (const auto & [ lvl, supplied_lvl, default_lvl, name ] : {core_tup, module_tup}) {
-    if ((*lvl = find(table.begin(), table.end(), supplied_lvl)) == table.end()) {
-      *lvl = find(table.begin(), table.end(), default_lvl);
-      ERS_WARNING("Unknown loglevel '" << supplied_lvl << "', defaulting to level '" << default_lvl
-                                       << "' for '" << name << "' logger");
-    }
-  }
+  auto args = daqling::utilities::CommandlineInterpreter::parse(argc, argv);
 
-  // helper variables - stream setup:
-  bool CoreHasLowestLvl = coreLvl < moduleLvl;
-  auto lowestLvl = (CoreHasLowestLvl ? coreLvl : moduleLvl);
-  auto highestLvl = (CoreHasLowestLvl ? moduleLvl : coreLvl);
-  std::string filter = (CoreHasLowestLvl ? "filter(core)," : "filter(module),");
-  // set up the streams:
-  for (auto level = table.begin(); level != table.end(); ++level) {
-    std::string stream = (static_cast<std::string>("TDAQ_ERS_")) + (*level);
-    std::string configs = ""; // NOLINT  sets configs=configs for some reason
-    if (level < lowestLvl) {
-      configs += "null";
-    } else {
-      if (level >= lowestLvl && level < highestLvl) {
-        configs += filter;
-      }
-      if (*level == "WARNING" || *level == "ERROR") {
-        configs += "throttle,dlstderr";
-      } else {
-        configs += "dlstdout";
-      }
-      configs += ",ZMQSink(" + name + ")";
-    }
-    setenv(stream.c_str(), configs.c_str(), 0);
-  }
-  // Setup fatal stream to terminate
-  setenv("TDAQ_ERS_FATAL", "dlstderr,exit", 0);
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-  unsigned port = strtoul(argv[2], nullptr, 0);
+  std::string name = args.name;
+  daqling::utilities::LogSettings::setupLogs(args);
+  // get port from options:
+  unsigned port = args.port;
   ERS_DEBUG(0, "Setup commandserver with port: " << port);
   daqling::core::Core c(port);
   c.setupCommandServer();

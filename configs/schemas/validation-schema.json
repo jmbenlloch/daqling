@@ -96,12 +96,22 @@
                   "INFO",
                   "WARNING"
                 ]
+              },
+              "connection": {
+                "type": "string",
+                "enum": [
+                  "DEBUG",
+                  "INFO",
+                  "WARNING"
+                ]
               }
             },
             "required": [
               "core",
-              "module"
-            ]
+              "module",
+              "connection"
+            ],
+            "additionalProperties": false
           },
           "settings": {
             "title": "Settings",
