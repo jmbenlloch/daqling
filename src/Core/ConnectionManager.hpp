@@ -94,14 +94,8 @@ public:
   bool stop();
 
   // Utilities
-  unsigned getNumOfReceiverChannels() { return m_receiver_channels; }
-  unsigned getNumOfSenderChannels() { return m_sender_channels; }
-  std::atomic<size_t> &getReceiverQueueStat(unsigned chn) { return m_receivers[chn]->getPcqSize(); }
-  std::atomic<size_t> &getSenderQueueStat(unsigned chn) { return m_senders[chn]->getPcqSize(); }
-  std::atomic<size_t> &getReceiverMsgStat(unsigned chn) {
-    return m_receivers[chn]->getMsgsHandled();
-  }
-  std::atomic<size_t> &getSenderMsgStat(unsigned chn) { return m_senders[chn]->getMsgsHandled(); }
+  const SenderMap getSenderMap() { return m_senders; }
+  const ReceiverMap getReceiverMap() { return m_receivers; }
 
 private:
   size_t m_receiver_channels;

@@ -134,11 +134,15 @@ public:
       }
       command.setState("unconfiguring");
       plugin.unconfigure();
-      while (cm.getNumOfReceiverChannels() > 0) {
-        cm.removeReceiverChannel(cm.getNumOfReceiverChannels() - 1);
+      while (!cm.getReceiverMap().empty()) {
+        for (auto & [ ch, receiver ] : cm.getReceiverMap()) {
+          cm.removeReceiverChannel(ch);
+        }
       }
-      while (cm.getNumOfSenderChannels() > 0) {
-        cm.removeSenderChannel(cm.getNumOfSenderChannels() - 1);
+      while (!cm.getSenderMap().empty()) {
+        for (auto & [ ch, sender ] : cm.getSenderMap()) {
+          cm.removeSenderChannel(ch);
+        }
       }
       plugin.unload();
       command.setState("booted");

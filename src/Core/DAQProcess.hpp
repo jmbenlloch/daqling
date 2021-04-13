@@ -112,22 +112,20 @@ public:
 
       m_statistics = std::make_unique<Statistics>(m_config.getMetricsSettings());
 
-      for (unsigned ch = 0; ch < m_config.getNumReceiverConnections(); ch++) {
-        m_statistics->registerMetric<std::atomic<size_t>>(&m_connections.getReceiverQueueStat(ch),
-                                                          "ReceiverCh" + std::to_string(ch) +
-                                                              "-QueueSizeGuess",
-                                                          daqling::core::metrics::LAST_VALUE);
+      for (auto & [ ch, receiver ] : m_connections.getReceiverMap()) {
         m_statistics->registerMetric<std::atomic<size_t>>(
-            &m_connections.getReceiverMsgStat(ch),
-            "ReceiverCh" + std::to_string(ch) + "-NumMessages", daqling::core::metrics::RATE);
+            &receiver->getPcqSize(), "ReceiverCh" + std::to_string(ch) + "-QueueSizeGuess",
+            daqling::core::metrics::LAST_VALUE);
+        m_statistics->registerMetric<std::atomic<size_t>>(
+            &receiver->getMsgsHandled(), "ReceiverCh" + std::to_string(ch) + "-NumMessages",
+            daqling::core::metrics::RATE);
       }
-      for (unsigned ch = 0; ch < m_config.getNumSenderConnections(); ch++) {
-        m_statistics->registerMetric<std::atomic<size_t>>(&m_connections.getSenderQueueStat(ch),
-                                                          "SenderCh" + std::to_string(ch) +
-                                                              "-QueueSizeGuess",
-                                                          daqling::core::metrics::LAST_VALUE);
+      for (auto & [ ch, sender ] : m_connections.getSenderMap()) {
         m_statistics->registerMetric<std::atomic<size_t>>(
-            &m_connections.getSenderMsgStat(ch), "SenderCh" + std::to_string(ch) + "-NumMessages",
+            &sender->getPcqSize(), "SenderCh" + std::to_string(ch) + "-QueueSizeGuess",
+            daqling::core::metrics::LAST_VALUE);
+        m_statistics->registerMetric<std::atomic<size_t>>(
+            &sender->getMsgsHandled(), "SenderCh" + std::to_string(ch) + "-NumMessages",
             daqling::core::metrics::RATE);
       }
     } catch (const ers::Issue &i) {
