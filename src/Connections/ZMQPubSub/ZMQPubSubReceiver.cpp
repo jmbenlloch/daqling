@@ -23,6 +23,8 @@
 using namespace daqling::connection;
 
 REGISTER_RECEIVER(ZMQPubSubReceiver, "ZMQPubSub")
+
+ZMQPubSubReceiver::~ZMQPubSubReceiver() { m_socket->setsockopt(ZMQ_LINGER, 1); }
 ZMQPubSubReceiver::ZMQPubSubReceiver(uint chid, const nlohmann::json &j)
     : daqling::core::Receiver(chid) {
   try {

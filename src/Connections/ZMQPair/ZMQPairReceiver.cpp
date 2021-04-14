@@ -24,7 +24,7 @@
 using namespace daqling::connection;
 
 REGISTER_RECEIVER(ZMQPairReceiver, "ZMQPair")
-
+ZMQPairReceiver::~ZMQPairReceiver() { m_socket->setsockopt(ZMQ_LINGER, 1); }
 ZMQPairReceiver::ZMQPairReceiver(uint chid, const nlohmann::json &j)
     : daqling::core::Receiver(chid) {
   try {

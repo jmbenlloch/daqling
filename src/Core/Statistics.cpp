@@ -62,7 +62,6 @@ Statistics::Statistics(nlohmann::json &j, unsigned interval) : m_interval{interv
 }
 
 Statistics::~Statistics() {
-  ERS_DEBUG(0, "HI FROM DESTRUCTOR");
   std::unique_lock<std::mutex> lck(m_mtx);
   m_reg_metrics.clear();
   m_reg_metrics.shrink_to_fit();
@@ -92,12 +91,12 @@ bool Statistics::setupStatsConnection(uint8_t ioT, const std::string &connStr) {
 }
 
 bool Statistics::unsetStatsConnection() {
-  ERS_DEBUG(0, "HI FROM UNSET");
   if (m_stat_thread.joinable()) {
     m_stop_thread = true;
     m_stat_thread.join();
   }
   if (m_zmq_publisher) {
+    m_stat_socket->setsockopt(ZMQ_LINGER, 1);
     m_stat_socket.reset();
     m_stats_context.reset();
     m_is_stats_setup = false;
