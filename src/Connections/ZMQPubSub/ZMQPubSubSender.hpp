@@ -27,6 +27,12 @@ namespace connection {
 class ZMQPubSubSender : public daqling::core::Sender {
 public:
   ZMQPubSubSender(uint chid, const nlohmann::json &j);
+  ~ZMQPubSubSender() override;
+  // Prevent copying and moving.
+  ZMQPubSubSender(ZMQPubSubSender const &) = delete;            // Copy construct
+  ZMQPubSubSender(ZMQPubSubSender &&) = delete;                 // Move construct
+  ZMQPubSubSender &operator=(ZMQPubSubSender const &) = delete; // Copy assign
+  ZMQPubSubSender &operator=(ZMQPubSubSender &&) = delete;      // Move assign
 
 protected:
   bool send(const daqling::utilities::Binary &bin) override;

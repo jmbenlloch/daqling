@@ -23,7 +23,7 @@
 using namespace daqling::connection;
 
 REGISTER_SENDER(ZMQPubSubSender, "ZMQPubSub")
-
+ZMQPubSubSender::~ZMQPubSubSender() { m_socket->setsockopt(ZMQ_LINGER, 1); }
 ZMQPubSubSender::ZMQPubSubSender(uint chid, const nlohmann::json &j) : daqling::core::Sender(chid) {
   try {
     std::string connStr;

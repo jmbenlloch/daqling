@@ -26,6 +26,12 @@ namespace connection {
 class ZMQPubSubReceiver : public daqling::core::Receiver {
 public:
   ZMQPubSubReceiver(uint chid, const nlohmann::json &j);
+  ~ZMQPubSubReceiver() override;
+  // Prevent copying and moving.
+  ZMQPubSubReceiver(ZMQPubSubReceiver const &) = delete;            // Copy construct
+  ZMQPubSubReceiver(ZMQPubSubReceiver &&) = delete;                 // Move construct
+  ZMQPubSubReceiver &operator=(ZMQPubSubReceiver const &) = delete; // Copy assign
+  ZMQPubSubReceiver &operator=(ZMQPubSubReceiver &&) = delete;      // Move assign
   void set_sleep_duration(uint ms) override;
 
 protected:

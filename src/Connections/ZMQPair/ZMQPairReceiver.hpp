@@ -27,7 +27,12 @@ class ZMQPairReceiver : public daqling::core::Receiver {
 public:
   ZMQPairReceiver(uint chid, const nlohmann::json &j);
   void set_sleep_duration(uint ms) override;
-
+  ~ZMQPairReceiver() override;
+  // Prevent copying and moving.
+  ZMQPairReceiver(ZMQPairReceiver const &) = delete;            // Copy construct
+  ZMQPairReceiver(ZMQPairReceiver &&) = delete;                 // Move construct
+  ZMQPairReceiver &operator=(ZMQPairReceiver const &) = delete; // Copy assign
+  ZMQPairReceiver &operator=(ZMQPairReceiver &&) = delete;      // Move assign
 protected:
   bool receive(daqling::utilities::Binary &bin) override;
   bool sleep_receive(daqling::utilities::Binary &bin) override;

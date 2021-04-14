@@ -27,6 +27,12 @@ namespace connection {
 class ZMQPairSender : public daqling::core::Sender {
 public:
   ZMQPairSender(uint chid, const nlohmann::json &j);
+  ~ZMQPairSender() override;
+  // Prevent copying and moving.
+  ZMQPairSender(ZMQPairSender const &) = delete;            // Copy construct
+  ZMQPairSender(ZMQPairSender &&) = delete;                 // Move construct
+  ZMQPairSender &operator=(ZMQPairSender const &) = delete; // Copy assign
+  ZMQPairSender &operator=(ZMQPairSender &&) = delete;      // Move assign
 
 protected:
   bool send(const daqling::utilities::Binary &bin) override;
