@@ -37,9 +37,8 @@ while True:
     for name, p in daqling_procs.items():
       with p.oneshot():
         # print(p.cmdline(), flush=True)
-        msg = name+'-'+'cpu_percent: '+str(p.cpu_percent())
-        socket.send_string(msg)
-        msg = name+'-'+'memory_percent: '+str(p.memory_percent())
+        time_point = str(time.time()).replace('.','').ljust(19,'0')
+        msg = name+'-'+'cpu_percent value='+str(p.cpu_percent())+' '+time_point+'\n'+name+'-'+'memory_percent value='+str(p.memory_percent())+' '+time_point+'\n'
         socket.send_string(msg)
     time.sleep(1)
   except Exception as e:

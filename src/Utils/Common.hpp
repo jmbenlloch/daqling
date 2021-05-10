@@ -76,9 +76,24 @@ public:
 
   void reset() { beg_ = clock_::now(); }
 
-  double elapsed() const { return std::chrono::duration_cast<DT>(clock_::now() - beg_).count(); }
+  double elapsed() const {
+    return std::chrono::duration_cast<interval_>(clock_::now() - beg_).count();
+  }
+  void expires_from_now(double duration) {
+    this->reset();
+    dur = interval_(duration);
+  }
+  bool expired() { return std::chrono::duration_cast<interval_>(clock_::now() - beg_) >= dur; }
+  void wait() {
+    if (!expired()) {
+      std::this_thread::sleep_for(dur -
+                                  std::chrono::duration_cast<interval_>(clock_::now() - beg_));
+    }
+  }
 
 private:
+  using interval_ = std::chrono::duration<double, DT>;
+  interval_ dur;
   using clock_ = std::chrono::high_resolution_clock;
   // typedef std::chrono::duration<double, std::ratio<1> > second_;
   std::chrono::time_point<clock_> beg_;

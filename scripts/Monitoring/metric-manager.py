@@ -119,20 +119,21 @@ except Exception as e:
   subscribe_all = True
   print("Metrics configuration not provided - subscribing all possible metrics!", flush=True)
 
-
+#Change to use multiple here.
 while 1:
   string = socket.recv()
-  name = string.split(b':')[0].decode()
-  json_body = [
-		{
-			"measurement": name,
-			"fields": {
-				"value": float(string.split()[1].decode())
-			}
-		}
-  ]
+  if string==b'':
+    continue
+  decoded_string = string.decode()
   if use_influxDB == True and (subscribe_all == True or metric_dest[name] == "i" or metric_dest[name] == "b"):
-    client.write_points(json_body)  
+    client.write_points(decoded_string,protocol='line')  
   
   if use_redis == True and (subscribe_all == True or metric_dest[name] == "r" or metric_dest[name] == "b"):
-    r.rpush(name, str(time.time())+':'+string.split()[1].decode())
+    for point in decoded_string.split("\n"):
+      print(point)
+      if not point:
+        continue
+      name=point.split(' ')[0]
+      value=point.split('value=')[1].split(' ')[0]
+      time_point=point.split(' ')[2]
+      r.rpush(name,time_point +':'+value)

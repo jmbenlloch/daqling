@@ -180,6 +180,9 @@
         "influxDb_name": {
           "type": "string",
           "default": "DAQlingMetrics"
+        },
+        "stats_interval":{
+          "type":"integer"
         }
       },
       "required": [
@@ -195,6 +198,9 @@
         "stats_uri": {
           "type": "string",
           "default": "tcp://localhost:6007"
+        },
+        "stats_interval":{
+          "type":"integer"
         }
       },
       "required": [
