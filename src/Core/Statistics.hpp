@@ -20,6 +20,7 @@
 
 #include "Configuration.hpp"
 #include "Metric.hpp"
+#include "Utils/Common.hpp"
 #include "Utils/Ers.hpp"
 #include <atomic>
 #include <string>
@@ -47,7 +48,7 @@ namespace core {
 
 class Statistics {
 public:
-  Statistics(nlohmann::json &j, unsigned interval = 500);
+  Statistics(nlohmann::json &j);
   ~Statistics();
   Statistics(Statistics const &) = delete;            // Copy construct
   Statistics(Statistics &&) = delete;                 // Move construct
@@ -63,19 +64,18 @@ public:
   bool isStatsOn() { return m_stats_on; }
   void start();
 
-  template <class T>
-  void registerMetric(T *pointer, std::string name, metrics::metric_type mtype, float delta_t = 1) {
+  template <class T> void registerMetric(T *pointer, std::string name, metrics::metric_type mtype) {
     name = m_name + "-" + name;
     if (typeid(T) == typeid(std::atomic<int>)) {
-      registerVariable<T, int>(pointer, name, mtype, metrics::INT, delta_t);
+      registerVariable<T, int>(pointer, name, mtype, metrics::INT);
     } else if (typeid(T) == typeid(std::atomic<float>)) {
-      registerVariable<T, float>(pointer, name, mtype, metrics::FLOAT, delta_t);
+      registerVariable<T, float>(pointer, name, mtype, metrics::FLOAT);
     } else if (typeid(T) == typeid(std::atomic<double>)) {
-      registerVariable<T, double>(pointer, name, mtype, metrics::DOUBLE, delta_t);
+      registerVariable<T, double>(pointer, name, mtype, metrics::DOUBLE);
     } else if (typeid(T) == typeid(std::atomic<bool>)) {
-      registerVariable<T, bool>(pointer, name, mtype, metrics::BOOL, delta_t);
+      registerVariable<T, bool>(pointer, name, mtype, metrics::BOOL);
     } else if (typeid(T) == typeid(std::atomic<size_t>)) {
-      registerVariable<T, size_t>(pointer, name, mtype, metrics::SIZE, delta_t);
+      registerVariable<T, size_t>(pointer, name, mtype, metrics::SIZE);
     } else {
       ERS_WARNING("Failed to register metric " << name
                                                << ": Unsupported metric type! Supported types:\n"
@@ -89,13 +89,9 @@ public:
 
   template <class T, class U>
   void registerVariable(T *pointer, std::string name, metrics::metric_type mtype,
-                        metrics::variable_type vtype, float delta_t = 1) {
-    if (delta_t < m_interval / 1000) {
-      delta_t = m_interval;
-      ERS_WARNING("delta_t parameter of registerVariable(...) function can not be smaller than "
-                  "m_interval! Setting delta_t to m_interval value.");
-    }
-    std::shared_ptr<Metric<T, U>> metric(new Metric<T, U>(pointer, name, mtype, vtype, delta_t));
+                        metrics::variable_type vtype) {
+
+    std::shared_ptr<Metric<T, U>> metric(new Metric<T, U>(pointer, name, mtype, vtype));
     std::shared_ptr<Metric_base> metric_base = std::dynamic_pointer_cast<Metric_base>(metric);
     std::lock_guard<std::mutex> lck(m_mtx);
     m_reg_metrics.push_back(metric_base);
@@ -112,6 +108,37 @@ public:
     U value = *(metric->m_metrics_ptr);
     *(metric->m_metrics_ptr) = 0.;
     metric->m_values.push_back(value);
+  }
+
+  void flushPublishValues() {
+    static daqling::utilities::Timer<std::micro> timer;
+    ERS_INFO("Batch publishing. Time elapsed: " << timer.elapsed());
+    timer.reset();
+    if (m_zmq_publisher) {
+      // Move rest of posting to new func
+      if (influx_msg.str().empty()) {
+        return;
+      }
+      zmq::message_t message(influx_msg.str().size() - 1);
+      memcpy(message.data(), influx_msg.str().data(), influx_msg.str().size() - 1);
+      ERS_DEBUG(0, " MSG " << influx_msg.str());
+      bool rc = m_stat_socket->send(message);
+      influx_msg.str("");
+      if (!rc) {
+        ERS_WARNING("Failed to publish metrics");
+      }
+    }
+    if (m_influxDb) {
+#ifdef BUILD_WITH_CPR
+
+      auto r = cpr::Post(cpr::Url{m_influxDb_uri + m_influxDb_name}, cpr::Body{influx_msg.str()},
+                         cpr::Header{{"Content-Type", "text/plain"}});
+      influx_msg.str("");
+      ERS_DEBUG(0, "InfluxDB response: " << r.status_code << "\t" << r.text);
+#else
+      throw NoHTTPSupport(ERS_HERE);
+#endif
+    }
   }
 
   template <class T, class U> void publishValue(Metric_base *m) {
@@ -143,9 +170,13 @@ public:
       metric->m_values.clear();
       metric->m_values.shrink_to_fit();
       metric->m_values.push_back(value);
-      if (std::difftime(std::time(nullptr), metric->m_timestamp) != 0) {
-        value = (value - last_value) /
-                static_cast<U>(std::difftime(std::time(nullptr), metric->m_timestamp));
+      if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() -
+                                                                metric->m_timestamp) !=
+          std::chrono::milliseconds(0)) {
+        value = (value - last_value) * 1000 /
+                static_cast<U>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                                   std::chrono::system_clock::now() - metric->m_timestamp)
+                                   .count());
       } else {
         ERS_WARNING(
             "Too short time interval to calculate RATE! Extend delta_t parameter of your metric");
@@ -153,35 +184,20 @@ public:
       }
     }
 
-    metric->m_timestamp = std::time(nullptr);
+    metric->m_timestamp = std::chrono::system_clock::now();
 
-    if (m_zmq_publisher) {
-      std::ostringstream msg;
-      msg << metric->m_name << ": " << value;
-      zmq::message_t message(msg.str().size());
-      memcpy(message.data(), msg.str().data(), msg.str().size());
-      ERS_DEBUG(0, " MSG " << msg.str());
-      bool rc = m_stat_socket->send(message);
-      if (!rc) {
-        ERS_WARNING("Failed to publish metric: " << metric->m_name);
-      }
-    }
-    if (m_influxDb) {
-      ERS_DEBUG(0, "Sending the metric: " << metric->m_name << " value: " << std::to_string(value)
-                                          << " to influxDB");
-      ERS_DEBUG(0, m_influxDb_uri + m_influxDb_name);
-#ifdef BUILD_WITH_CPR
-      auto r = cpr::Post(cpr::Url{m_influxDb_uri + m_influxDb_name},
-                         cpr::Payload{{metric->m_name + " value", std::to_string(value)}});
-      ERS_DEBUG(0, "InfluxDB response: " << r.status_code << "\t" << r.text);
-#else
-      throw NoHTTPSupport(ERS_HERE);
-#endif
-    }
+    ERS_DEBUG(0, "Sending the metric: " << metric->m_name << " value: " << std::to_string(value)
+                                        << " to influxDB");
+    ERS_DEBUG(0, m_influxDb_uri + m_influxDb_name);
+    influx_msg << metric->m_name << " value=" << value << " "
+               << metric->m_timestamp.time_since_epoch().count() << "\n";
   }
   bool unsetStatsConnection();
 
 private:
+  // Publishing messages
+  std::ostringstream influx_msg;
+
   // Thread control
   std::thread m_stat_thread;
   std::atomic<bool> m_stop_thread{};

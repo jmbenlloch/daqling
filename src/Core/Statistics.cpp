@@ -16,10 +16,9 @@
  */
 
 #include "Statistics.hpp"
-
 using namespace daqling::core;
 
-Statistics::Statistics(nlohmann::json &j, unsigned interval) : m_interval{interval} {
+Statistics::Statistics(nlohmann::json &j) {
   m_stop_thread = false;
   m_influxDb = false;
   m_zmq_publisher = false;
@@ -28,7 +27,11 @@ Statistics::Statistics(nlohmann::json &j, unsigned interval) : m_interval{interv
   auto statsURI = j["stats_uri"];
   auto influxDbURI = j["influxDb_uri"];
   auto influxDbName = j["influxDb_name"];
-
+  if (j.contains("stats_interval")) {
+    m_interval = j.at("stats_interval").get<unsigned>();
+  } else {
+    m_interval = 500;
+  }
   ERS_INFO("Setting up statistics on: " << statsURI);
   if ((statsURI.empty() || statsURI == nullptr) &&
       (influxDbURI.empty() || influxDbURI == nullptr)) {
@@ -49,6 +52,7 @@ Statistics::Statistics(nlohmann::json &j, unsigned interval) : m_interval{interv
   }
 
   if (!influxDbURI.empty() && influxDbURI != nullptr) {
+    ERS_INFO("Setting up influx posting");
     this->setInfluxDBname(influxDbName);
     this->setInfluxDBuri(influxDbURI);
     this->setInfluxDBsending(true);
@@ -62,6 +66,7 @@ Statistics::Statistics(nlohmann::json &j, unsigned interval) : m_interval{interv
 }
 
 Statistics::~Statistics() {
+  ERS_DEBUG(0, "HI FROM DESTRUCTOR");
   std::unique_lock<std::mutex> lck(m_mtx);
   m_reg_metrics.clear();
   m_reg_metrics.shrink_to_fit();
@@ -117,7 +122,8 @@ void Statistics::start() {
 
 void Statistics::CheckStatistics() {
   ERS_INFO("Statistics thread about to spawn...");
-
+  daqling::utilities::Timer<std::milli> deadlineTimer;
+  deadlineTimer.expires_from_now(m_interval);
   while (!m_stop_thread) {
     std::unique_lock<std::mutex> lck(m_mtx);
     for (auto &m : m_reg_metrics) {
@@ -162,28 +168,31 @@ void Statistics::CheckStatistics() {
         };
       }
 
-      if (std::difftime(std::time(nullptr), x->m_timestamp) >= x->m_delta_t) {
-        switch (x->m_vtype) {
-        case metrics::FLOAT:
-          publishValue<std::atomic<float>, float>(x);
-          break;
-        case metrics::INT:
-          publishValue<std::atomic<int>, int>(x);
-          break;
-        case metrics::DOUBLE:
-          publishValue<std::atomic<double>, double>(x);
-          break;
-        case metrics::BOOL:
-          publishValue<std::atomic<bool>, bool>(x);
-          break;
-        case metrics::SIZE:
-          publishValue<std::atomic<size_t>, size_t>(x);
-          break;
-        };
-      }
+      switch (x->m_vtype) {
+      case metrics::FLOAT:
+        publishValue<std::atomic<float>, float>(x);
+        break;
+      case metrics::INT:
+        publishValue<std::atomic<int>, int>(x);
+        break;
+      case metrics::DOUBLE:
+        publishValue<std::atomic<double>, double>(x);
+        break;
+      case metrics::BOOL:
+        publishValue<std::atomic<bool>, bool>(x);
+        break;
+      case metrics::SIZE:
+        publishValue<std::atomic<size_t>, size_t>(x);
+        break;
+      };
     }
+    // Publish metrics.
     lck.unlock();
-    std::this_thread::sleep_for(std::chrono::milliseconds(m_interval));
+    // wait for timer expiration
+    deadlineTimer.wait();
+    deadlineTimer.expires_from_now(m_interval);
+    // Post values
+    flushPublishValues();
   }
 
 } // CheckStatistics

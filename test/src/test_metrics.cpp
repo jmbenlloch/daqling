@@ -37,7 +37,7 @@ int main(int /*unused*/, char ** /*unused*/) {
 
   stat.registerVariable<std::atomic<float>, float>(&buffer_occupation, "AverageBufferOccupation",
                                                    daqling::core::metrics::AVERAGE,
-                                                   daqling::core::metrics::FLOAT, 2);
+                                                   daqling::core::metrics::FLOAT);
   stat.registerVariable<std::atomic<float>, float>(&buffer_occupation, "BufferOccupation",
                                                    daqling::core::metrics::LAST_VALUE,
                                                    daqling::core::metrics::FLOAT);
