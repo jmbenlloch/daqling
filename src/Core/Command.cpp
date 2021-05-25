@@ -213,7 +213,7 @@ public:
     } catch (ers::Issue &i) {
       response = "Failure";
       ers::error(CommandIssue(ERS_HERE, i));
-      command.setState("error");
+      command.setState(entry_state);
     } catch (std::exception const &e) {
       ers::fatal(UnknownException(ERS_HERE, e.what()));
     }

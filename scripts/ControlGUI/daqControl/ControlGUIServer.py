@@ -22,8 +22,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..','..', 'Control'))
 from nodetree import NodeTree
 from daqcontrol import daqcontrol as daqctrl
 
-configPath = os.path.join(env['DAQ_CONFIG_DIR'], 'ControlGUI')
-
+configPath = os.path.join(env['DAQ_CONFIG_DIR'])
 
 with open(os.path.join(os.path.dirname(__file__), 'serverconfiguration.json')) as f:
   serverConfigJson = json.load(f)
@@ -38,29 +37,27 @@ root = threading.local()
 mainRoot = None
 ALLOWED_EXTENSIONS = set(serverConfigJson['ALLOWED_EXTENSIONS'])
 whoInterlocked = {}
-whoInterlocked['Choose the configuration file'] = [None, 0]
+whoInterlocked[''] = [None, 0]
 TIMEOUT = serverConfigJson['timeout_for_requests_secs']
 LOGOUT_URL = serverConfigJson['LOGOUT_URL']
 
-def systemConfiguration(configPath):
+def systemConfiguration(configName, configPath):
     global sysConf
-    listOF = getConfigsInDir(configPath)
-    for file in listOF:
-        with open(os.path.join(configPath, file)) as f:
-            configJson = json.load(f)
-        f.close()
-        if file not in sysConf:
-            try:
-                sysConf[file] = reinitTree(configJson)
-            except Exception as e:
-                logAndEmit('general', 'ERROR', str(e))
-                logAndEmit('general', 'WARNING', 'Due to the invalidity, '+file+' has been deleted')
-                os.remove(os.path.join(configPath, file))
+    with open(os.path.join(configPath, 'config-dict.json')) as f:
+        configJson = json.load(f)
+    f.close()
+    if configName not in sysConf:
+        try:
+            sysConf[configName] = reinitTree(configJson)
+        except Exception as e:
+            logAndEmit('general', 'ERROR', str(e))
 
 def getConfigsInDir(configPath):
     listOfFiles = []
-    for filename in os.listdir(configPath):
-        listOfFiles.append(filename)
+    for d in os.listdir(configPath):
+        conf_path = os.path.join(configPath, d)
+        if not os.path.isfile(conf_path) and "config-dict.json" in os.listdir(conf_path):
+            listOfFiles.append(d)
     return listOfFiles
 
 def reinitTree(configJson, oldRoot=None):
@@ -68,14 +65,14 @@ def reinitTree(configJson, oldRoot=None):
         for pre, _, node in RenderTree(oldRoot):
             node.stopStateCheckers()
     #try:
-    with open(os.path.join(env['DAQ_CONFIG_DIR'], configJson['tree'])) as f:
+    with open(os.path.join(session['configPath'], configJson['tree'])) as f:
         tree = json.load(f)
     f.close()
     #except:
     #    raise Exception("Invalid tree configuration")
 
     try:
-        with open(os.path.join(env['DAQ_CONFIG_DIR'], configJson['fsm_rules'])) as f:
+        with open(os.path.join(session['configPath'], configJson['fsm_rules'])) as f:
             fsm_rules = json.load(f)
         f.close()
     except:
@@ -84,8 +81,8 @@ def reinitTree(configJson, oldRoot=None):
     state_action = fsm_rules["fsm"]
     order_rules = fsm_rules["order"]
     # try:
-    with open(os.path.join(env['DAQ_CONFIG_DIR'], configJson['config'])) as f:
-        base_dir_uri = Path(env['DAQ_CONFIG_DIR']).as_uri() + '/'
+    with open(os.path.join(session['configPath'], configJson['config'])) as f:
+        base_dir_uri = Path(session['configPath']).as_uri() + '/'
         jsonref_obj = jsonref.load(f, base_uri=base_dir_uri, loader=jsonref.JsonLoader())
     f.close()
 
@@ -110,7 +107,7 @@ def reinitTree(configJson, oldRoot=None):
     else:
         dir = env['DAQ_BUILD_DIR']
     exe = "/bin/daqling"
-    lib_path = 'LD_LIBRARY_PATH=' + env['LD_LIBRARY_PATH'] + ':' + dir + '/lib/'
+    lib_path = 'LD_LIBRARY_PATH=' + env['LD_LIBRARY_PATH'] + ':' + dir + '/lib/,TDAQ_ERS_STREAM_LIBS=DaqlingStreams'
     components = configuration["components"]
 
     dc = daqctrl(group)
@@ -128,22 +125,23 @@ def reinitTree(configJson, oldRoot=None):
 
         node.startStateCheckers()
     return newRoot
+
 def executeComm(ctrl, action):
     r = ''
-    configFile = session['configFile']
-    logAndEmit(configFile, 'INFO', 'User ' + session['user']['cern_upn'] + ' has sent command '+action+' on node '+ctrl)
+    configName = session['configName']
+    logAndEmit(configName, 'INFO', 'User ' + session['user']['cern_upn'] + ' has sent command '+action+' on node '+ctrl)
     global sysConf
     try:
       if action == "exclude":
-        r = find_by_attr(sysConf[session['configFile']], ctrl).exclude()
+        r = find_by_attr(sysConf[session['configName']], ctrl).exclude()
       elif action == "include":
-        r = find_by_attr(sysConf[session['configFile']], ctrl).include()
+        r = find_by_attr(sysConf[session['configName']], ctrl).include()
       else:
-        r = find_by_attr(sysConf[session['configFile']], ctrl).executeAction(action)
+        r = find_by_attr(sysConf[session['configName']], ctrl).executeAction(action)
     except Exception as e:
-      logAndEmit(configFile,'ERROR', ctrl+': '+str(e))
+      logAndEmit(configName,'ERROR', ctrl+': '+str(e))
     if r != '':
-        logAndEmit(configFile, 'INFO', ctrl + ': ' + str(r))
+        logAndEmit(configName, 'INFO', ctrl + ': ' + str(r))
     return r
 def allowedFile(filename):
     return '.' in filename and \
@@ -176,6 +174,7 @@ def getStatesList(locRoot):
     for pre, _, node in RenderTree(locRoot):
         list[node.name] = [find_by_attr(locRoot, node.name).getState(), find_by_attr(locRoot, node.name).inconsistent,find_by_attr(locRoot, node.name).included]
     return list
+
 def stateChecker():
     global whoInterlocked
     l1 = {}
@@ -186,7 +185,7 @@ def stateChecker():
         whoValue[file] = whoInterlocked[file]
     while True:
         files = getConfigsInDir(configPath)
-        for file in files:
+        for file in sysConf:
             if file not in whoInterlocked:
                 whoInterlocked[file] = [None, 0]
                 whoValue[file] = [None, 0]
@@ -198,12 +197,12 @@ def stateChecker():
             if whoValue[file][0] != whoInterlocked[file][0]:
                 socketio.emit('interlockChng', whoInterlocked[file][0], broadcast=True)
             whoValue[file] = whoInterlocked[file]
-            l2[file]=getStatesList(sysConf[file])
+            l2[file] = getStatesList(sysConf[file])
             try:
                 if l1[file] != l2[file]:
-                    socketio.emit('stsChng'+file,l2[file], broadcast=True)
-            except:
-                pass
+                    socketio.emit('stsChng'+file, l2[file], broadcast=True)
+            except Exception as e:
+                print("Exception", e)
             l1[file] = l2[file]
         time.sleep(0.5)
 
@@ -224,7 +223,7 @@ app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=serverConfigJson['timeout_session_expiration_mins'])
 
 
-systemConfiguration(configPath)
+# systemConfiguration(configPath+"demo-tree")
 
 
 def nocache(view):
@@ -252,8 +251,9 @@ def login():
     else:
         session['user'] = {}
         session['user']['cern_upn']  = "local_user"
-        session['configFile'] = 'Choose the configuration file'
-        session['configFileContent'] = ""
+        session['configName'] = ''
+        session['configPath'] = ''
+        session['configDict'] = ""
         return redirect(url_for('index'))
 
 @app.route('/login/callback', methods=['GET'])
@@ -270,8 +270,9 @@ def login_callback():
 
     userinfo = keycloak_client.fetch_userinfo(access_token)
     session['user'] = userinfo
-    session['configFile'] = 'Choose the configuration file'
-    session['configFileContent'] = ""
+    session['configName'] = ''
+    session['configPath'] = ''
+    session['configDist'] = ""
     logAndEmit('general', 'INFO', 'User connected: '+session['user']['cern_upn'])
     return redirect(url_for('index'))
 
@@ -296,36 +297,36 @@ def index():
     print(whoInterlocked)
     if 'user' in session:
         print(whoInterlocked)
-        return render_template('index.html', usr=session['user']['cern_upn'], wholocked=whoInterlocked[session['configFile']][0], currConfigFile = session['configFile'], statesGraphics=serverConfigJson['states'], displayName=serverConfigJson['displayedName'] )
+        return render_template('index.html', usr=session['user']['cern_upn'], wholocked=whoInterlocked[session['configName']][0], currConfigFile = session['configName'], statesGraphics=serverConfigJson['states'], displayName=serverConfigJson['displayedName'] )
     return redirect(url_for('login'))
 
 @app.route('/interlock', methods=['POST'])
 def interlock():
     global whoInterlocked
-    if whoInterlocked[session['configFile']][0] == None:
-        whoInterlocked[session['configFile']] = [session['user']['cern_upn'], datetime.now()]
-        logAndEmit(session['configFile'], 'INFO', 'User ' + session['user']['cern_upn'] + ' has TAKEN control of configuration '+session['configFile'])
+    if whoInterlocked[session['configName']][0] == None:
+        whoInterlocked[session['configName']] = [session['user']['cern_upn'], datetime.now()]
+        logAndEmit(session['configName'], 'INFO', 'User ' + session['user']['cern_upn'] + ' has TAKEN control of configuration '+session['configName'])
         return "Control has been taken"
     else:
-        if whoInterlocked[session['configFile']][0] == session["user"]['cern_upn']:
-            logAndEmit(session['configFile'], 'INFO', 'User ' + session['user']['cern_upn'] + ' has RELEASED control of configuration ' + session['configFile'])
-            whoInterlocked[session['configFile']] = [None, 0]
+        if whoInterlocked[session['configName']][0] == session["user"]['cern_upn']:
+            logAndEmit(session['configName'], 'INFO', 'User ' + session['user']['cern_upn'] + ' has RELEASED control of configuration ' + session['configName'])
+            whoInterlocked[session['configName']] = [None, 0]
             return "Control has been released"
         else:
-            logAndEmit(session['configFile'], 'WARNING', 'User ' + session['user']['cern_upn'] + ' ATTEMPTED to take control of configuration ' + session['configFile']+' but failed, because it is controlled by '+ str(whoInterlocked[session['configFile']][0]))
-            return "Controlled by user " + str(whoInterlocked[session['configFile']][0])
+            logAndEmit(session['configName'], 'WARNING', 'User ' + session['user']['cern_upn'] + ' ATTEMPTED to take control of configuration ' + session['configName']+' but failed, because it is controlled by '+ str(whoInterlocked[session['configName']][0]))
+            return "Controlled by user " + str(whoInterlocked[session['configName']][0])
 
 
 @app.route('/ajaxParse', methods=['POST'])
 def ajaxParse():
     node =  request.form['node']
     command = request.form['command']
-    configFile = session['configFile']
-    whoInterlocked[session['configFile']][1] = datetime.now()
+    configName = session['configName']
+    whoInterlocked[session['configName']][1] = datetime.now()
     try:
         r = executeComm(node, command)
     except Exception as e:
-        logAndEmit(configFile,'ERROR', str(e))
+        logAndEmit(configName,'ERROR', str(e))
     time.sleep(TIMEOUT)
     return jsonify(r)
     
@@ -334,8 +335,9 @@ def logout():
     if serverConfigJson['SSO_enabled'] == 1:
         logAndEmit('general', 'INFO', 'User disconnected: ' + session['user']['cern_upn'])
         session.pop('user', None)
-        session.pop('configFile', None)
-        session.pop('configFileContent', None)
+        session.pop('configName', None)
+        session.pop('configPath', None)
+        session.pop('configDict', None)
         return redirect("{}?redirect_uri={}".format(
             LOGOUT_URL,
             url_for('index', _external=True))
@@ -346,18 +348,21 @@ def logout():
 @app.route('/urlTreeJson')
 def urlTreeJson():
     try:
-        with open(os.path.join(env['DAQ_CONFIG_DIR'], session['configFileContent']['tree']), 'r') as file:
+        with open(os.path.join(session['configPath'], session['configDict']['tree']), 'r') as file:
             return file.read().replace('name', 'text')
     except:
         return "error"
+
 @app.route('/configsJson', methods=['GET', 'POST'])
 def configsJson():
     if request.form.get('configFile'):
-        session['configFile'] = request.form['configFile']
-        logAndEmit(session['configFile'], 'INFO', 'User ' + session['user']['cern_upn'] + ' has switched to configuration ' + session['configFile'])
-        with open(os.path.join(env['DAQ_CONFIG_DIR'], 'ControlGUI', request.form['configFile'])) as f:
-            session['configFileContent'] = json.load(f)
+        session['configName'] = request.form['configFile']
+        logAndEmit(session['configName'], 'INFO', 'User ' + session['user']['cern_upn'] + ' has switched to configuration ' + session['configName'])
+        session['configPath'] = os.path.join(env['DAQ_CONFIG_DIR'], request.form['configFile'])
+        with open(os.path.join(session['configPath'], 'config-dict.json')) as f:
+            session['configDict'] = json.load(f)
         f.close()
+        systemConfiguration(session['configName'], session['configPath'])
         return "Success"
     else:
         return jsonify(getConfigsInDir(configPath))
@@ -365,7 +370,7 @@ def configsJson():
 @app.route('/fsmrulesJson', methods=['GET', 'POST'])
 def fsmrulesJson():
     try:
-        with open(os.path.join(env['DAQ_CONFIG_DIR'], session['configFileContent']['fsm_rules'])) as f:
+        with open(os.path.join(session['configPath'], session['configDict']['fsm_rules'])) as f:
                 fsmRules = json.load(f)
         f.close()
     except:
@@ -375,7 +380,7 @@ def fsmrulesJson():
 @app.route('/grafanaJson', methods=['GET', 'POST'])
 def grafanaJson():
     try:
-        with open(os.path.join(env['DAQ_CONFIG_DIR'], session['configFileContent']['grafana'])) as f:
+        with open(os.path.join(session['configPath'], session['configDict']['grafana'])) as f:
                 grafanaConfig = json.load(f)
         f.close()
     except:
@@ -395,9 +400,10 @@ def uploadMainConfigurationFile():
 def statesList():
     global sysConf
     list = {}
-    list = getStatesList(sysConf[session['configFile']])
-    list['whoLocked'] = whoInterlocked[session['configFile']][0]
+    list = getStatesList(sysConf[session['configName']])
+    list['whoLocked'] = whoInterlocked[session['configName']][0]
     return list
+
 @socketio.on('connect', namespace='/')
 def connect():
     print('Client connected')

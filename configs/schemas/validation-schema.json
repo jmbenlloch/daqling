@@ -10,7 +10,7 @@
   "properties": {
     "version": {
       "type": "integer",
-      "description": "Configuration version",
+      "description": "Schema version",
       "minimum": 9,
       "maximum": 10,
       "default": 10

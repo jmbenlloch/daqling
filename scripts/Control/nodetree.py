@@ -55,7 +55,8 @@ class NodeTree(NodeMixin):
       self.port = self.pconf['port']
       loglvl_core = self.pconf['loglevel']['core']
       loglvl_module = self.pconf['loglevel']['module']
-      self.full_exe = exe+" "+self.name+" "+str(self.port)+" "+loglvl_core+" "+loglvl_module
+      loglvl_connection = self.pconf['loglevel']['connection']
+      self.full_exe = exe+" --name "+self.name+" --port "+str(self.port)+" --core_lvl "+loglvl_core+" --module_lvl "+loglvl_module+" --connection_lvl "+loglvl_connection
       self.lib_path = lib_path
 
   ## Start node state checkers
