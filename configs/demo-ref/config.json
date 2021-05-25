@@ -2,7 +2,8 @@
   "common": {
     "loglevel": {
       "core": "WARNING",
-      "module": "INFO"
+      "module": "INFO",
+      "connection": "WARNING"
     },
     "metrics_settings": {
       "influxDb_uri": "http://localhost:8086/write?db=",

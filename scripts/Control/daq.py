@@ -24,12 +24,13 @@ import jsonschema
 from jsonschema import validate
 from functools import partial
 from daqcontrol import daqcontrol
+import config_interface
 import concurrent.futures
 import threading
 import zmq
 from time import sleep
-from pathlib import Path
 from copy import deepcopy
+import argparse
 
 def spawnJoin(list, func):
   futures = []
@@ -47,15 +48,11 @@ def spawnJoin(list, func):
   return rvs
 
 
-def print_help():
-  print("First argument must be a .json configuration file.\n"
-        "Available second arguments: 'remove' 'add' 'configure' 'complete'.")
-
 def signal_handler(sig, frame):
   print("Ctrl+C: shutting down")
   sc.stop_check_threads()
   spawnJoin(data['components'], dc.shutdownProcess)
-  if arg != 'configure':
+  if args.arg!= 'configure':
     try:
       dc.removeProcesses(data['components'])
     except Exception as e:
@@ -96,25 +93,35 @@ class statusChecker():
 
 
 ## Main
+parser = argparse.ArgumentParser(description='Runner service for DAQling.')
+parser.add_argument('--remote', dest='json_source', action='store_const',
+                    const=True, default=False,
+                    help='Gets remote json-configs from database, default is local file.')
+parser.add_argument('json_identifier', metavar='config_name', type=str, 
+                    help='JSON configuration file or name of DB configuration sets for running DAQling. Use \"--remote list\" to print the list of available configuration sets.')
+parser.add_argument('arg', metavar='command', type=str, nargs='?', 
+                    default='complete',
+                    help="Available commands: 'remove' 'add' 'configure' 'complete'.")
+parser.add_argument('--service_config', metavar='CONFIG', type=str, nargs=1, 
+                    default=env['DAQ_SCRIPT_DIR']+'Configuration/config/service-config.json', 
+                    help='JSON configuration file for config service.')
+args = parser.parse_args()
 
 debug = False
+with open(args.service_config) as config_file:
+  service_config = json.load(config_file)
 
-arg = "complete"
-if len(sys.argv) <= 1:
-  print_help()
-  quit()
-elif len(sys.argv) == 3:
-  arg = sys.argv[2]
+if args.json_identifier == "list":
+  confs = config_interface.printListAndExit(service_config['service_host'], service_config['service_port'])
+  print('List of available configurations below:')
+  print(confs)
+  exit()
 
-for o in sys.argv:
-  if o == '-h':
-    print_help()
-    quit()
+if args.json_source:
+  conf_dir = config_interface.remote(args.json_identifier, service_config['service_host'], service_config['service_port'])
+  args.json_identifier = conf_dir+"config.json"
 
-with open(sys.argv[1]) as f:
-  base_dir_uri = Path(env['DAQ_CONFIG_DIR']).as_uri() + '/'
-  jsonref_obj = jsonref.load(f, base_uri=base_dir_uri, loader=jsonref.JsonLoader())
-f.close()
+jsonref_obj = config_interface.local(args.json_identifier)
 
 if "configuration" in jsonref_obj:
   # schema with references (version >= 10)
@@ -132,7 +139,7 @@ with open(env['DAQ_CONFIG_DIR']+'schemas/validation-schema.json') as f:
   schema = json.load(f)
 f.close()
 
-print("Configuration Version:", data['version'])
+print("Schema Version:", data['version'])
 
 resolver=jsonschema.RefResolver(base_uri='file://'+env['DAQ_CONFIG_DIR']+'schemas/',referrer=schema)
 validate(instance=data, schema=schema,resolver=resolver)
@@ -149,12 +156,12 @@ exe = "/bin/daqling"
 lib_path = 'LD_LIBRARY_PATH='+env['LD_LIBRARY_PATH']+':'+dir+'/lib/,TDAQ_ERS_STREAM_LIBS=DaqlingStreams'
 
 # instanciate a daqcontrol object
-if arg == "configure":
+if args.arg == "configure":
   dc = daqcontrol(group, False)
 else:
   dc = daqcontrol(group)
 
-if arg == "remove":
+if args.arg == "remove":
   try:
     dc.removeProcesses(data['components'])
   except Exception as e:
@@ -166,7 +173,7 @@ if arg == "remove":
       print(e)
   quit()
 
-if arg == 'add' or arg == 'complete':
+if args.arg == 'add' or args.arg == 'complete':
   log_files = []
   try:
     log_files = dc.addComponents(data['components'], exe, dir, lib_path)
@@ -179,7 +186,7 @@ if arg == 'add' or arg == 'complete':
       print(e)
   for l in log_files:
     print("Host:", l[0], "\n", "tail -f", l[1])
-  if arg == 'add':
+  if args.arg == 'add':
     quit()
 
 # send name+pid info to active psutil-manager(s)
@@ -202,7 +209,7 @@ sleep(0.5) # allow time for daqling executables to boot
 sc = statusChecker(dc)
 sc.startChecker(data['components'])
 
-if arg == 'configure' or arg == 'complete':
+if args.arg == 'configure' or args.arg == 'complete':
   print(spawnJoin(data['components'], dc.configureProcess))
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -235,7 +242,7 @@ while(not sc.stop_check):
         dc.removeProcesses(data['scripts'])
       except Exception as e:
         print(e)
-    if arg != 'configure':
+    if args.arg!= 'configure':
       sleep(2) # allow time for daqling executables to exit
       try:
         dc.removeProcesses(data['components'])

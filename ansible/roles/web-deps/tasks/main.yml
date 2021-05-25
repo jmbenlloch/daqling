@@ -47,6 +47,11 @@
     name: apispec
     executable: pip3
 
+- name: Install pymongo
+  pip:
+    name: pymongo
+    executable: pip3
+
 - name: Install marshmallow
   pip:
     name: marshmallow

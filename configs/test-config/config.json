@@ -7,7 +7,7 @@
       "host": "localhost",
       "port": 5555,
       "type": "Dummy",
-      "loglevel": {"core": "INFO", "module": "DEBUG"},
+      "loglevel": {"core": "INFO", "module": "DEBUG","connection":"WARNING"},
       "settings": {
       },
       "connections": {
