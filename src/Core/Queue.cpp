@@ -23,14 +23,15 @@
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
-bool Queue::sleep_read(daqling::utilities::Binary &bin) {
+bool Queue::sleep_read(DataType &bin) {
   if (read(bin)) {
     return true;
   }
   std::this_thread::sleep_for((std::chrono::milliseconds(m_sleep_duration)));
   return false;
 }
-bool Queue::sleep_write(const daqling::utilities::Binary &bin) {
+
+bool Queue::sleep_write(DataType &bin) {
   if (write(bin)) {
     return true;
   }

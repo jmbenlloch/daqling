@@ -26,8 +26,8 @@ DummyReceiver::DummyReceiver(uint chid, const nlohmann::json &j) : daqling::core
   if (j.empty()) {
   }
 }
-bool DummyReceiver::receive(daqling::utilities::Binary &bin) {
-  const auto &bino(bin);
+bool DummyReceiver::receive(DataType &bin) {
+  bin.detach();
   ERS_DEBUG(0, "Hello from DummyReceiver protocolHandler");
-  return bino == bin;
+  return true;
 }

@@ -84,7 +84,7 @@ public:
       for (auto &it : rcvs) {
         ERS_DEBUG(0, "key" << it);
         try {
-          cm.addReceiverChannel(it);
+          cm.addReceiverChannel(it, plugin.getReceiverType());
         } catch (ers::Issue &i) {
           // couldn't add receiver issue
           throw AddChannelFailed(ERS_HERE, it["chid"].get<uint>(), i);
@@ -96,7 +96,7 @@ public:
       for (auto &it : sndrs) {
         ERS_DEBUG(0, "key" << it);
         try {
-          cm.addSenderChannel(it);
+          cm.addSenderChannel(it, plugin.getSenderType());
         } catch (ers::Issue &i) {
           // couldn't add receiver issue
           throw AddChannelFailed(ERS_HERE, it["chid"].get<uint>(), i);

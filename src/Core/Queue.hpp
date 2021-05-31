@@ -16,6 +16,7 @@
  */
 
 #pragma once
+#include "Common/DataType.hpp"
 #include "Utils/Binary.hpp"
 namespace daqling {
 namespace core {
@@ -25,10 +26,10 @@ public:
   // Virtual destructor
   virtual ~Queue() = default;
 
-  virtual bool read(daqling::utilities::Binary &) = 0;
-  virtual bool write(const daqling::utilities::Binary &) = 0;
-  virtual bool sleep_read(daqling::utilities::Binary & /*bin*/);
-  virtual bool sleep_write(const daqling::utilities::Binary & /*bin*/);
+  virtual bool read(DataType &) = 0;
+  virtual bool write(DataType &) = 0;
+  virtual bool sleep_read(DataType & /*bin*/);
+  virtual bool sleep_write(DataType & /*bin*/);
   virtual uint sizeGuess() = 0;
   virtual uint capacity() = 0;
   virtual void set_sleep_duration(uint ms);

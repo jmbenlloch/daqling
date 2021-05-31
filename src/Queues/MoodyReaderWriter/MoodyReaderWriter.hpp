@@ -21,23 +21,22 @@
 #include "moody/readerwriterqueue.h"
 #include "nlohmann/json.hpp"
 
-using MessageQueue = moodycamel::BlockingReaderWriterQueue<daqling::utilities::Binary>;
 namespace daqling {
 namespace queue {
-
-class MoodyReaderWriter : public daqling::core::Queue {
+template <typename T> class MoodyReaderWriter : public daqling::core::Queue {
 public:
+  // using MessageQueue<T> = moodycamel::BlockingReaderWriterQueue<T>;
   MoodyReaderWriter(const nlohmann::json &j);
-  bool read(daqling::utilities::Binary & /*bin*/) override;
+  bool read(DataType & /*bin*/) override;
   // bool sleep_read(daqling::utilities::Binary&) override;
-  bool write(const daqling::utilities::Binary & /*bin*/) override;
+  bool write(DataType & /*bin*/) override;
   uint sizeGuess() override;
   uint capacity() override;
 
 protected:
 private:
   unsigned int m_capacity;
-  MessageQueue m_queue;
+  moodycamel::BlockingReaderWriterQueue<T> m_queue;
 };
 } // namespace queue
 } // namespace daqling

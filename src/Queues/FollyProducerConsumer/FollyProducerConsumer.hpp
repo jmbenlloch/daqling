@@ -21,21 +21,20 @@
 #include "folly/ProducerConsumerQueue.h"
 #include "nlohmann/json.hpp"
 
-using MessageQueue = folly::ProducerConsumerQueue<daqling::utilities::Binary>;
 namespace daqling {
 namespace queue {
-
-class FollyProducerConsumer : public daqling::core::Queue {
+template <typename T> class FollyProducerConsumer : public daqling::core::Queue {
 public:
+  // using MessageQueue<T> = folly::ProducerConsumerQueue<T>;
   FollyProducerConsumer(const nlohmann::json &j);
-  bool read(daqling::utilities::Binary & /*bin*/) override;
-  bool write(const daqling::utilities::Binary & /*bin*/) override;
+  bool read(DataType & /*bin*/) override;
+  bool write(DataType & /*bin*/) override;
   uint sizeGuess() override;
   uint capacity() override;
 
 protected:
 private:
-  MessageQueue m_queue;
+  folly::ProducerConsumerQueue<T> m_queue;
 };
 } // namespace queue
 } // namespace daqling

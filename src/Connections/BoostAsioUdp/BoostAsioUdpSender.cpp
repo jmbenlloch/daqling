@@ -42,24 +42,27 @@ BoostAsioUdpSender::BoostAsioUdpSender(uint chid, const nlohmann::json &j)
   }
 }
 
-bool BoostAsioUdpSender::send(const daqling::utilities::Binary &bin) {
+bool BoostAsioUdpSender::send(DataType &bin) {
   try {
     ERS_DEBUG(0, "Sending message of size: " << bin.size());
-
+    bin.detach();
     if (m_socket->send_to(boost::asio::buffer(bin.data(), bin.size()), *m_dest_endpoint) ==
         bin.size()) {
       ++m_msg_handled;
+      bin.free()(bin.data(), bin.hint());
       return true;
     }
+    bin.free()(bin.data(), bin.hint());
     return false;
 
   } catch (std::exception &e) {
     throw SendFailed(ERS_HERE, e.what());
   }
 }
-bool BoostAsioUdpSender::sleep_send(const daqling::utilities::Binary &bin) {
+bool BoostAsioUdpSender::sleep_send(DataType &bin) {
   try {
     uint len;
+    bin.detach();
     m_socket->async_send_to(boost::asio::buffer(bin.data(), bin.size()), *m_dest_endpoint,
                             [&](const boost::system::error_code &error, std::size_t size) {
                               if (error || (size == 0u)) {
@@ -79,10 +82,13 @@ bool BoostAsioUdpSender::sleep_send(const daqling::utilities::Binary &bin) {
     });
     m_io_context.restart();
     m_io_context.run();
+
     if (len == bin.size()) {
+      bin.free()(bin.data(), bin.hint());
       ++m_msg_handled;
       return true;
     }
+    bin.free()(bin.data(), bin.hint());
     ERS_DEBUG(0, "Sleep send failed.");
     return false;
 

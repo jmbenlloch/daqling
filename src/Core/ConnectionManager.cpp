@@ -16,13 +16,15 @@
  */
 
 #include "ConnectionManager.hpp"
+
 #include "ConnectionLoader.hpp"
 #include "Utils/Binary.hpp"
 #include "Utils/Ers.hpp"
+#include <utility>
 
 using namespace daqling::core;
 
-bool ConnectionManager::addReceiverChannel(const nlohmann::json &j) {
+bool ConnectionManager::addReceiverChannel(const nlohmann::json &j, const std::string &datatype) {
   auto &cl = daqling::core::ConnectionLoader::instance();
   std::string type;
   uint chid;
@@ -40,7 +42,7 @@ bool ConnectionManager::addReceiverChannel(const nlohmann::json &j) {
   }
 
   try {
-    m_receivers[chid] = cl.getReceiver(type, chid, j);
+    m_receivers[chid] = cl.getReceiver(type, chid, j, datatype);
     ERS_INFO(" Adding RECEIVER channel for: [" << chid << "] type: " << type);
   } catch (ers::Issue &i) {
     throw CannotAddChannel(ERS_HERE, "Caught Issue", i);
@@ -51,7 +53,7 @@ bool ConnectionManager::addReceiverChannel(const nlohmann::json &j) {
   return true;
 }
 
-bool ConnectionManager::addSenderChannel(const nlohmann::json &j) {
+bool ConnectionManager::addSenderChannel(const nlohmann::json &j, const std::string &datatype) {
   auto &cl = daqling::core::ConnectionLoader::instance();
   uint chid;
   std::string type;
@@ -69,7 +71,7 @@ bool ConnectionManager::addSenderChannel(const nlohmann::json &j) {
   }
 
   try {
-    m_senders[chid] = cl.getSender(type, chid, j);
+    m_senders[chid] = cl.getSender(type, chid, j, datatype);
     ERS_INFO(" Adding SENDER channel for: [" << chid << "] type: " << type);
   } catch (ers::Issue &i) {
     throw CannotAddChannel(ERS_HERE, "Caught issue", i);
@@ -92,19 +94,20 @@ bool ConnectionManager::removeSenderChannel(unsigned chn) {
   return true;
 }
 
-bool ConnectionManager::receive(const unsigned &chn, daqling::utilities::Binary &bin) {
+bool ConnectionManager::receive(const unsigned &chn, DataType &bin) {
   return m_receivers[chn]->receive(bin);
 }
-bool ConnectionManager::sleep_receive(const unsigned &chn, daqling::utilities::Binary &bin) {
+bool ConnectionManager::sleep_receive(const unsigned &chn, DataType &bin) {
   return m_receivers[chn]->sleep_receive(bin);
 }
 
-bool ConnectionManager::send(const unsigned &chn, const daqling::utilities::Binary &msgBin) {
+bool ConnectionManager::send(const unsigned &chn, DataType &msgBin) {
   return m_senders[chn]->send(msgBin);
 }
-bool ConnectionManager::sleep_send(const unsigned &chn, const daqling::utilities::Binary &msgBin) {
+bool ConnectionManager::sleep_send(const unsigned &chn, DataType &msgBin) {
   return m_senders[chn]->sleep_send(msgBin);
 }
+
 void ConnectionManager::set_receiver_sleep_duration(const unsigned &chn, uint ms) {
   m_receivers[chn]->set_sleep_duration(ms);
 }

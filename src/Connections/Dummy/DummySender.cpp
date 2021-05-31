@@ -28,8 +28,8 @@ DummySender::DummySender(uint chid, const nlohmann::json &j) : daqling::core::Se
   }
 }
 
-bool DummySender::send(const daqling::utilities::Binary &bin) {
+bool DummySender::send(DataType &bin) {
   ERS_DEBUG(0, "Hello from DummySender protocolHandler");
-  const auto &bino(bin);
-  return bino == bin;
+  bin.detach();
+  return true;
 }

@@ -24,7 +24,10 @@
 
 using namespace std::chrono_literals;
 using namespace daqling::module;
+using Binary = DataFragment<daqling::utilities::Binary>;
 EventBuilderModule::EventBuilderModule() : m_eventmap_size{0}, m_complete_ev_size_guess{0} {
+  senderType = "DataFragment<daqling::utilities::Binary>";
+  receiverType = "DataFragment<daqling::utilities::Binary>";
   ERS_DEBUG(0, "With config: " << m_config.dump());
   m_nreceivers = m_config.getNumReceiverConnections();
 }
@@ -49,7 +52,7 @@ void EventBuilderModule::stop() { DAQProcess::stop(); }
 void EventBuilderModule::runner() noexcept {
   ERS_DEBUG(0, "Running...");
 
-  std::unordered_map<uint32_t, std::vector<daqling::utilities::Binary>> events;
+  std::unordered_map<uint32_t, std::vector<Binary>> events;
   folly::ProducerConsumerQueue<unsigned> complete_seq(1000);
   std::mutex mtx;
 
@@ -62,7 +65,7 @@ void EventBuilderModule::runner() noexcept {
       if (!m_run) {
         return;
       }
-      daqling::utilities::Binary out;
+      Binary out(new daqling::utilities::Binary());
       std::unique_lock<std::mutex> lck(mtx);
       for (auto &c : events[seq]) {
         out += c;
@@ -78,14 +81,13 @@ void EventBuilderModule::runner() noexcept {
       }
     }
   }};
-
   // store previous sequence number per channel
   std::vector<unsigned> prev_seq = {0};
   prev_seq.reserve(m_nreceivers);
 
   while (m_run) {
     for (unsigned ch = 0; ch < m_nreceivers; ch++) {
-      daqling::utilities::Binary b;
+      Binary b;
       if (m_connections.sleep_receive(ch, std::ref(b))) {
         unsigned seq_number;
         auto *d = static_cast<data_t *>(b.data());
@@ -96,7 +98,7 @@ void EventBuilderModule::runner() noexcept {
         }
         prev_seq[ch] = seq_number;
         std::unique_lock<std::mutex> lck(mtx);
-        events[seq_number].push_back(b);
+        events[seq_number].push_back(std::move(b));
         if (events[seq_number].size() == m_nreceivers) {
           complete_seq.write(seq_number);
         }

@@ -58,21 +58,20 @@ ZMQPubSubReceiver::ZMQPubSubReceiver(uint chid, const nlohmann::json &j)
   }
 }
 void ZMQPubSubReceiver::set_sleep_duration(uint ms) { m_socket->setsockopt(ZMQ_RCVTIMEO, ms); }
-bool ZMQPubSubReceiver::receive(daqling::utilities::Binary &bin) {
+
+bool ZMQPubSubReceiver::receive(DataType &bin) {
   zmq::message_t msg;
-  if (m_socket->recv(&msg)) {
-    utilities::Binary msgBin(msg.data(), msg.size());
-    bin = std::move(msgBin);
+  if (m_socket->recv(&msg, ZMQ_DONTWAIT)) {
+    bin.reconstruct(msg.size(), msg.data());
     ++m_msg_handled;
     return true;
   }
   return false;
 }
-bool ZMQPubSubReceiver::sleep_receive(daqling::utilities::Binary &bin) {
+bool ZMQPubSubReceiver::sleep_receive(DataType &bin) {
   zmq::message_t msg;
   if (m_socket->recv(&msg)) {
-    utilities::Binary msgBin(msg.data(), msg.size());
-    bin = std::move(msgBin);
+    bin.reconstruct(msg.size(), msg.data());
     ++m_msg_handled;
     return true;
   }

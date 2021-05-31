@@ -34,8 +34,8 @@ public:
   ZMQPairReceiver &operator=(ZMQPairReceiver const &) = delete; // Copy assign
   ZMQPairReceiver &operator=(ZMQPairReceiver &&) = delete;      // Move assign
 protected:
-  bool receive(daqling::utilities::Binary &bin) override;
-  bool sleep_receive(daqling::utilities::Binary &bin) override;
+  bool receive(DataType &bin) override;
+  bool sleep_receive(DataType &bin) override;
   // ZMQ Context number of threads to use
   uint8_t ioT = 1;
   std::unique_ptr<zmq::context_t> m_context;
