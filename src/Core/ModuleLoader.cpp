@@ -37,7 +37,6 @@ bool ModuleLoader::load(const std::string &name) {
     m_handle.reset();
     return false;
   }
-
   // Resolve functions for module creation/destruction
   try {
     m_create = resolve<CreateFunc>("daqling_module_create");
@@ -50,6 +49,14 @@ bool ModuleLoader::load(const std::string &name) {
   m_dp = m_create();
   m_loaded = true;
   return true;
+}
+std::string ModuleLoader::getReceiverType() {
+  ERS_PRECONDITION(m_loaded);
+  return m_dp.value()->receiverType;
+}
+std::string ModuleLoader::getSenderType() {
+  ERS_PRECONDITION(m_loaded);
+  return m_dp.value()->senderType;
 }
 
 bool ModuleLoader::unload() {

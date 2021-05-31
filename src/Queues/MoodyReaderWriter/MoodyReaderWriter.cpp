@@ -19,20 +19,22 @@
 #include "Utils/ConnectionMacros.hpp"
 
 using namespace daqling::queue;
-REGISTER_QUEUE(MoodyReaderWriter, "ReaderWriter")
-MoodyReaderWriter::MoodyReaderWriter(const nlohmann::json &j)
+REGISTER_QUEUE(MoodyReaderWriter)
+template <typename T>
+MoodyReaderWriter<T>::MoodyReaderWriter(const nlohmann::json &j)
     : m_queue(j.at("queue_size").get<unsigned int>()) {
   m_capacity = j.at("queue_size").get<unsigned int>();
 }
-
-bool MoodyReaderWriter::read(daqling::utilities::Binary &bin) { return m_queue.try_dequeue(bin); }
+template <typename T> bool MoodyReaderWriter<T>::read(DataType &bin) {
+  return m_queue.try_dequeue(static_cast<T &>(bin));
+}
 // bool MoodyReaderWriter::sleep_read(daqling::utilities::Binary& bin)
 // {
 //     return m_queue.wait_dequeue_timed(bin,std::chrono::milliseconds(m_sleep_duration));
 // }
-bool MoodyReaderWriter::write(const daqling::utilities::Binary &bin) {
+template <typename T> bool MoodyReaderWriter<T>::write(DataType &bin) {
   // return m_queue.try_emplace(std::move(bin));
-  return m_queue.try_enqueue(bin);
+  return m_queue.try_enqueue(static_cast<T &>(bin));
 }
-uint MoodyReaderWriter::sizeGuess() { return m_queue.size_approx(); }
-uint MoodyReaderWriter::capacity() { return m_capacity; }
+template <typename T> uint MoodyReaderWriter<T>::sizeGuess() { return m_queue.size_approx(); }
+template <typename T> uint MoodyReaderWriter<T>::capacity() { return m_capacity; }

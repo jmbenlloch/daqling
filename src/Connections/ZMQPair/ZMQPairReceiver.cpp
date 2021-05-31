@@ -50,21 +50,20 @@ ZMQPairReceiver::ZMQPairReceiver(uint chid, const nlohmann::json &j)
   }
 }
 void ZMQPairReceiver::set_sleep_duration(uint ms) { m_socket->setsockopt(ZMQ_RCVTIMEO, ms); }
-bool ZMQPairReceiver::receive(daqling::utilities::Binary &bin) {
+
+bool ZMQPairReceiver::receive(DataType &bin) {
   zmq::message_t msg;
   if (m_socket->recv(&msg, ZMQ_DONTWAIT)) {
-    utilities::Binary msgBin(msg.data(), msg.size());
-    bin = std::move(msgBin);
+    bin.reconstruct(msg.size(), msg.data());
     ++m_msg_handled;
     return true;
   }
   return false;
 }
-bool ZMQPairReceiver::sleep_receive(daqling::utilities::Binary &bin) {
+bool ZMQPairReceiver::sleep_receive(DataType &bin) {
   zmq::message_t msg;
   if (m_socket->recv(&msg)) {
-    utilities::Binary msgBin(msg.data(), msg.size());
-    bin = std::move(msgBin);
+    bin.reconstruct(msg.size(), msg.data());
     ++m_msg_handled;
     return true;
   }

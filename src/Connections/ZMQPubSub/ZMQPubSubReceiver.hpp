@@ -35,8 +35,8 @@ public:
   void set_sleep_duration(uint ms) override;
 
 protected:
-  bool receive(daqling::utilities::Binary &bin) override;
-  bool sleep_receive(daqling::utilities::Binary &bin) override;
+  bool receive(DataType &bin) override;
+  bool sleep_receive(DataType &bin) override;
 
   // ZMQ Context number of threads to use
   uint8_t ioT = 1;

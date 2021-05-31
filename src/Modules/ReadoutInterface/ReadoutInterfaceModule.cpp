@@ -26,7 +26,8 @@ using namespace daqling::module;
 
 ReadoutInterfaceModule::ReadoutInterfaceModule() {
   ERS_DEBUG(0, "With config: " << m_config.dump());
-
+  senderType = "DataFragment<data_t>";
+  receiverType = "DataFragment<data_t>";
   m_board_id = m_config.getSettings()["board_id"];
   m_delay_us = std::chrono::microseconds(m_config.getSettings()["delay_us"]);
   m_min_payload = m_config.getSettings()["payload"]["min"];
@@ -67,26 +68,18 @@ void ReadoutInterfaceModule::runner() noexcept {
     }
     timestamp = duration_cast<microseconds>(system_clock::now().time_since_epoch());
     const auto payload_size = static_cast<unsigned>(dis(gen));
-    const unsigned total_size = sizeof(header_t) + sizeof(char) * payload_size;
 
     ERS_DEBUG(0, "sequence number " << sequence_number << " | timestamp " << std::hex << "0x"
                                     << timestamp.count() << std::dec << " | payload size "
                                     << payload_size);
 
-    std::unique_ptr<data_t> data(new data_t);
-    data->header.payload_size = payload_size;
-    data->header.seq_number = sequence_number;
-    data->header.source_id = m_board_id;
-    data->header.timestamp = static_cast<uint64_t>(timestamp.count());
-    memset(data->payload, 0xFE, payload_size);
-
-    // ready to be sent to EB
-    auto binary = daqling::utilities::Binary(static_cast<const void *>(data.get()), total_size);
-
-    // print binary
-    // ERS_INFO("\n" << binary);
-
-    while (!m_connections.sleep_send(0, binary) && m_run) {
+    DataFragment<data_t> dataFrag(new data_t);
+    dataFrag->header.payload_size = payload_size;
+    dataFrag->header.seq_number = sequence_number;
+    dataFrag->header.source_id = m_board_id;
+    dataFrag->header.timestamp = static_cast<uint64_t>(timestamp.count());
+    memset(dataFrag->payload, 0xFE, payload_size);
+    while (!m_connections.sleep_send(0, dataFrag) && m_run) {
       ERS_WARNING("put() failed. Trying again");
     };
 

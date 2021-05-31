@@ -32,8 +32,8 @@ public:
   bool stop() override;
 
 protected:
-  bool receive(daqling::utilities::Binary &bin) override;
-  bool sleep_receive(daqling::utilities::Binary &bin) override;
+  bool receive(DataType &bin) override;
+  bool sleep_receive(DataType &bin) override;
   void handle_receive(const boost::system::error_code & /*error*/, std::size_t /*size*/);
   void wait_callback(const boost::system::error_code &error);
 

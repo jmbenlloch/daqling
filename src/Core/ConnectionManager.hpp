@@ -60,22 +60,23 @@ public:
   // Add a channel (sockets and queues)
   bool removeReceiverChannel(unsigned chn);
   bool removeSenderChannel(unsigned chn);
-  bool addSenderChannel(const nlohmann::json &j);
-  bool addReceiverChannel(const nlohmann::json &j);
+  bool addSenderChannel(const nlohmann::json &j, const std::string &datatype);
+  bool addReceiverChannel(const nlohmann::json &j, const std::string &datatype);
+
   /**
    * @brief Receive binary from receiver channel
    * @param chn receiver channel id
    * @return true when binary file is successfully passed
    */
-  bool receive(const unsigned &chn, daqling::utilities::Binary &bin);
-  bool sleep_receive(const unsigned &chn, daqling::utilities::Binary &bin);
+  bool receive(const unsigned &chn, DataType &bin);
+  bool sleep_receive(const unsigned &chn, DataType &bin);
   /**
    * @brief Send binary to channel
    * @param chn sender channel id
    * @return true when binary file is successfully passed
    */
-  bool send(const unsigned &chn, const daqling::utilities::Binary &msgBin);
-  bool sleep_send(const unsigned &chn, const daqling::utilities::Binary &msgBin);
+  bool send(const unsigned &chn, DataType &msgBin);
+  bool sleep_send(const unsigned &chn, DataType &msgBin);
 
   /**
    * @brief Set sleep duration for receiver

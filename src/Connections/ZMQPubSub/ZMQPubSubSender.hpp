@@ -35,7 +35,7 @@ public:
   ZMQPubSubSender &operator=(ZMQPubSubSender &&) = delete;      // Move assign
 
 protected:
-  bool send(const daqling::utilities::Binary &bin) override;
+  bool send(DataType &bin) override;
 
   // ZMQ Context number of threads to use
   uint8_t ioT = 1;

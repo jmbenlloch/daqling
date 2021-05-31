@@ -27,7 +27,7 @@ public:
   DummySender(uint chid, const nlohmann::json &j = NULL);
 
 protected:
-  bool send(const daqling::utilities::Binary &bin) override;
+  bool send(DataType &bin) override;
 };
 } // namespace connection
 } // namespace daqling

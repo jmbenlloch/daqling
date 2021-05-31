@@ -87,7 +87,8 @@ bool FileWriterModule::FileGenerator::yields_unique(const std::string &pattern) 
 
 FileWriterModule::FileWriterModule() : m_stopWriters{false} {
   ERS_DEBUG(0, "");
-
+  senderType = "SharedDataType<daqling::utilities::Binary>";
+  receiverType = "SharedDataType<daqling::utilities::Binary>";
   // Set up static resources...
   std::ios_base::sync_with_stdio(false);
 }
@@ -194,18 +195,20 @@ void FileWriterModule::runner() noexcept {
       auto &pq = std::get<PayloadQueue>(it.second);
 
       while (m_run) {
-        daqutils::Binary pl;
+        SharedDataType<daqling::utilities::Binary> pl;
         while (!m_connections.sleep_receive(it.first, std::ref(pl)) && m_run) {
           if (m_statistics) {
             m_channelMetrics.at(it.first).payload_queue_size = pq.sizeGuess();
           }
         }
-        ERS_DEBUG(0, " Received " << pl.size() << "B payload on channel: " << it.first);
+        size_t size = pl.size();
+        ERS_DEBUG(0, " Received " << size << "B payload on channel: " << it.first);
+        pl.make_shared();
+        // NOLINTNEXTLINE(misc-use-after-move)
         while (!pq.write(pl) && m_run) {
         } // try until successful append
-
         if (m_statistics) {
-          m_channelMetrics.at(it.first).payload_size = pl.size();
+          m_channelMetrics.at(it.first).payload_size = size;
         }
       }
     });
@@ -222,10 +225,10 @@ void FileWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const size
                                FileGenerator fg) const {
   size_t bytes_written = 0;
   std::ofstream out = fg.next();
-  auto buffer = daqutils::Binary();
+  auto buffer = SharedDataType<daqling::utilities::Binary>();
 
-  const auto flush = [&](daqutils::Binary &data) {
-    out.write(data.data<char *>(), static_cast<std::streamsize>(data.size()));
+  const auto flush = [&](SharedDataType<daqling::utilities::Binary> &data) {
+    out.write(data->data<char *>(), static_cast<std::streamsize>(data.size()));
     if (out.fail()) {
       ERS_WARNING(" Write operation for channel " << chid << " of size " << data.size()
                                                   << "B failed!");
@@ -233,7 +236,7 @@ void FileWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const size
     }
     m_channelMetrics.at(chid).bytes_written += data.size();
     bytes_written += data.size();
-    data = daqutils::Binary();
+    data = SharedDataType<daqling::utilities::Binary>();
   };
 
   while (!m_stopWriters) {
@@ -265,8 +268,9 @@ void FileWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const size
       assert(tail_len > 0);
 
       // Split the payload into a head and a tail
-      daqutils::Binary head(payload->data(), split_offset);
-      daqutils::Binary tail(payload->data<char *>() + split_offset, tail_len);
+      SharedDataType<daqling::utilities::Binary> head(payload->data(), split_offset);
+      SharedDataType<daqling::utilities::Binary> tail((*payload)->data<char *>() + split_offset,
+                                                      tail_len);
       ERS_DEBUG(0, " -> head length: " << head.size() << "; tail length: " << tail.size());
       assert(head.size() + tail.size() == payload->size());
 
@@ -275,9 +279,9 @@ void FileWriterModule::flusher(const uint64_t chid, PayloadQueue &pq, const size
 
       // Flush the tail until it is small enough to fit in the buffer
       while (tail_len > max_buffer_size) {
-        daqutils::Binary body(tail.data(), max_buffer_size);
-        daqutils::Binary next_tail(tail.data<char *>() + max_buffer_size,
-                                   tail_len - max_buffer_size);
+        SharedDataType<daqling::utilities::Binary> body(tail.data(), max_buffer_size);
+        SharedDataType<daqling::utilities::Binary> next_tail(tail->data<char *>() + max_buffer_size,
+                                                             tail_len - max_buffer_size);
         assert(body.size() + next_tail.size() == tail.size());
         flush(body);
 

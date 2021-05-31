@@ -46,7 +46,8 @@ using namespace std::placeholders;
 class DAQProcess {
 public:
   DAQProcess() = default;
-
+  std::string senderType;
+  std::string receiverType;
   virtual ~DAQProcess() = default;
 
   /* use virtual otherwise linker will try to perform static linkage */

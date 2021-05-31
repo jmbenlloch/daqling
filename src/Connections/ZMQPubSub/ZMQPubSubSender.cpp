@@ -47,9 +47,9 @@ ZMQPubSubSender::ZMQPubSubSender(uint chid, const nlohmann::json &j) : daqling::
     throw CannotAddChannel(ERS_HERE, e.what());
   }
 }
-bool ZMQPubSubSender::send(const daqling::utilities::Binary &bin) {
-  zmq::message_t message(bin.size());
-  memcpy(message.data(), bin.data(), bin.size());
+bool ZMQPubSubSender::send(DataType &bin) {
+  bin.detach();
+  zmq::message_t message(bin.data(), bin.size(), bin.free(), bin.hint());
   if (m_socket->send(std::move(message))) {
     ++m_msg_handled;
     return true;
