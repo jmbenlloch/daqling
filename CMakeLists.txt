@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 set(PACKAGE daqling)
-set(PACKAGE_VERSION 0.10.1)
+set(PACKAGE_VERSION 1.0.0)
 
 project(${PACKAGE} VERSION ${PACKAGE_VERSION}
         DESCRIPTION "Data acquisition framework"
