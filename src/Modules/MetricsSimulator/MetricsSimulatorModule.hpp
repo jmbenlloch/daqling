@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,23 +21,22 @@
 
 class MetricsSimulatorModule : public daqling::core::DAQProcess {
 public:
-  MetricsSimulatorModule();
-  ~MetricsSimulatorModule();
+  MetricsSimulatorModule(const std::string & /*n*/);
 
-  void start(unsigned run_num);
-  void stop();
+  void start(unsigned run_num) override;
+  void stop() override;
 
-  void runner();
+  void runner() noexcept override;
 
 protected:
-  std::atomic<int> m_metric1;
-  std::atomic<float> m_metric2;
-  std::atomic<double> m_metric3;
-  std::atomic<bool> m_metric4;
-  std::atomic<size_t> m_metric5;
-  std::atomic<int> m_metric6;
-  std::atomic<float> m_metric7;
-  std::atomic<double> m_metric8;
-  std::atomic<bool> m_metric9;
-  std::atomic<size_t> m_metric10;
+  std::atomic<int> m_metric1{};
+  std::atomic<float> m_metric2{};
+  std::atomic<double> m_metric3{};
+  std::atomic<bool> m_metric4{};
+  std::atomic<size_t> m_metric5{};
+  std::atomic<int> m_metric6{};
+  std::atomic<float> m_metric7{};
+  std::atomic<double> m_metric8{};
+  std::atomic<bool> m_metric9{};
+  std::atomic<size_t> m_metric10{};
 };

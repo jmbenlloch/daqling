@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,17 +31,19 @@ int main(int argc, char *argv[]) {
   zmq::context_t context(1);
   zmq::socket_t subscriber(context, ZMQ_SUB);
 
-  if (argc == 2)
+  if (argc == 2) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     subscriber.connect(argv[1]);
-  else
+  } else {
     subscriber.connect("tcp://localhost:5556");
+  }
 
   uint8_t tag = 126;
   subscriber.setsockopt(ZMQ_SUBSCRIBE, &tag, sizeof(tag));
   //   subscriber.setsockopt(ZMQ_SUBSCRIBE, "", 0);
   std::cout << "sock opt" << std::endl;
 
-  while (1) {
+  while (true) {
     zmq::message_t msg;
     std::cout << "-----------\nReceived " << subscriber.recv(&msg) << std::endl;
     std::cout << "-> size " << msg.size() << std::endl;

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,21 +31,23 @@ int main(int argc, char *argv[]) {
   zmq::context_t context(1);
   zmq::socket_t publisher(context, ZMQ_PUB);
 
-  if (argc == 2)
+  if (argc == 2) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     publisher.bind(argv[1]);
-  else
+  } else {
     publisher.bind("tcp://*:5556");
+  }
 
   //  Ensure subscriber connection has time to complete
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
-  data_t d;
+  data_t d{};
   d.tag = 126;
   d.blab = 115453;
   d.whatever = 24;
 
   std::cout << "size of data_t " << sizeof(data_t) << std::endl;
-  while (1) {
+  while (true) {
     zmq::message_t msg(sizeof(data_t));
     memcpy(msg.data(), &d, sizeof(data_t));
 

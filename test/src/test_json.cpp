@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,7 +42,7 @@ static void from_json(const json &j, std::vector<process> &ps) {
   }
 }
 
-int main(int, char const *[]) {
+int main(int /*unused*/, char const * /*unused*/ []) {
   json j = {{{"name", "Luke"}, {"type", "Jedi"}},
             {{"name", "Han"}, {"type", "Mercenary"}},
             {{"name", "Leia"}, {"type", "Princess"}}};

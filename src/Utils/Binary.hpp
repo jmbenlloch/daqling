@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,14 +28,12 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cctype>
 #include <functional>
 #include <iomanip>
-#include <iostream>
-#include <optional>
 #include <vector>
 
-namespace daqling::utilities {
+namespace daqling {
+namespace utilities {
 
 class Binary {
 
@@ -54,13 +52,14 @@ public:
 
   /// Constructor initializing a BLOB with `size` bytes from `data`
   explicit Binary(const void *data, const size_t size) noexcept {
-    if (!data) {
+    if (data == nullptr) {
       m_error = error_code::invalid_arg;
       return;
     }
 
     try {
       m_data = std::vector<byte>(static_cast<const byte *>(data),
+                                 // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
                                  static_cast<const byte *>(data) + size);
     } catch (const std::bad_alloc &) {
       m_error = error_code::alloc;
@@ -77,8 +76,7 @@ public:
   }
 
   /// Move constructor
-  explicit Binary(Binary &&rhs) noexcept
-      : m_data{std::move(rhs.m_data)}, m_error{std::move(rhs.m_error)} {}
+  explicit Binary(Binary &&rhs) noexcept : m_data{std::move(rhs.m_data)}, m_error{rhs.m_error} {}
 
   /// Assignment operator
   Binary &operator=(const Binary &rhs) noexcept {
@@ -99,7 +97,7 @@ public:
      */
     if (this != &rhs) {
       m_data = std::move(rhs.m_data);
-      m_error = std::move(rhs.m_error);
+      m_error = rhs.m_error;
     }
 
     return *this;
@@ -128,12 +126,14 @@ public:
   /// Returns the internally stored data
   template <typename T = void *> const T data() const noexcept {
     static_assert(std::is_pointer<T>(), "Type parameter must be a pointer type");
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-*-cast)
     return reinterpret_cast<T>(const_cast<byte *>(m_data.data()));
   }
 
   /// Returns the internally stored data
   template <typename T = void *> T data() noexcept {
     static_assert(std::is_pointer<T>(), "Type parameter must be a pointer type");
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     return reinterpret_cast<T>(m_data.data());
   }
 
@@ -150,8 +150,8 @@ private:
   /// Error flag
   std::optional<error_code> m_error;
 };
-
-} // namespace daqling::utilities
+} // namespace utilities
+} // namespace daqling
 
 /// xxd(1)-like output representation of a `Binary`
 inline std::ostream &operator<<(std::ostream &out, const daqling::utilities::Binary &rhs) {
@@ -181,7 +181,7 @@ inline std::ostream &operator<<(std::ostream &out, const daqling::utilities::Bin
         std::replace_if(str.begin(), str.end(), [&loc](auto c) { return !std::isprint(c, loc); },
                         '.');
 
-        return std::move(str);
+        return str;
       });
 
       // Print the character string representation of the byte line

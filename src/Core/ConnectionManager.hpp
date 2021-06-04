@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,137 +18,133 @@
 #ifndef DAQLING_CORE_CONNECTIONMANAGER_HPP
 #define DAQLING_CORE_CONNECTIONMANAGER_HPP
 
-#include <algorithm>
 #include <map>
-#include <memory>
 #include <mutex>
-#include <thread>
 
-#include "Command.hpp"
+#include "Core/Receiver.hpp"
+#include "Core/Sender.hpp"
+#include "ResourceFactory.hpp"
 #include "Utils/Binary.hpp"
-#include "Utils/ProducerConsumerQueue.hpp"
-#include <zmq.hpp>
-
-#define MSGQ
-
+#include "Utils/Ers.hpp"
+#include "Utils/Singleton.hpp"
+#include "nlohmann/json.hpp"
 namespace daqling {
+
+// change to be more general, e.g. couldn't add connection with name bla. bla. -> cause
+ERS_DECLARE_ISSUE(core, ConnectionIssue, "", ERS_EMPTY)
+
+ERS_DECLARE_ISSUE_BASE(core, CannotAddChannel, core::ConnectionIssue, "Failed to add channel!",
+                       ERS_EMPTY, ERS_EMPTY)
+ERS_DECLARE_ISSUE_BASE(core, CannotGetChidAndType, core::ConnectionIssue,
+                       "Failed to get chid and connection type " << eWhat, ERS_EMPTY,
+                       ((const char *)eWhat))
+ERS_DECLARE_ISSUE_BASE(core, CannotGetSubManager, core::ConnectionIssue,
+                       "Failed to get submanager with number: " << no, ERS_EMPTY, ((uint)no))
 namespace core {
+
+// forward declare ConnectionSubManager
+class ConnectionSubManager;
 
 /*
  * ConnectionManager
- * Description: Wrapper class for sockets and SPSC circular buffers.
- *   Makes the communication between DAQ processes easier and scalable.
+ * Description: Manager responsible for storing ConnectionSubManagers for all modules in context,
+ * as well as creating the connections these need, based on configs.
  * Date: November 2017
  */
 
 // template <class CT, class ST>
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class ConnectionManager : public daqling::utilities::Singleton<ConnectionManager> {
 public:
-  ConnectionManager()
-      : m_receiver_channels{0}, m_sender_channels{0}, m_is_stats_setup{false}, m_stop_handlers{
-                                                                                   false} {}
-  ~ConnectionManager() { m_stop_handlers = true; }
-
+  ConnectionManager() : m_receiver_channels{0}, m_sender_channels{0} {}
   // Custom types
-  typedef folly::ProducerConsumerQueue<zmq::message_t> MessageQueue;
-  typedef std::unique_ptr<MessageQueue> UniqueMessageQueue;
-  typedef folly::ProducerConsumerQueue<std::string> StringQueue;
-  typedef std::unique_ptr<StringQueue> UniqueStringQueue;
-  typedef std::map<unsigned, std::atomic<size_t>> SizeStatMap;
-
-  // Enums
-  enum EDirection { SERVER, CLIENT, PUBLISHER, SUBSCRIBER };
-
-  // Functionalities
-  bool setupStatsConnection(uint8_t ioT, std::string connStr);
-  bool unsetStatsConnection();
-
+  using SizeStatMap = std::map<unsigned, std::atomic<size_t>>;
+  using SubManagerMap = std::map<std::string, std::shared_ptr<ConnectionSubManager>>;
+  // Teardown
+  bool removeChannel(const std::string &name);
   // Add a channel (sockets and queues)
-  bool addReceiverChannel(unsigned chn, EDirection dir, const std::string &connStr,
-                          size_t queueSize, unsigned filter = 0, size_t filter_size = 0);
-  bool addSenderChannel(unsigned chn, EDirection dir, const std::string &connStr, size_t queueSize);
+  bool addSenderChannel(const std::string & /*key*/, const nlohmann::json &j,
+                        const std::string &datatype);
+  bool addReceiverChannel(const std::string & /*key*/, const nlohmann::json &j,
+                          const std::string &datatype);
 
-  bool removeReceiverChannel(unsigned chn);
-  bool removeSenderChannel(unsigned chn);
+  // Utilities
+  ConnectionSubManager &addSubManager(std::string key);
 
+  // Start/stop socket processors
+  bool start(const std::string &name);
+  bool stop(const std::string &name);
+
+  std::shared_ptr<daqling::utilities::Resource> getLocalResource(unsigned id);
+
+  void addLocalResource(const nlohmann::json &json);
+
+private:
+  // Map of ConnectionSubManagers
+  SubManagerMap m_sub_managers;
+  size_t m_receiver_channels;
+  size_t m_sender_channels;
+
+  std::mutex m_mutex;
+  std::mutex m_mtx_cleaning;
+};
+
+/*
+ * ConnectionSubManager
+ * Description: Wrapper class for sockets and SPSC circular buffers.
+ *   Makes the communication between DAQ processes easier and scalable.
+ * Date: May 2021
+ */
+class ConnectionSubManager {
+  friend class ConnectionManager;
+
+public:
+  using SenderMap = std::map<unsigned, std::shared_ptr<Sender>>;
+  using ReceiverMap = std::map<unsigned, std::shared_ptr<Receiver>>;
+
+  ConnectionSubManager(std::string name);
   /**
    * @brief Receive binary from receiver channel
    * @param chn receiver channel id
    * @return true when binary file is successfully passed
    */
-  bool receive(const unsigned &chn, daqling::utilities::Binary &bin);
+  bool receive(const unsigned &chn, DataType &bin);
+  bool sleep_receive(const unsigned &chn, DataType &bin);
   /**
    * @brief Send binary to channel
    * @param chn sender channel id
    * @return true when binary file is successfully passed
    */
-  bool send(const unsigned &chn, const daqling::utilities::Binary &msgBin);
+  bool send(const unsigned &chn, DataType &msgBin);
+  bool sleep_send(const unsigned &chn, DataType &msgBin);
 
-  // Start/stop socket processors
-  bool start();
-  bool stop();
+  /**
+   * @brief Set sleep duration for receiver
+   * @param chn receiver channel id
+   * @param ms delay in ms
+   */
+  void set_receiver_sleep_duration(const unsigned &chn, uint ms);
+  /**
+   * @brief Set sleep duration for sender
+   * @param chn sender channel id
+   * @param ms delay in ms
+   */
+  void set_sender_sleep_duration(const unsigned &chn, uint ms);
 
+  bool removeReceiverChannel(unsigned chn);
+  bool removeSenderChannel(unsigned chn);
   // Utilities
-  unsigned getNumOfReceiverChannels() { return m_receiver_channels; }
-  unsigned getNumOfSenderChannels() { return m_sender_channels; }
-  std::atomic<size_t> &getReceiverQueueStat(unsigned chn) { return m_receiver_pcqSizes[chn]; }
-  std::atomic<size_t> &getSenderQueueStat(unsigned chn) { return m_sender_pcqSizes[chn]; }
-  std::atomic<size_t> &getReceiverMsgStat(unsigned chn) { return m_receiver_numMsgsHandled[chn]; }
-  std::atomic<size_t> &getSenderMsgStat(unsigned chn) { return m_sender_numMsgsHandled[chn]; }
-  const SizeStatMap &getReceiverStatsMap() { return std::ref(m_receiver_pcqSizes); }
-  const SizeStatMap &getSenderStatsMap() { return std::ref(m_sender_pcqSizes); }
-  const SizeStatMap &getReceiverMsgStatsMap() { return std::ref(m_receiver_numMsgsHandled); }
-  const SizeStatMap &getSenderMsgStatsMap() { return std::ref(m_sender_numMsgsHandled); }
-  std::unique_ptr<zmq::socket_t> &getStatSocket() { return std::ref(m_stats_socket); }
+  const SenderMap getSenderMap() { return m_senders; }
+  const ReceiverMap getReceiverMap() { return m_receivers; }
+  const std::string getType() { return m_type; }
 
 private:
-  const std::string m_className = "ConnectionManager";
-  size_t m_receiver_channels;
-  size_t m_sender_channels;
-
-  std::map<unsigned, UniqueMessageQueue> m_receiver_pcqs; // Queues for elink RX.
-  std::map<unsigned, UniqueMessageQueue> m_sender_pcqs;   // Queues for elink TX.
-
-  // Stats
-  SizeStatMap m_receiver_pcqSizes;
-  SizeStatMap m_sender_pcqSizes;
-  SizeStatMap m_receiver_numMsgsHandled;
-  SizeStatMap m_sender_numMsgsHandled;
-
-  // Network library handling
-  // Statistics
-  std::unique_ptr<zmq::context_t> m_stats_context;
-  std::unique_ptr<zmq::socket_t> m_stats_socket;
-  std::atomic<bool> m_is_stats_setup;
-  // Dataflow
-  std::map<unsigned, std::unique_ptr<zmq::context_t>> m_receiver_contexts; // context descriptors
-  std::map<unsigned, std::unique_ptr<zmq::context_t>> m_sender_contexts;   // context descriptors
-
-  std::map<unsigned, std::unique_ptr<zmq::socket_t>> m_receiver_sockets; // sockets.
-  std::map<unsigned, std::unique_ptr<zmq::socket_t>> m_sender_sockets;   // sockets.
-
-  std::map<unsigned, EDirection> m_receiver_directions;
-  std::map<unsigned, EDirection> m_sender_directions;
-
-  // Threads
-  std::map<unsigned, std::thread> m_receiver_handlers;
-  std::map<unsigned, std::thread> m_sender_handlers;
-  std::map<unsigned, std::unique_ptr<daqling::utilities::ReusableThread>> m_processors;
-  std::map<unsigned, std::function<void()>> m_functors;
-
-  // Thread control
-  std::atomic<bool> m_stop_handlers;
-  std::atomic<bool> m_stop_processors;
-  std::atomic<bool> m_cpu_lock;
-
-  std::mutex m_mutex;
-  std::mutex m_mtx_cleaning;
-
-  // Internal
-  bool addSendHandler(unsigned chn); // std::function<void()> task);
-  bool addReceiveHandler(unsigned chn);
-  bool addPublishHandler(unsigned chn);
-  bool addSubscribeHandler(unsigned chn);
+  SenderMap m_senders;
+  ReceiverMap m_receivers;
+  size_t m_receiver_channels{};
+  size_t m_sender_channels{};
+  std::string m_name;
+  std::string m_type;
 };
 
 } // namespace core

@@ -34,10 +34,10 @@
   },
   
   {
-    "name": "datalogger01",
+    "name": "filewriter01",
     "host": "host03",
     "port": 5558,
-    "type": "CassandraDataLogger",
+    "type": "FileWriter",
     "stream_level": 2,
     "settings": {
       "ring": "127.0.0.1",

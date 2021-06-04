@@ -1,5 +1,5 @@
 """
- Copyright (C) 2019 CERN
+ Copyright (C) 2019-2021 CERN
  
  DAQling is free software: you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
@@ -44,7 +44,7 @@ def editModule():
             path_schema = current_app.root_path + url_for('static',filename='schema/config-schema.json')
             DAQ_CONFIG_DIR = os.environ.get("DAQ_CONFIG_DIR")
             currentSchemaName = request.args.get("schema")
-            with open(DAQ_CONFIG_DIR+"/schemas/"+currentSchemaName,'r') as schema,open(path_schema,'w') as internalSchema:
+            with open(DAQ_CONFIG_DIR+"schemas/resolved/"+currentSchemaName,'r') as schema,open(path_schema,'w') as internalSchema:
                 internalSchema.write(schema.read())
 
     return render_template('/editModule.html',currentFileName=request.args.get('currentFileName'))

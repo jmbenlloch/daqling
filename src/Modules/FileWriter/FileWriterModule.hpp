@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,29 +17,32 @@
 
 #pragma once
 
-#include <condition_variable>
-#include <fstream>
-#include <map>
-#include <memory>
-#include <queue>
-#include <tuple>
-
 #include "Core/DAQProcess.hpp"
 #include "Utils/Binary.hpp"
-#include "Utils/ProducerConsumerQueue.hpp"
+#include "Utils/ReusableThread.hpp"
+#include "folly/ProducerConsumerQueue.h"
+#include <fstream>
+#include <map>
+#include <tuple>
 
+namespace daqling {
+#include <ers/Issue.h>
+
+ERS_DECLARE_ISSUE(module, InvalidFileName, "Invalid File name pattern", ERS_EMPTY)
+
+ERS_DECLARE_ISSUE(module, OfstreamFail, "std::ofstream::fail()", ERS_EMPTY)
+}
 /**
  * Module for writing your acquired data to file.
  */
 class FileWriterModule : public daqling::core::DAQProcess {
 public:
-  FileWriterModule();
-  ~FileWriterModule();
+  FileWriterModule(const std::string & /*n*/);
 
-  void configure();
-  void start(unsigned run_num);
-  void stop();
-  void runner() noexcept;
+  void configure() override;
+  void start(unsigned run_num) override;
+  void stop() override;
+  void runner() noexcept override;
 
   void monitor_runner();
 
@@ -49,7 +52,7 @@ private:
     daqling::utilities::ReusableThread consumer;
     daqling::utilities::ReusableThread producer;
   };
-  using PayloadQueue = folly::ProducerConsumerQueue<daqling::utilities::Binary>;
+  using PayloadQueue = folly::ProducerConsumerQueue<SharedDataType<daqling::utilities::Binary>>;
   using Context = std::tuple<PayloadQueue, ThreadContext>;
 
   struct Metrics {
@@ -58,17 +61,17 @@ private:
     std::atomic<size_t> payload_size = 0;
   };
 
-  size_t m_buffer_size;
+  size_t m_buffer_size{};
   std::string m_pattern;
-  std::atomic<bool> m_start_completed;
+  std::atomic<bool> m_start_completed{};
 
   /**
    * Output file generator with a printf-like filename pattern.
    */
   class FileGenerator {
   public:
-    FileGenerator(const std::string pattern, const uint64_t chid, const unsigned run_number)
-        : m_pattern(pattern), m_chid(chid), m_run_number(run_number) {}
+    FileGenerator(std::string pattern, const uint64_t chid, const unsigned run_number)
+        : m_pattern(std::move(pattern)), m_chid(chid), m_run_number(run_number) {}
 
     /**
      * Generates the next output file in the sequence.
@@ -93,7 +96,7 @@ private:
   };
 
   // Configs
-  size_t m_max_filesize;
+  size_t m_max_filesize{};
   uint64_t m_channels = 0;
 
   // Thread control
@@ -103,8 +106,7 @@ private:
   mutable std::map<uint64_t, Metrics> m_channelMetrics;
 
   // Internals
-  void flusher(const uint64_t chid, PayloadQueue &pq, const size_t max_buffer_size,
-               FileGenerator fg) const;
+  void flusher(uint64_t chid, PayloadQueue &pq, size_t max_buffer_size, FileGenerator fg) const;
   std::map<uint64_t, Context> m_channelContexts;
   std::thread m_monitor_thread;
 };

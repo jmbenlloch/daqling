@@ -8,19 +8,42 @@
     - restart firewalld
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
-- name: Install supervisor Centos
-  yum:
+- name: Install supervisor
+  pip:
     name: supervisor
-    state: present
-  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+    executable: pip3
 
-- name: Copy supervisor gui configuration file
+- name: Copy supervisor configuration file
   copy:
-    src: etc/supervisord.d/web-gui.ini
-    dest: /etc/supervisord.d/
-  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+    src: supervisord.conf
+    dest: /etc/supervisor/
 
-- name: Enabling supervisor service
+- name: Copy supervisor inet configuration file
+  copy:
+    src: inet_http_server.conf
+    dest: /etc/supervisor/conf.d/
+
+- name: Create supervisor log file
+  file:
+    path: /var/log/supervisor
+    state: directory
+
+- name: Create supervisor unix socket folder
+  file:
+    path: /var/run/supervisor/
+    state: directory
+
+- name: Touch supervisor unix socket file
+  file:
+    path: /var/run/supervisor/supervisor.sock
+    state: touch
+
+- name: Copy supervisor systemd service file
+  copy:
+    src: supervisord.service
+    dest: /etc/systemd/system/
+
+- name: Enabling supervisord service
   systemd:
     name: supervisord
     enabled: yes

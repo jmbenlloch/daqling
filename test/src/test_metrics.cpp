@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,45 +16,39 @@
  */
 
 #include "Core/Statistics.hpp"
-#include "spdlog/sinks/stdout_color_sinks.h"
+
+#include "Utils/Ers.hpp"
+#include "nlohmann/json.hpp"
 #include "zmq.hpp"
 #include <atomic>
 #include <unistd.h>
+using nlohmann::json;
 
-using logger = daqling::utilities::Logger;
+int main(int /*unused*/, char ** /*unused*/) {
 
-int main(int, char **) {
-  auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-  auto logger = std::make_shared<spdlog::logger>("my_logger", sink);
-  logger::set_instance(logger);
-
-  std::atomic<float> buffer_occupation;
+  std::atomic<float> buffer_occupation{};
   std::atomic<int> packets;
   buffer_occupation = 0.1;
   packets = 0;
-
-  zmq::context_t context(1);
-  std::unique_ptr<zmq::socket_t> publisher;
-  publisher = std::make_unique<zmq::socket_t>(context, ZMQ_PUB);
-  publisher->bind("tcp://*:5556");
-
-  daqling::core::Statistics stat(std::ref(publisher));
+  json j;
+  j["stats_uri"] = "tcp://*:5556";
+  daqling::core::Statistics stat(j);
   stat.start();
 
   stat.registerVariable<std::atomic<float>, float>(&buffer_occupation, "AverageBufferOccupation",
                                                    daqling::core::metrics::AVERAGE,
-                                                   daqling::core::metrics::FLOAT, 2);
+                                                   daqling::core::metrics::FLOAT);
   stat.registerVariable<std::atomic<float>, float>(&buffer_occupation, "BufferOccupation",
                                                    daqling::core::metrics::LAST_VALUE,
                                                    daqling::core::metrics::FLOAT);
   stat.registerVariable<std::atomic<int>, int>(
       &packets, "PacketsRate", daqling::core::metrics::RATE, daqling::core::metrics::INT);
   // stat.registerVariable("NumberOfPackets", &packets);
-  while (1) {
+  while (true) {
     usleep(500000);
     packets += 2;
     buffer_occupation = buffer_occupation + 3.1;
-    INFO("Buffer occupation: " << buffer_occupation);
+    ERS_INFO("Buffer occupation: " << buffer_occupation);
   }
 
   return 0;

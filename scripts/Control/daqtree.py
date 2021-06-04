@@ -1,5 +1,5 @@
 """
- Copyright (C) 2019 CERN
+ Copyright (C) 2019-2021 CERN
  
  DAQling is free software: you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
@@ -20,12 +20,15 @@ from os import environ as env
 import time
 import json
 import jsonref
+import jsonschema
 from jsonschema import validate
 from anytree import RenderTree
 from anytree.search import find_by_attr
 from anytree.importer import DictImporter
 from pathlib import Path
 from copy import deepcopy
+import argparse
+import config_interface
 
 from nodetree import NodeTree
 from daqcontrol import daqcontrol as daqctrl
@@ -36,23 +39,40 @@ def print_help():
 
 ## Main
 
-if len(sys.argv) <= 1:
-  print_help()
-  quit()
+parser = argparse.ArgumentParser(description='Run Control for DAQling.')
+parser.add_argument('--remote', dest='json_source', action='store_const',
+                    const=True, default=False,
+                    help='Gets remote json-configs from database, default is local file.')
+parser.add_argument('json_identifier', metavar='config_name', type=str, 
+                    help='JSON configuration file or name of db configs-set for running DAQling.')
+parser.add_argument('--service_config', metavar='CONFIG', type=str, nargs=1, 
+                    default=env['DAQ_SCRIPT_DIR']+'Configuration/config/service-config.json', 
+                    help='JSON configuration file for config service.')
+args = parser.parse_args()
 
-for o in sys.argv:
-  if o == '-h':
-    print_help()
-    quit()
+with open(args.service_config) as config_file:
+  service_config = json.load(config_file)
+
+if args.json_identifier == "list":
+  confs = config_interface.printListAndExit(service_config['service_host'], service_config['service_port'])
+  print('List of available configurations below:')
+  print(confs)
+  exit()
+
+if args.json_source:
+  conf_dir = config_interface.remote(args.json_identifier, service_config['service_host'], service_config['service_port'])
+  args.json_identifier = conf_dir+"config-dict.json"
 
 # load all required configuration files
-config_dict_path = sys.argv[1]
+config_dict_path = args.json_identifier
+dict_path = Path(config_dict_path).resolve().parent
+print(dict_path)
 
 with open(config_dict_path) as f:
   config_dict = json.load(f)
 f.close()
 
-config_dir_path = env['DAQ_CONFIG_DIR']
+config_dir_path = str(dict_path)+'/'
 
 with open(config_dir_path+config_dict["tree"]) as f:
   tree = json.load(f)
@@ -78,11 +98,13 @@ else:
   configuration = jsonref_obj
 
 # open schema and validate the configuration
-with open(config_dir_path+'schemas/validation-schema.json') as f:
+with open(env['DAQ_CONFIG_DIR']+'schemas/validation-schema.json') as f:
   schema = json.load(f)
 f.close()
-print("Configuration Version:", configuration['version'])
-validate(instance=configuration, schema=schema)
+print("Schema Version:", configuration['version'])
+
+resolver=jsonschema.RefResolver(base_uri='file://'+env['DAQ_CONFIG_DIR']+'schemas/',referrer=schema)
+validate(instance=configuration, schema=schema, resolver=resolver)
 
 # define required parameters from configuration
 group = configuration['group']
@@ -91,7 +113,7 @@ if 'path' in configuration.keys():
 else:
   dir = env['DAQ_BUILD_DIR']
 exe = "/bin/daqling"
-lib_path = 'LD_LIBRARY_PATH='+env['LD_LIBRARY_PATH']+':'+dir+'/lib/'
+lib_path = 'LD_LIBRARY_PATH='+env['LD_LIBRARY_PATH']+':'+dir+'/lib/,TDAQ_ERS_STREAM_LIBS=DaqlingStreams'
 components = configuration["components"]
 
 # instanciate a daqcontrol object

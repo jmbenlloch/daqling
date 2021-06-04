@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,17 +18,22 @@
 #pragma once
 
 #include "Core/DAQProcess.hpp"
+namespace daqling {
+#include <ers/Issue.h>
 
+ERS_DECLARE_ISSUE(module, DummyIssue, "DummyIssue message", ERS_EMPTY)
+}
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class DummyModule : public daqling::core::DAQProcess {
   void foobar(const std::string &arg);
 
 public:
-  DummyModule();
-  ~DummyModule();
+  DummyModule(const std::string & /*n*/);
+  ~DummyModule() override;
 
-  void configure(); // optional (configuration can be handled in the constructor)
-  void start(unsigned run_num);
-  void stop();
+  void configure() override; // optional (configuration can be handled in the constructor)
+  void start(unsigned run_num) override;
+  void stop() override;
 
-  void runner() noexcept;
+  void runner() noexcept override;
 };

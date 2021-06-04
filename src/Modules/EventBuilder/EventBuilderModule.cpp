@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,18 +16,23 @@
  */
 
 #include <chrono>
+#include <utility>
 
 #include "Common/DataFormat.hpp"
 #include "EventBuilderModule.hpp"
+#include "Utils/Ers.hpp"
+#include "folly/ProducerConsumerQueue.h"
 
 using namespace std::chrono_literals;
-
-EventBuilderModule::EventBuilderModule() : m_eventmap_size{0}, m_complete_ev_size_guess{0} {
-  DEBUG("With config: " << m_config.dump());
-  m_nreceivers = m_config.getNumReceiverConnections();
+using namespace daqling::module;
+using Binary = DataFragment<daqling::utilities::Binary>;
+EventBuilderModule::EventBuilderModule(const std::string &n)
+    : DAQProcess(n), m_eventmap_size{0}, m_complete_ev_size_guess{0} {
+  senderType = "DataFragment<daqling::utilities::Binary>";
+  receiverType = "DataFragment<daqling::utilities::Binary>";
+  ERS_DEBUG(0, "With config: " << m_config.getModuleSettings(m_name));
+  m_nreceivers = m_config.getNumReceiverConnections(m_name);
 }
-
-EventBuilderModule::~EventBuilderModule() {}
 
 void EventBuilderModule::configure() {
   DAQProcess::configure();
@@ -47,22 +52,24 @@ void EventBuilderModule::start(unsigned run_num) { DAQProcess::start(run_num); }
 void EventBuilderModule::stop() { DAQProcess::stop(); }
 
 void EventBuilderModule::runner() noexcept {
-  DEBUG("Running...");
+  ERS_DEBUG(0, "Running...");
 
-  std::unordered_map<uint32_t, std::vector<daqling::utilities::Binary>> events;
-  daqling::utilities::ReusableThread rt(0);
+  std::unordered_map<uint32_t, std::vector<Binary>> events;
   folly::ProducerConsumerQueue<unsigned> complete_seq(1000);
   std::mutex mtx;
 
   std::thread consumer{[&]() {
+    addTag();
     while (m_run || !complete_seq.isEmpty()) { // finish to process complete events
+      ERS_DEBUG(0, "Consumer thread Running...");
       unsigned seq;
-      while (!complete_seq.read(seq) && m_run)
+      while (!complete_seq.read(seq) && m_run) {
         std::this_thread::sleep_for(1ms);
-      if (m_run == false) {
+      }
+      if (!m_run) {
         return;
       }
-      daqling::utilities::Binary out;
+      Binary out(new daqling::utilities::Binary());
       std::unique_lock<std::mutex> lck(mtx);
       for (auto &c : events[seq]) {
         out += c;
@@ -73,45 +80,38 @@ void EventBuilderModule::runner() noexcept {
         m_complete_ev_size_guess = complete_seq.sizeGuess();
       }
       lck.unlock();
-      while (!m_connections.send(0, out) && m_run) {
-        WARNING("send() failed. Trying again");
-        std::this_thread::sleep_for(1ms);
+      while (!m_connections.sleep_send(0, out) && m_run) {
+        ERS_WARNING("send() failed. Trying again");
       }
+      ERS_DEBUG(0, "Sent msg.");
     }
   }};
-
   // store previous sequence number per channel
   std::vector<unsigned> prev_seq = {0};
   prev_seq.reserve(m_nreceivers);
 
   while (m_run) {
-    bool received = false;
     for (unsigned ch = 0; ch < m_nreceivers; ch++) {
-      daqling::utilities::Binary b;
-      if (m_connections.receive(ch, std::ref(b))) {
+      Binary b;
+      if (m_connections.sleep_receive(ch, std::ref(b))) {
+        ERS_DEBUG(0, "Received msg.");
         unsigned seq_number;
-        data_t *d = static_cast<data_t *>(b.data());
+        auto *d = static_cast<data_t *>(b.data());
         seq_number = d->header.seq_number;
         // check sequence number
         if (prev_seq[ch] + 1 != seq_number && seq_number != 0) {
-          ERROR("Sequence number for channel " << ch << " is broken! Previous = " << prev_seq[ch]
-                                               << " while current = " << seq_number);
-          std::terminate();
+          ers::fatal(BrokenSequenceNumber(ERS_HERE, ch, prev_seq[ch], seq_number));
         }
         prev_seq[ch] = seq_number;
         std::unique_lock<std::mutex> lck(mtx);
-        events[seq_number].push_back(b);
+        events[seq_number].push_back(std::move(b));
         if (events[seq_number].size() == m_nreceivers) {
           complete_seq.write(seq_number);
         }
         lck.unlock();
-        received = true;
       }
-    }
-    if (!received) {
-      std::this_thread::sleep_for(1ms);
     }
   }
   consumer.join();
-  DEBUG("Runner stopped");
+  ERS_DEBUG(0, "Runner stopped");
 }

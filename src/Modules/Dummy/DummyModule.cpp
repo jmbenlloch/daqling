@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,38 +16,38 @@
  */
 
 #include "DummyModule.hpp"
-
+#include "Utils/Ers.hpp"
 using namespace daqling::core;
+using namespace daqling::module;
+DummyModule::DummyModule(const std::string &n) : DAQProcess(n) { ERS_INFO(""); }
 
-DummyModule::DummyModule() { INFO(""); }
-
-DummyModule::~DummyModule() { INFO(""); }
+DummyModule::~DummyModule() { ERS_INFO(""); }
 
 // optional (configuration can be handled in the constructor)
 void DummyModule::configure() {
   daqling::core::DAQProcess::configure();
-  INFO("");
+  ERS_INFO("");
 
   registerCommand("foobar", "foobarring", "foobarred", &DummyModule::foobar, this, _1);
 }
 
 void DummyModule::start(unsigned run_num) {
   daqling::core::DAQProcess::start(run_num);
-  INFO("");
+  ERS_INFO("");
 }
 
 void DummyModule::stop() {
   daqling::core::DAQProcess::stop();
-  INFO("");
+  ERS_INFO("");
 }
 
 void DummyModule::runner() noexcept {
-  INFO("Running...");
+  ERS_INFO("Running...");
   while (m_run) {
   }
-  INFO("Runner stopped");
+  ERS_INFO("Runner stopped");
 }
 
 void DummyModule::foobar(const std::string &arg) {
-  INFO("Inside custom command. Got argument: " << arg);
+  ERS_INFO("Inside custom command. Got argument: " << arg);
 }

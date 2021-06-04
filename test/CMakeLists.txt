@@ -3,8 +3,12 @@ macro(daqling_test name)
     daqling_target_sources(test_${name}
         src/test_${name}.cpp
     )
+    target_link_libraries(test_${name}
+            ${CMAKE_DL_LIBS}
+    )
     daqling_target_install(test_${name})
 endmacro()
+
 
 daqling_test(plugin)
 daqling_test(logging)

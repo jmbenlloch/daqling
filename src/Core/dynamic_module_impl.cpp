@@ -1,13 +1,30 @@
+/**
+ * Copyright (C) 2019-2021 CERN
+ *
+ * DAQling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DAQling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with DAQling. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef DAQLING_MODULE_NAME
 #error "This header should only be automatically included during the build with CMake"
 #endif
 
+#include "Utils/Ers.hpp"
 #include <chrono>
+#include <utility>
 
-#include "Utils/Logging.hpp"
 #include DAQLING_MODULE_HEADER
 
-namespace daqutils = daqling::utilities;
 using namespace std::chrono_literals;
 
 /*
@@ -16,27 +33,17 @@ using namespace std::chrono_literals;
  * Must be hidden from the symbol table so that it is not aliased to daqling's own when the module
  * is dynamically loaded.
  */
-HEDLEY_PRIVATE
-daqutils::LoggerType daqutils::Logger::m_logger;
-
-namespace daqling::core {
+namespace daqling {
+namespace core {
 extern "C" {
 // forward-declare to satisfy -Werror=missing-declarations
-DAQProcess *daqling_module_create(daqutils::LoggerType);
-void daqling_module_delete(DAQProcess *);
+DAQProcess *daqling_module_create(const std::string &name);
+void daqling_module_delete(DAQProcess * /*module*/);
 }
 
-DAQProcess *daqling_module_create(daqutils::LoggerType logger) {
-  assert(logger);
-  // Set the logger before create the module. Otherwise would be UB, as the module ctor may log
-  // entries.
-  try {
-    daqutils::Logger::set_instance(logger);
-  } catch (daqutils::instance_already_set &) {
-    DEBUG("Instance already set");
-  }
+DAQProcess *daqling_module_create(const std::string &name) {
 
-  auto module = new DAQLING_MODULE_NAME();
+  auto module = new DAQLING_MODULE_NAME(name);
   return static_cast<DAQProcess *>(module);
 }
 
@@ -48,4 +55,5 @@ void daqling_module_delete(DAQProcess *module) {
   }
   delete module;
 }
-} // namespace daqling::core
+} // namespace core
+} // namespace daqling

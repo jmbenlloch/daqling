@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,22 +21,27 @@
 
 #include "Core/DAQProcess.hpp"
 
+namespace daqling {
+
+ERS_DECLARE_ISSUE(module, SequenceLimitReached,
+                  "Reached maximum sequence number! That's enough for an example...", ERS_EMPTY)
+}
+
 class ReadoutInterfaceModule : public daqling::core::DAQProcess {
   void pause();
   void resume();
 
 public:
-  ReadoutInterfaceModule();
-  ~ReadoutInterfaceModule();
-  void configure();
-  void start(unsigned run_num);
-  void stop();
+  ReadoutInterfaceModule(const std::string & /*n*/);
+  void configure() override;
+  void start(unsigned run_num) override;
+  void stop() override;
 
-  void runner() noexcept;
+  void runner() noexcept override;
 
 private:
   unsigned m_board_id;
-  std::chrono::microseconds m_delay_us;
+  std::chrono::microseconds m_delay_us{};
   size_t m_min_payload, m_max_payload;
   bool m_pause;
 };

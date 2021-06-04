@@ -7,9 +7,5 @@
     - influxdb
     - grafana
   environment:
-    LD_LIBRARY_PATH: "{{ lookup('env','LD_LIBRARY_PATH') }}" 
-    PATH: "{{ lookup('env','PATH') }}"
-    CC: "{{ lookup('env','CC') }}"
-    CXX: "{{ lookup('env','CXX') }}"
     http_proxy: "{{ lookup('env','http_proxy') }}" 
     https_proxy: "{{ lookup('env','https_proxy') }}" 

@@ -237,20 +237,20 @@ function updateConfigs(){
             $(".filterchng").change(function() {
                 applyFilters()
             });
-            $("#configMenu").append('<div class="dropdown-divider"></div><button id="configUploadButton" class="darkb button w-100">Upload new configuration</button>');
-            $("#configMenu").append('<form id="upload-file" method="post" enctype="multipart/form-data"><input type="file" id="configurationupload" style="display:none"/></form> ');
-            $('#configUploadButton').click(function(){ $('#configurationupload').trigger('click'); });
-            $("#configMenu").append('<div class="dropdown-divider"></div><button id="uploadButton" class="darkb button w-100">Upload new tree/FSM/deviceconfig</button>');
-            $("#configMenu").append('<input type="file" id="upload" style="display:none"/> ');
-            $('#uploadButton').click(function(){ $('#upload').trigger('click'); });
-            $("#configurationupload").change(function(){
-                    var file = $('#configurationupload').prop('files');
-                    uploadFile(file, urlForuploadMainConfigurationFile)
-            });
-            $("#upload").change(function(){
-                    var file = $('#upload').prop('files');
-                    uploadFile(file, urlForuploadCfgFile)
-            });
+            // $("#configMenu").append('<div class="dropdown-divider"></div><button id="configUploadButton" class="darkb button w-100">Upload new configuration</button>');
+            // $("#configMenu").append('<form id="upload-file" method="post" enctype="multipart/form-data"><input type="file" id="configurationupload" style="display:none"/></form> ');
+            // $('#configUploadButton').click(function(){ $('#configurationupload').trigger('click'); });
+            // $("#configMenu").append('<div class="dropdown-divider"></div><button id="uploadButton" class="darkb button w-100">Upload new tree/FSM/deviceconfig</button>');
+            // $("#configMenu").append('<input type="file" id="upload" style="display:none"/> ');
+            // $('#uploadButton').click(function(){ $('#upload').trigger('click'); });
+            // $("#configurationupload").change(function(){
+            //         var file = $('#configurationupload').prop('files');
+            //         uploadFile(file, urlForuploadMainConfigurationFile)
+            // });
+            // $("#upload").change(function(){
+            //         var file = $('#upload').prop('files');
+            //         uploadFile(file, urlForuploadCfgFile)
+            // });
         })
 
 
@@ -368,14 +368,29 @@ $('#ajax').on('changed.jstree', function () {
             selState = idList[$("#ajax").jstree("get_selected",true)[0].id].state
             $(".control").off("click");
             $( "#stateButtonsDiv" ).empty()
-            $.each( fsmrules[selState], function(key, value ){
-                $("#stateButtonsDiv").append("<button id='"+value+"_button' class='green button control' style='margin:5px;'>"+value.toUpperCase()+"</button> &nbsp &nbsp");
-                $("#"+value+"_button").on('click', function(){
-                    var id = $("#ajax").jstree("get_selected",true)[0].id;
-                    var node = $("#ajax").jstree("get_selected",true)[0].text;
-                    sendComm(id, node, value);
-                 });
-            })
+            var statearr = selState;
+            if(typeof(selState)==="string")
+            {
+                statearr=[]
+                statearr[0] = selState
+            }
+            var values = []
+            $.each( statearr, function(key, value){
+                    $.each( fsmrules[value], function(key, value ){
+                        if(!(values.includes(value)))
+                        {
+                            values.push(value)
+                        }
+                    })
+                })
+                $.each(values, function(key, value){
+                    $("#stateButtonsDiv").append("<button id='"+value+"_button' class='green button control' style='margin:5px;'>"+value.toUpperCase()+"</button> &nbsp &nbsp");
+                    $("#"+value+"_button").on('click', function(){
+                        var id = $("#ajax").jstree("get_selected",true)[0].id;
+                        var node = $("#ajax").jstree("get_selected",true)[0].text;
+                        sendComm(id, node, value);
+                    });
+                })
 
             redrawLock()
             $("#state:text").val(idList[$("#ajax").jstree("get_selected",true)[0].id].state);
@@ -498,12 +513,9 @@ $('#ajax').on('changed.jstree', function () {
         if(log == "closed"){
             $('#logArea').height("0px");
             $("#logShow").html('Show');
-        }else  if(log == "open"){
-            $('#logArea').height("370px");
+        } else {
+            $('#logArea').height("450px");
             $("#logShow").html('Hide');
-        }else{
-            $('#logArea').height("0px");
-            $("#logShow").html('Show');
         }
         applyFilters()
          var socket = io();

@@ -12,20 +12,33 @@ To contact the developers: daqling-developers@cern.ch (only for "daqling-users" 
 
 ## Host configuration and framework build
 
-### Configure the CERN CentOS 7 host
+### Build dependencies installation
+
+In order to build the framework, dependencies must be installed following the instructions at:
+
+https://gitlab.cern.ch/ep-dt-di/daq/daqling-spack-repo
+
+Dependencies installation does not require root access, unless you are installing on CentOS 7.
+
+### Configure the host for running the framework
 
 The Ansible playbook will set up the host with the system libraries and tools
 
     sudo yum install -y ansible
-    source cmake/setup.sh
     cd ansible/
     ansible-playbook set-up-host.yml --ask-become
 
+Note: to set up an Ubuntu server follow the same procedure, using `apt` instead of `yum`.
+
 #### (Optional)
 
-Web dependencies
+Web dependencies:
 
     ansible-playbook install-webdeps.yml --ask-become
+
+Local InfluxDB + Grafana stack:
+
+    ansible-playbook install-influxdb-grafana.yml --ask-become
 
 Redis
 
@@ -33,13 +46,17 @@ Redis
 
 ### Build
 
-    source cmake/setup.sh
+For the first-time sourcing of `cmake/setup.sh`, pass the location of the daqling-spack-repo to `cmake/setup.sh`:
 
-then:
+    source cmake/setup.sh </full/path/to/daqling-spack-repo/>
+
+More info in `README_SPACK.md`.
+
+Then:
 
     mkdir build
     cd build
-    cmake3 ../
+    cmake ../
     make
 
 It is possible to build specified targets. `make help` will list the available ones.
@@ -50,7 +67,7 @@ The `ccmake` command:
 
     source cmake/setup.sh
     cd build
-    ccmake3 ../
+    ccmake ../
 
 allows browsing available build options, such as selection of Modules to be built and Debug flags. E.g.:
 
@@ -118,17 +135,24 @@ The custom module will be discovered and built by CMake as part of the project.
 
 To run a newly created Module (e.g. `MyDummyModule`), it is necessary to add a corresponding entry in `components:` to a JSON configuration file. Note that the name of the Module needs to be specified in the `type:` field. E.g.:
 
-    {
-      "name": "mydummymodule01",
-      "host": "localhost",
-      "port": 5555,
-      "type": "MyDummyModule",
-      "loglevel": {"core": "INFO", "module": "DEBUG"},
-      "settings": {
-      },
-      "connections": {
-      }    
-    }
+```json
+{
+  "name": "mydummymodule01",
+  "host": "localhost",
+  "port": 5555,
+  "modules": [
+   {
+     "type": "MyDummyModule",
+     "name":"mydummymodule",
+     "connections": {
+     }
+   }
+  ],
+  "loglevel": {"core": "INFO", "module": "DEBUG","connection":"WARNING"},
+  "settings": {
+  }    
+}
+```
 
 ## Contributors
 
@@ -142,6 +166,7 @@ The following authors, in alphabetical order, have contributed to DAQling:
 
 - Wojciech Brylinski, Warsaw University of Technology, @wobrylin
 - Zbynek Kral, Czech Technical University in Prague, @zkral
+- Jens Noerby Kristensen, CERN, @jkristen
 - Giovanna Lehmann Miotto, CERN, @glehmann
 - Viktor Vilhelm Sonesten, CERN, @vsoneste
 - Clement Claude Thorens, Université de Genève, @cthorens

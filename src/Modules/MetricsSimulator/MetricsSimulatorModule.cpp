@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,23 +17,23 @@
 
 #include "MetricsSimulatorModule.hpp"
 #include "Core/Statistics.hpp"
-#include <stdlib.h>
+#include "Utils/Ers.hpp"
 
-MetricsSimulatorModule::MetricsSimulatorModule() { INFO(""); }
-
-MetricsSimulatorModule::~MetricsSimulatorModule() { INFO(""); }
+MetricsSimulatorModule::MetricsSimulatorModule(const std::string &n) : DAQProcess(n) {
+  ERS_INFO("");
+}
 
 void MetricsSimulatorModule::start(unsigned run_num) {
   daqling::core::DAQProcess::start(run_num);
   m_metric1 = 0;
   m_metric2 = 0;
   m_metric3 = 0;
-  m_metric4 = 0;
+  m_metric4 = false;
   m_metric5 = 0;
   m_metric6 = 0;
   m_metric7 = 0;
   m_metric8 = 0;
-  m_metric9 = 0;
+  m_metric9 = false;
   m_metric10 = 0;
   m_statistics->registerMetric<std::atomic<int>>(&m_metric6, "RandomMetric1-int",
                                                  daqling::core::metrics::LAST_VALUE);
@@ -46,25 +46,25 @@ void MetricsSimulatorModule::start(unsigned run_num) {
   m_statistics->registerMetric<std::atomic<size_t>>(&m_metric5, "RandomMetric5-size_t",
                                                     daqling::core::metrics::LAST_VALUE);
   m_statistics->registerMetric<std::atomic<int>>(&m_metric6, "RandomMetric5-int_average",
-                                                 daqling::core::metrics::AVERAGE, 7);
+                                                 daqling::core::metrics::AVERAGE);
   m_statistics->registerMetric<std::atomic<float>>(&m_metric2, "RandomMetric7-float_rate",
-                                                   daqling::core::metrics::RATE, 5);
+                                                   daqling::core::metrics::RATE);
   m_statistics->registerMetric<std::atomic<double>>(&m_metric3, "RandomMetric8-double_average",
-                                                    daqling::core::metrics::AVERAGE, 5);
+                                                    daqling::core::metrics::AVERAGE);
   m_statistics->registerMetric<std::atomic<bool>>(&m_metric9, "RandomMetric9-bool",
                                                   daqling::core::metrics::LAST_VALUE);
   m_statistics->registerMetric<std::atomic<size_t>>(&m_metric5, "RandomMetric10-size_t_rate",
-                                                    daqling::core::metrics::RATE, 5);
-  INFO("");
+                                                    daqling::core::metrics::RATE);
+  ERS_INFO("");
 }
 
 void MetricsSimulatorModule::stop() {
   daqling::core::DAQProcess::stop();
-  INFO("");
+  ERS_INFO("");
 }
 
-void MetricsSimulatorModule::runner() {
-  INFO("Running...");
+void MetricsSimulatorModule::runner() noexcept {
+  ERS_INFO("Running...");
   // downcast is fine here, but this RNG should be modified to use std random.
   srand(static_cast<unsigned int>(time(nullptr)));
   while (m_run) {
@@ -74,18 +74,19 @@ void MetricsSimulatorModule::runner() {
     m_metric7 = static_cast<float>(rand()) / RAND_MAX;
     m_metric3 = 0.5 * static_cast<double>(rand()) / RAND_MAX;
     m_metric8 = 10. * static_cast<double>(rand()) / RAND_MAX;
-    if (m_metric4)
+    if (m_metric4) {
       m_metric4 = false;
-    else
+    } else {
       m_metric4 = true;
-    if (m_metric9)
+    }
+    if (m_metric9) {
       m_metric9 = false;
-    else
+    } else {
       m_metric9 = true;
-
+    }
     m_metric5 += 50;
-    m_metric10 = static_cast<long unsigned int>(rand() % 100);
+    m_metric10 = static_cast<uint64_t>(rand() % 100);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
-  INFO("Runner stopped");
+  ERS_INFO("Runner stopped");
 }

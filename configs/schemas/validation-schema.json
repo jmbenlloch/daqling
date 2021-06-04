@@ -1,4 +1,5 @@
 {
+  "$id": "validation-schema.json",
   "title": "DAQ Configuration",
   "type": "object",
   "required": [
@@ -9,7 +10,7 @@
   "properties": {
     "version": {
       "type": "integer",
-      "description": "Configuration version",
+      "description": "Schema version",
       "minimum": 9,
       "maximum": 10,
       "default": 10
@@ -43,17 +44,23 @@
             "type": "string"
           }
         },
-        "required": ["name", "host", "executable", "command", "directory"]
+        "required": [
+          "name",
+          "host",
+          "executable",
+          "command",
+          "directory"
+        ]
       }
     },
     "components": {
       "type": "array",
       "format": "table",
-      "title": "Components",
+      "title": "components",
       "uniqueItems": true,
       "items": {
         "type": "object",
-        "title": "Component",
+        "title": "component",
         "properties": {
           "name": {
             "type": "string"
@@ -64,8 +71,44 @@
           "port": {
             "type": "integer"
           },
-          "type": {
-            "type": "string"
+          "modules":{
+            "type":"array",
+            "format":"table",
+            "title":"modules",
+            "items":{
+              "type":"object",
+              "title":"module",
+              "properties":{
+                "type": {
+                  "type": "string"
+                },
+                "settings": {
+                  "title": "Settings",
+                  "options": {
+                    "collapsed": true
+                  }
+                },
+                "connections": {
+                  "type": "object",
+                  "title": "Connections",
+                  "options": {
+                    "collapsed": true
+                  },
+                  "properties": {
+                    "receivers":{
+                      "oneOf":[{"$ref":"refs/connection-schema.json#/definitions/receivers"}]
+                    },
+                    "senders":{
+                      "oneOf":[{"$ref":"refs/connection-schema.json#/definitions/senders"}]
+                    }
+                  }
+                }
+              },
+              "required": [
+                "name",
+                "type"
+              ]
+            }
           },
           "loglevel": {
             "type": "object",
@@ -89,18 +132,22 @@
                   "INFO",
                   "WARNING"
                 ]
+              },
+              "connection": {
+                "type": "string",
+                "enum": [
+                  "DEBUG",
+                  "INFO",
+                  "WARNING"
+                ]
               }
             },
             "required": [
               "core",
-              "module"
-            ]
-          },
-          "settings": {
-            "title": "Settings",
-            "options": {
-              "collapsed": true
-            }
+              "module",
+              "connection"
+            ],
+            "additionalProperties": false
           },
           "metrics_settings": {
             "title": "Metrics Settings",
@@ -109,272 +156,49 @@
             },
             "oneOf": [
               {
-                "$ref": "#/definitions/no_metrics"
+                "$ref": "validation-schema.json#/definitions/no_metrics"
               },
               {
-                "$ref": "#/definitions/influxdb"
+                "$ref": "validation-schema.json#/definitions/influxdb"
               },
               {
-                "$ref": "#/definitions/metrics_manager"
+                "$ref": "validation-schema.json#/definitions/metrics_manager"
               }
             ]
-          },
-          "connections": {
-            "type": "object",
-            "title": "Connections",
-            "options": {
-              "collapsed": true
-            },
-            "properties": {
-              "receivers": {
-                "type": "array",
-                "format": "table",
-                "title": "Receivers",
-                "uniqueItems": true,
-                "items": {
-                  "type": "object",
-                  "oneOf": [
-                    {
-                      "title": "tcp",
-                      "type": "object",
-                      "properties": {
-                        "transport": {
-                          "type": "string",
-                          "enum": [
-                            "tcp"
-                          ]
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "pair",
-                            "pubsub"
-                          ]
-                        },
-                        "chid": {
-                          "type": "integer"
-                        },
-                        "host": {
-                          "type": "string"
-                        },
-                        "port": {
-                          "type": "integer"
-                        }
-                      },
-                      "required": [
-                        "transport",
-                        "type",
-                        "chid",
-                        "host",
-                        "port"
-                      ],
-                      "additionalProperties": false
-                    },
-                    {
-                      "title": "tcp pubsub w/ filter",
-                      "type": "object",
-                      "properties": {
-                        "transport": {
-                          "type": "string",
-                          "enum": [
-                            "tcp"
-                          ]
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "pubsub"
-                          ]
-                        },
-                        "chid": {
-                          "type": "integer"
-                        },
-                        "host": {
-                          "type": "string"
-                        },
-                        "port": {
-                          "type": "integer"
-                        },
-                        "filter": {
-                          "type": "integer"
-                        },
-                        "filter_size": {
-                          "type": "integer"
-                        }
-                      },
-                      "required": [
-                        "transport",
-                        "type",
-                        "chid",
-                        "host",
-                        "port",
-                        "filter",
-                        "filter_size"
-                      ],
-                      "additionalProperties": false
-                    },
-                    {
-                      "title": "ipc",
-                      "type": "object",
-                      "properties": {
-                        "transport": {
-                          "type": "string",
-                          "enum": [
-                            "ipc"
-                          ]
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "pair",
-                            "pubsub"
-                          ]
-                        },
-                        "chid": {
-                          "type": "integer"
-                        },
-                        "path": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "type",
-                        "chid",
-                        "path",
-                        "transport"
-                      ],
-                      "additionalProperties": false
-                    },
-                    {
-                      "title": "ipc pubsub w/ filter",
-                      "type": "object",
-                      "properties": {
-                        "transport": {
-                          "type": "string",
-                          "enum": [
-                            "ipc"
-                          ]
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "pubsub"
-                          ]
-                        },
-                        "chid": {
-                          "type": "integer"
-                        },
-                        "path": {
-                          "type": "string"
-                        },
-                        "filter": {
-                          "type": "integer"
-                        },
-                        "filter_size": {
-                          "type": "integer"
-                        }
-                      },
-                      "required": [
-                        "type",
-                        "chid",
-                        "path",
-                        "transport",
-                        "filter",
-                        "filter_size"
-                      ],
-                      "additionalProperties": false
-                    }
-                  ]
-                }
-              },
-              "senders": {
-                "type": "array",
-                "format": "table",
-                "title": "Senders",
-                "uniqueItems": true,
-                "items": {
-                  "type": "object",
-                  "oneOf": [
-                    {
-                      "title": "tcp",
-                      "type": "object",
-                      "properties": {
-                        "transport": {
-                          "type": "string",
-                          "enum": [
-                            "tcp"
-                          ]
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "pair",
-                            "pubsub"
-                          ]
-                        },
-                        "chid": {
-                          "type": "integer"
-                        },
-                        "host": {
-                          "type": "string"
-                        },
-                        "port": {
-                          "type": "integer"
-                        }
-                      },
-                      "required": [
-                        "transport",
-                        "type",
-                        "chid",
-                        "host",
-                        "port"
-                      ],
-                      "additionalProperties": false
-                    },
-                    {
-                      "title": "ipc",
-                      "type": "object",
-                      "properties": {
-                        "transport": {
-                          "type": "string",
-                          "enum": [
-                            "ipc"
-                          ]
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "pair",
-                            "pubsub"
-                          ]
-                        },
-                        "chid": {
-                          "type": "integer"
-                        },
-                        "path": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "type",
-                        "chid",
-                        "path",
-                        "transport"
-                      ],
-                      "additionalProperties": false
-                    }
-                  ]
-                }
-              }
-            }
           }
         },
         "required": [
           "name",
           "host",
           "port",
-          "type",
+          "modules",
           "loglevel"
+        ]
+      }
+    },
+    "resources":{
+      "type": "array",
+      "format": "table",
+      "title": "Resources",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "title": "Resource",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "resource": {
+            "type": "object"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "resource"
         ]
       }
     }
@@ -397,6 +221,9 @@
         "influxDb_name": {
           "type": "string",
           "default": "DAQlingMetrics"
+        },
+        "stats_interval":{
+          "type":"integer"
         }
       },
       "required": [
@@ -412,6 +239,9 @@
         "stats_uri": {
           "type": "string",
           "default": "tcp://localhost:6007"
+        },
+        "stats_interval":{
+          "type":"integer"
         }
       },
       "required": [

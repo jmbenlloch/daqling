@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,7 @@
 
 /**
  * @file DAQProcess.hpp
- * @brief Base class for Modules loaded via the PluginManager
+ * @brief Base class for Modules loaded via the ModuleLoader
  * @date 2019-02-20
  */
 
@@ -26,30 +26,50 @@
 
 #include "ConnectionManager.hpp"
 #include "Statistics.hpp"
+#include "Utils/Ers.hpp"
+#include "Utils/ThreadTagger.hpp"
+namespace daqling {
+#include <ers/Issue.h>
 
-namespace daqling::core {
+ERS_DECLARE_ISSUE(core, DAQProcessIssue, "", ERS_EMPTY)
+
+ERS_DECLARE_ISSUE_BASE(core, CannotSetupStats, core::DAQProcessIssue,
+                       "Connection setup failed for Statistics publishing!", ERS_EMPTY, ERS_EMPTY)
+
+ERS_DECLARE_ISSUE_BASE(core, CannotGetStatPointer, core::DAQProcessIssue,
+                       "Cannot get stat pointer! cause: " << ewhat, ERS_EMPTY,
+                       ((const char *)ewhat))
+namespace core {
 
 using namespace std::placeholders;
-
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class DAQProcess {
 public:
-  DAQProcess(){};
-
-  virtual ~DAQProcess(){};
+  DAQProcess(const std::string &name)
+      : m_name(name),
+        m_connections(daqling::core::ConnectionManager::instance().addSubManager(name)) {
+    addTag();
+  }
+  std::string senderType;
+  std::string receiverType;
+  virtual ~DAQProcess() = default;
 
   /* use virtual otherwise linker will try to perform static linkage */
   virtual void configure() {
+    // assign submanager
     setupStatistics();
-    if (m_stats_on) {
+    if (m_statistics->isStatsOn()) {
       m_statistics->start();
     }
   };
+  virtual void unconfigure() { m_statistics->unsetStatsConnection(); };
+  virtual void down() { m_statistics->unsetStatsConnection(); };
 
   virtual void start(unsigned run_num) {
     m_run_number = run_num;
-    DEBUG("run number " << m_run_number);
+    ERS_DEBUG(0, "run number " << m_run_number);
     m_run = true;
-    m_runner_thread = std::thread(&DAQProcess::runner, this);
+    m_runner_thread = std::thread(&DAQProcess::runner_wrapper, this);
   };
 
   virtual void stop() {
@@ -68,7 +88,7 @@ public:
     if (auto cmd = m_commands.find(key); cmd != m_commands.end()) {
       return true;
     }
-    WARNING("No command '" << key << "' registered");
+    ERS_WARNING("No command '" << key << "' registered");
     return false;
   }
 
@@ -90,60 +110,46 @@ public:
     return std::get<2>(cmd->second);
   }
 
-  bool setupStatistics() { // TODO
+  /**
+   * Creates the Statistics class, and registers metrics for all connections.
+   */
+  bool setupStatistics() {
+    try {
 
-    auto statsURI = m_config.getMetricsSettings()["stats_uri"];
-    auto influxDbURI = m_config.getMetricsSettings()["influxDb_uri"];
-    auto influxDbName = m_config.getMetricsSettings()["influxDb_name"];
+      m_statistics = std::make_unique<Statistics>(m_config.getMetricsSettings());
 
-    INFO("Setting up statistics on: " << statsURI);
-    if ((statsURI == "" || statsURI == nullptr) && (influxDbURI == "" || influxDbURI == nullptr)) {
-      INFO("No Statistics settings were provided... Running without stats.");
-      m_stats_on = false;
-      return false;
-    } else {
-      if (statsURI != "" && statsURI != nullptr) {
-        if (!m_connections.setupStatsConnection(1, statsURI)) {
-          ERROR("Connection setup failed for Statistics publishing!");
-          return false;
-        }
-      }
-      m_statistics = std::make_unique<Statistics>(m_connections.getStatSocket());
-      for (unsigned ch = 0; ch < m_config.getNumReceiverConnections(); ch++) {
-        m_statistics->registerMetric<std::atomic<size_t>>(&m_connections.getReceiverQueueStat(ch),
-                                                          "ReceiverCh" + std::to_string(ch) +
-                                                              "-QueueSizeGuess",
-                                                          daqling::core::metrics::LAST_VALUE);
+      for (auto & [ ch, receiver ] : m_connections.getReceiverMap()) {
         m_statistics->registerMetric<std::atomic<size_t>>(
-            &m_connections.getReceiverMsgStat(ch),
-            "ReceiverCh" + std::to_string(ch) + "-NumMessages", daqling::core::metrics::RATE);
-      }
-      for (unsigned ch = 0; ch < m_config.getNumSenderConnections(); ch++) {
-        m_statistics->registerMetric<std::atomic<size_t>>(&m_connections.getSenderQueueStat(ch),
-                                                          "SenderCh" + std::to_string(ch) +
-                                                              "-QueueSizeGuess",
-                                                          daqling::core::metrics::LAST_VALUE);
+            &receiver->getPcqSize(), "ReceiverCh" + std::to_string(ch) + "-QueueSizeGuess",
+            daqling::core::metrics::LAST_VALUE);
         m_statistics->registerMetric<std::atomic<size_t>>(
-            &m_connections.getSenderMsgStat(ch), "SenderCh" + std::to_string(ch) + "-NumMessages",
+            &receiver->getMsgsHandled(), "ReceiverCh" + std::to_string(ch) + "-NumMessages",
             daqling::core::metrics::RATE);
       }
-      if (statsURI != "" && statsURI != nullptr) {
-        m_statistics->setZMQpublishing(true);
-        m_stats_on = true;
+      for (auto & [ ch, sender ] : m_connections.getSenderMap()) {
+        m_statistics->registerMetric<std::atomic<size_t>>(
+            &sender->getPcqSize(), "SenderCh" + std::to_string(ch) + "-QueueSizeGuess",
+            daqling::core::metrics::LAST_VALUE);
+        m_statistics->registerMetric<std::atomic<size_t>>(
+            &sender->getMsgsHandled(), "SenderCh" + std::to_string(ch) + "-NumMessages",
+            daqling::core::metrics::RATE);
       }
-      if (influxDbURI != "" && influxDbURI != nullptr) {
-        m_statistics->setInfluxDBname(influxDbName);
-        m_statistics->setInfluxDBuri(influxDbURI);
-        m_statistics->setInfluxDBsending(true);
-        m_stats_on = true;
-      }
+    } catch (const ers::Issue &i) {
+      throw CannotSetupStats(ERS_HERE, i);
     }
+
     return true;
   }
 
   bool running() const { return m_runner_thread.joinable(); }
 
 protected:
+  std::string m_name;
+  void runner_wrapper() {
+    addTag();
+    runner();
+  }
+  void addTag() const { daqling::utilities::ThreadTagger::instance().writeTag(m_name); }
   /**
    * Registers a custom command under the name `cmd`.
    * Returns whether the command was inserted (false meaning that command `cmd` already exists)
@@ -151,34 +157,30 @@ protected:
   template <typename Function, typename... Args>
   bool registerCommand(const std::string &cmd, const std::string &transition_state,
                        const std::string &target_state, Function &&f, Args &&... args) {
-    // if (m_state == "running") {
-    //   throw std::logic_error("commands cannot be registered during runtime.");
-    // }
-
     return m_commands
         .emplace(cmd, std::make_tuple(std::bind(f, args...), transition_state, target_state))
         .second;
   }
 
   // ZMQ ConnectionManager
-  daqling::core::ConnectionManager &m_connections = daqling::core::ConnectionManager::instance();
+  daqling::core::ConnectionSubManager &m_connections;
   // JSON Configuration map
   daqling::core::Configuration &m_config = daqling::core::Configuration::instance();
 
   // Stats
-  bool m_stats_on;
-  std::unique_ptr<Statistics> m_statistics;
+  bool m_stats_on{};
+  std::shared_ptr<Statistics> m_statistics;
 
-  std::atomic<bool> m_run;
+  std::atomic<bool> m_run{};
   std::thread m_runner_thread;
-  unsigned m_run_number;
+  unsigned m_run_number{};
 
 private:
   std::map<const std::string, std::tuple<std::function<void(const std::string &)>,
                                          const std::string, const std::string>>
       m_commands;
 };
-
-} // namespace daqling::core
+} // namespace core
+} // namespace daqling
 
 #endif // DAQLING_CORE_DAQPROCESS_HPP

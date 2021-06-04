@@ -1,36 +1,66 @@
-image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:latest
-
 stages:
+    - build-image
     - compilation
     - testing
 
+
+# # Building image
+# build-image:
+#     stage: build-image
+#     script:
+
+#         - docker build --tag gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cibase .
+#         - docker push gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cibase
+#     before_script:
+#         - docker info
+#     when: manual
+
+
+build:
+  stage: build-image
+  image:
+    name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
+    entrypoint: [""]
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/etc/Dockerfile --destination $CI_REGISTRY_IMAGE:cibase
+  only:
+    - triggers
+    # variables:
+    #     - $TRIGGER_PAYLOAD == "DAQLING_SPACK_REPO_HOOK"
+
+
 # Default compile jobs
 compile:
+    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cibase
     stage: compilation
     script:
         - mkdir build
         - cd build
-        - cmake3 -DENABLE_SANITIZE=OFF -DBUILD_Dummy=ON ..
+        - cmake -DENABLE_SANITIZE=OFF -DBUILD_Dummy=ON ..
         - make -j$(nproc)
     artifacts:
         paths:
             - build
         expire_in: 1 hours
     before_script:
-        - source cmake/setup.sh
+        - source cmake/setup.sh /daqling-spack-repo
 
 # Default tests
 test:
+    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cibase
     stage: testing
     script:
         - cd build/
-        - ctest3 --output-on-failure -j4
+        - ctest --output-on-failure -j4
     dependencies:
         - compile
     before_script:
-        - source cmake/setup.sh
+        - source cmake/setup.sh /daqling-spack-repo
 
 format:
+    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cibase
     stage: testing
     script:
         - cd build
@@ -38,5 +68,16 @@ format:
     dependencies:
         - compile
     before_script:
-        - source cmake/setup.sh
+        - source cmake/setup.sh /daqling-spack-repo
+    allow_failure: true
+tidy:
+    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cibase
+    stage: testing
+    script:
+        - cd build
+        - make check-lint
+    dependencies:
+        - compile
+    before_script:
+        - source cmake/setup.sh /daqling-spack-repo
     allow_failure: true

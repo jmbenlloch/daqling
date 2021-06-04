@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,34 +18,50 @@
 #ifndef DAQLING_CORE_CONFIGURATION_HPP
 #define DAQLING_CORE_CONFIGURATION_HPP
 
-#include "nlohmann/json.hpp"
-#include <istream>
-#include <ostream>
-#include <stdexcept>
-#include <string>
-#include <unordered_map>
-#include <vector>
-
-#include "Utils/Logging.hpp"
+#include "Utils/Ers.hpp"
 #include "Utils/Singleton.hpp"
-
+#include "nlohmann/json.hpp"
+#include <string>
+#include <unordered_set>
+#include <utility>
 namespace daqling {
+ERS_DECLARE_ISSUE(core, NoConfigsForName, "No configs for module with name: " << name,
+                  ((const char *)name))
 namespace core {
-
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class Configuration : public daqling::utilities::Singleton<Configuration> {
 public:
-  Configuration() {}
-  ~Configuration() {}
+  Configuration() = default;
+  ~Configuration() = default;
 
   void clear() { m_config.clear(); }
   std::string dump() { return m_config.dump(); }
   void load(const std::string &jsonStr) { m_config = nlohmann::json::parse(jsonStr); }
   nlohmann::json &getConfig() { return m_config; }
   nlohmann::json &getSettings() { return m_config["settings"]; }
+  nlohmann::json &getModuleSettings(const std::string &key) { return getModule(key)["settings"]; }
+  nlohmann::json
+  getModules(std::unordered_set<std::string> typearg = std::unordered_set<std::string>()) {
+    if (typearg.empty()) {
+      return m_config["modules"];
+    }
+    nlohmann::json retArray;
+    for (auto item : m_config["modules"]) {
+      if (typearg.find(item["type"].get<std::string>()) != typearg.end()) {
+        retArray.push_back(item);
+      }
+    }
+    return retArray;
+  }
+  nlohmann::json &getResources() { return m_config["resources"]; }
   nlohmann::json &getMetricsSettings() { return m_config["metrics_settings"]; }
-  nlohmann::json &getConnections() { return m_config["connections"]; }
-  unsigned getNumReceiverConnections() { return m_config["connections"]["receivers"].size(); }
-  unsigned getNumSenderConnections() { return m_config["connections"]["senders"].size(); }
+  nlohmann::json &getConnections(const std::string &key) { return getModule(key)["connections"]; }
+  unsigned getNumReceiverConnections(const std::string &key) {
+    return getModule(key)["connections"]["receivers"].size();
+  }
+  unsigned getNumSenderConnections(const std::string &key) {
+    return getModule(key)["connections"]["senders"].size();
+  }
 
   std::string getName() { return m_config["name"]; };
 
@@ -54,6 +70,14 @@ public:
 
 private:
   nlohmann::json m_config;
+  nlohmann::json &getModule(const std::string &key) {
+    for (unsigned i = 0; i < m_config["modules"].size(); i++) {
+      if (m_config["modules"][i]["name"].get<std::string>() == key) {
+        return m_config["modules"][i];
+      }
+    }
+    throw NoConfigsForName(ERS_HERE, key.c_str());
+  }
 };
 
 } // namespace core

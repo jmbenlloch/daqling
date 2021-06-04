@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,45 +18,43 @@
 #ifndef DAQLING_CORE_COMMAND_HPP
 #define DAQLING_CORE_COMMAND_HPP
 
-#include "Utils/Logging.hpp"
+#include "Utils/Ers.hpp"
 #include "Utils/ReusableThread.hpp"
 #include "Utils/Singleton.hpp"
+#include <unordered_set>
 #include <xmlrpc-c/base.hpp>
 #include <xmlrpc-c/registry.hpp>
 #include <xmlrpc-c/server_abyss.hpp>
-
 namespace daqling {
+#include <ers/Issue.h>
+
+ERS_DECLARE_ISSUE(core, CommandIssue, "", ERS_EMPTY)
+ERS_DECLARE_ISSUE_BASE(core, UnknownException, core::CommandIssue,
+                       "Command received unknown exception with content: " << what, ERS_EMPTY,
+                       ((const char *)what))
+
+ERS_DECLARE_ISSUE_BASE(core, CannotLoadPlugin, core::CommandIssue,
+                       "Module load failure: Could not load plugin of type: " << type, ERS_EMPTY,
+                       ((const char *)type))
+
+ERS_DECLARE_ISSUE_BASE(core, AddChannelFailed, core::CommandIssue,
+                       "Failed to add channel... chid: " << chid, ERS_EMPTY, ((unsigned)chid))
+
+ERS_DECLARE_ISSUE_BASE(core, InvalidCommand, core::CommandIssue, "Invalid Command.", ERS_EMPTY,
+                       ERS_EMPTY)
+
+ERS_DECLARE_ISSUE_BASE(core, UnregisteredCommand, core::CommandIssue,
+                       "Unregistered command: " << CommandName, ERS_EMPTY,
+                       ((const char *)CommandName))
+
 namespace core {
-
-struct connection_failure : public std::exception {
-  const char *what() const throw() { return "Connection failure"; }
-};
-struct invalid_command : public std::exception {
-  const char *what() const throw() { return "Invalid command"; }
-};
-struct module_loading_failure : public std::exception {
-  const char *what() const throw() { return "Module loading failure"; }
-};
-
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class Command : public daqling::utilities::Singleton<Command> {
 public:
-  Command()
-      : m_should_stop{false},
-        m_handled(false), m_state{"booted"}, m_command{""}, m_argument{""}, m_response{""} {}
+  Command() : m_should_stop{false}, m_command{""}, m_argument{""}, m_response{""} {}
   ~Command() {
     m_server_p->terminate();
     m_cmd_handler.join();
-  }
-
-  void setState(const std::string &state) {
-    DEBUG("Setting state: " << state);
-    const std::lock_guard<std::mutex> lock(m_state_mtx);
-    m_state = state;
-  }
-
-  std::string getState() {
-    const std::lock_guard<std::mutex> lock(m_state_mtx);
-    return m_state;
   }
 
   void setupServer(unsigned port);
@@ -66,16 +64,22 @@ public:
   std::condition_variable *getCondVar() { return &m_cv; }
 
   void stop_and_notify() {
-    DEBUG("Shutting down...");
+    ERS_DEBUG(0, "Shutting down...");
     std::lock_guard<std::mutex> lk(m_mtx);
     m_should_stop = true;
     m_cv.notify_one();
   }
+  static std::unordered_set<std::string>
+  paramListToUnordered_set(xmlrpc_c::paramList const &paramList, unsigned start, unsigned end) {
+    std::unordered_set<std::string> types_affected;
+    for (unsigned i = start; i < end; i++) {
+      types_affected.insert(paramList.getString(i));
+    }
+    return types_affected;
+  }
 
 private:
   bool m_should_stop;
-  bool m_handled;
-  std::string m_state;
   std::string m_command;
   std::string m_argument;
   std::string m_response;

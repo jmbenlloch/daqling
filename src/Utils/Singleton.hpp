@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,14 +27,13 @@
  */
 
 #include <memory>
-
+#include <mutex>
 namespace daqling {
 namespace utilities {
 
-template <typename T> class Singleton {
+template <typename T> class Singleton { // NOLINT(cppcoreguidelines-special-member-functions)
 public:
   static T &instance();
-
   // Prevent copying and moving.
   Singleton(Singleton const &) = delete;            // Copy construct
   Singleton(Singleton &&) = delete;                 // Move construct
@@ -42,10 +41,13 @@ public:
   Singleton &operator=(Singleton &&) = delete;      // Move assign
 
 protected:
-  Singleton() {}
+  static std::mutex s_mutex;
+  Singleton() = default;
 };
+template <typename T> std::mutex Singleton<T>::s_mutex;
 
 template <typename T> T &Singleton<T>::instance() {
+  std::scoped_lock lock(s_mutex);
   static const std::unique_ptr<T> instance{new T{}};
   return *instance;
 }

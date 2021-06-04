@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,9 +18,9 @@
 #ifndef DAQLING_CORE_CORE_HPP
 #define DAQLING_CORE_CORE_HPP
 
-#include <atomic>
-
-#include "PluginManager.hpp"
+#include "Command.hpp"
+#include "ModuleManager.hpp"
+#include "Utils/Ers.hpp"
 
 namespace daqling {
 namespace core {
@@ -44,7 +44,7 @@ private:
   // JSON Configuration map
   daqling::core::Configuration &m_config = daqling::core::Configuration::instance();
   // Plugin manager
-  daqling::core::PluginManager &m_plugin = daqling::core::PluginManager::instance();
+  daqling::core::ModuleManager &m_plugin = daqling::core::ModuleManager::instance();
 };
 
 } // namespace core

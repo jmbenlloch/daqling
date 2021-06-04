@@ -1,5 +1,5 @@
 """
- Copyright (C) 2019 CERN
+ Copyright (C) 2019-2021 CERN
  
  DAQling is free software: you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
@@ -96,7 +96,8 @@ class daqcontrol:
       port = p['port']
       loglvl_core = p['loglevel']['core']
       loglvl_module = p['loglevel']['module']
-      full_exe = exe+" "+name+" "+str(port)+" "+loglvl_core+" "+loglvl_module
+      loglvl_connection = p['loglevel']['connection']
+      full_exe = exe+" --name "+name+" --port "+str(port)+" --core_lvl "+loglvl_core+" --module_lvl "+loglvl_module+" --connection_lvl "+loglvl_connection
       log_files.append(self.addProcess(p['host'], name, full_exe, dir, lib_path=lib_path))
     return log_files
 
@@ -146,14 +147,28 @@ class daqcontrol:
   def getStatus(self, p):
       sw = supervisor_wrapper(p['host'], self.group)
       req = 'status'
+      status = []
+      module_names = []
       try:
         status = self.handleRequest(p['host'], p['port'], req)
+        if(status==[]):
+          for mod in p['modules']:
+            status.append('booted')
+            module_names.append(mod['name'])
+        else:
+          module_names, status = map(list, zip(*(x.split(' , ') for x in status)))
       except:
         if self.use_supervisor:
-          status = 'added'
+          for mod in p['modules']:
+            status.append('added')
+            module_names.append(mod['name'])
           try:
             sw.getProcessState(p['name'])['statename']
           except:
-            status = 'not_added'
-      return status
+            status=[]
+            module_names = []
+            for mod in p['modules']:
+              status.append('not_added')
+              module_names.append(mod['name'])
+      return status, module_names
 

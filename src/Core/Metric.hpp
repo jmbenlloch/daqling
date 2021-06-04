@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,46 +18,41 @@
 #ifndef METRIC_HPP
 #define METRIC_HPP
 
-#include <ctime>
+#include "Utils/Ers.hpp"
+#include <chrono>
 #include <string>
-#include <vector>
 
 namespace daqling {
 namespace core {
 namespace metrics {
-
 enum metric_type { LAST_VALUE, ACCUMULATE, AVERAGE, RATE };
 enum variable_type { FLOAT, INT, DOUBLE, BOOL, SIZE };
 
 } // namespace metrics
 
-class Metric_base {
+class Metric_base { // NOLINT(cppcoreguidelines-special-member-functions)  virtual destructor
   friend class Statistics;
 
 public:
-  Metric_base(std::string name, metrics::metric_type mtype, metrics::variable_type vtype,
-              float delta_t)
-      : m_name(name), m_mtype(mtype), m_vtype(vtype), m_delta_t(delta_t) {
-    m_timestamp = std::time(nullptr);
+  Metric_base(std::string name, metrics::metric_type mtype, metrics::variable_type vtype)
+      : m_name(std::move(name)), m_mtype(mtype), m_vtype(vtype) {
+    m_timestamp = std::chrono::system_clock::now();
   }
-  ~Metric_base() {}
+  virtual ~Metric_base() = default;
 
 protected:
   std::string m_name;
-  std::time_t m_timestamp;      // timestamp of last measurement
-  metrics::metric_type m_mtype; // defined metric types:
+  std::chrono::time_point<std::chrono::system_clock> m_timestamp; // timestamp of last measurement
+  metrics::metric_type m_mtype;                                   // defined metric types:
   metrics::variable_type m_vtype;
-  float m_delta_t; // time between measurements in sec
 };
 
 template <class T, class U> class Metric : public Metric_base {
   friend class Statistics;
 
 public:
-  Metric(T *pointer, std::string name, metrics::metric_type mtype, metrics::variable_type vtype,
-         float delta_t)
-      : Metric_base(name, mtype, vtype, delta_t), m_metrics_ptr(pointer) {}
-  ~Metric() {}
+  Metric(T *pointer, std::string name, metrics::metric_type mtype, metrics::variable_type vtype)
+      : Metric_base(name, mtype, vtype), m_metrics_ptr(pointer) {}
 
 protected:
   std::vector<U> m_values;

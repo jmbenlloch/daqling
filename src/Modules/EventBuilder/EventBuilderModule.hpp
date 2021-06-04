@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,8 +16,16 @@
  */
 
 #pragma once
-
 #include "Core/DAQProcess.hpp"
+
+namespace daqling {
+#include <ers/Issue.h>
+
+ERS_DECLARE_ISSUE(module, BrokenSequenceNumber,
+                  "Sequence number for channel " << ch << " is broken! Previous = " << prev_seq
+                                                 << " while current = " << seq_number,
+                  ((unsigned)ch)((unsigned)prev_seq)((unsigned)seq_number))
+}
 
 class EventBuilderModule : public daqling::core::DAQProcess {
 
@@ -26,12 +34,11 @@ class EventBuilderModule : public daqling::core::DAQProcess {
   std::atomic<size_t> m_complete_ev_size_guess;
 
 public:
-  EventBuilderModule();
-  ~EventBuilderModule();
+  EventBuilderModule(const std::string & /*n*/);
 
-  void configure();
-  void start(unsigned run_num);
-  void stop();
+  void configure() override;
+  void start(unsigned run_num) override;
+  void stop() override;
 
-  void runner() noexcept;
+  void runner() noexcept override;
 };

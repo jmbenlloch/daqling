@@ -34,4 +34,4 @@ Active destinations are:
       "port" : "6379"
     }
 
-Omitting either the `influxDB_settings` or `redis_settings` will disable that destination.
+Omitting either the `influxDB_settings` or `redis_settings` will disable that destination (`redis_settings` is omitted by default).

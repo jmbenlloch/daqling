@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 CERN
+ * Copyright (C) 2019-2021 CERN
  *
  * DAQling is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,16 +18,18 @@
 #ifndef DAQLING_UTILITIES_COMMON_HPP
 #define DAQLING_UTILITIES_COMMON_HPP
 
-#include <limits.h>
-#include <pthread.h>
+#include <climits>
 #include <thread>
-#include <time.h>
-#include <unistd.h>
-
-#include "Types.hpp"
 
 namespace daqling {
 namespace utilities {
+
+using timestamp_t = std::uint64_t;
+
+static const timestamp_t ns = 1;
+static const timestamp_t us = 1000 * ns;
+static const timestamp_t ms = 1000 * us;
+static const timestamp_t s = 1000 * ms;
 
 /*
  * Constants
@@ -60,9 +62,9 @@ public:
  */
 class RateLimiter {
 public:
-  RateLimiter() {}
+  RateLimiter() = default;
   timestamp_t gettime() {
-    ::timespec ts;
+    ::timespec ts{};
     ::clock_gettime(CLOCK_MONOTONIC, &ts);
     return timestamp_t(ts.tv_sec) * s + timestamp_t(ts.tv_nsec) * ns;
   }
@@ -74,10 +76,25 @@ public:
 
   void reset() { beg_ = clock_::now(); }
 
-  double elapsed() const { return std::chrono::duration_cast<DT>(clock_::now() - beg_).count(); }
+  double elapsed() const {
+    return std::chrono::duration_cast<interval_>(clock_::now() - beg_).count();
+  }
+  void expires_from_now(double duration) {
+    this->reset();
+    dur = interval_(duration);
+  }
+  bool expired() { return std::chrono::duration_cast<interval_>(clock_::now() - beg_) >= dur; }
+  void wait() {
+    if (!expired()) {
+      std::this_thread::sleep_for(dur -
+                                  std::chrono::duration_cast<interval_>(clock_::now() - beg_));
+    }
+  }
 
 private:
-  typedef std::chrono::high_resolution_clock clock_;
+  using interval_ = std::chrono::duration<double, DT>;
+  interval_ dur;
+  using clock_ = std::chrono::high_resolution_clock;
   // typedef std::chrono::duration<double, std::ratio<1> > second_;
   std::chrono::time_point<clock_> beg_;
 };
@@ -87,6 +104,7 @@ private:
  * */
 inline void setThreadName(std::thread &thread, const char *name, uint32_t tid) {
   char tname[16];
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
   snprintf(tname, 16, "daq-%s-%d", name, tid);
   auto handle = thread.native_handle();
   pthread_setname_np(handle, tname);
@@ -110,7 +128,7 @@ inline void getThreadName(std::thread &thread, const char *name) {
  * getTime
  * */
 inline timestamp_t getTime() {
-  ::timespec ts;
+  ::timespec ts{};
   ::clock_gettime(CLOCK_MONOTONIC, &ts);
   return timestamp_t(ts.tv_sec) * s + timestamp_t(ts.tv_nsec) * ns;
 }
@@ -121,24 +139,26 @@ inline timestamp_t getTime() {
 inline std::string getExecutablePath() {
   char exePath[PATH_MAX];
   ssize_t len = ::readlink("/proc/self/exe", exePath, sizeof(exePath));
-  if (len == -1 || len == static_cast<ssize_t>(sizeof(exePath)))
+  if (len == -1 || len == static_cast<ssize_t>(sizeof(exePath))) {
     len = 0;
-  exePath[len] = '\0';
+  }
+  exePath[len] = '\0'; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
   return std::string(exePath);
 }
 
 inline std::string methodName(const std::string &prettyFunction) {
   size_t colons = prettyFunction.find("::");
-  size_t begin = prettyFunction.substr(0, colons).rfind(" ") + 1;
-  size_t end = prettyFunction.rfind("(") - begin;
+  size_t begin = prettyFunction.substr(0, colons).rfind(' ') + 1;
+  size_t end = prettyFunction.rfind('(') - begin;
   return prettyFunction.substr(begin, end) + "()";
 }
 
 inline std::string className(const std::string &prettyFunction) {
   size_t colons = prettyFunction.find("::");
-  if (colons == std::string::npos)
+  if (colons == std::string::npos) {
     return "::";
-  size_t begin = prettyFunction.substr(0, colons).rfind(" ") + 1;
+  }
+  size_t begin = prettyFunction.substr(0, colons).rfind(' ') + 1;
   size_t end = colons - begin;
 
   return prettyFunction.substr(begin, end);

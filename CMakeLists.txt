@@ -1,11 +1,13 @@
-cmake_minimum_required(VERSION 3.4.3 FATAL_ERROR)
-cmake_policy(SET CMP0077 NEW) # option() honors normal variables
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 set(PACKAGE daqling)
-set(PACKAGE_VERSION 0.9.2)
+set(PACKAGE_VERSION 1.0.0)
 
 project(${PACKAGE} VERSION ${PACKAGE_VERSION}
         DESCRIPTION "Data acquisition framework"
-        LANGUAGES C CXX)
+        LANGUAGES CXX)
+
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Set default build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -50,17 +52,20 @@ ENDIF()
 
 include(cmake/daqling.cmake)
 
-option(CERN_ENVIRONMENT "Whether or not ${PACKAGE} is to be built in a CERN computer environment. If so, looks for some extra libraries in /opt/ instead of ${CMAKE_SOURCE_DIR}/3rdparty/" ON)
-message(STATUS "Configuring for CERN computer environments?  ${CERN_ENVIRONMENT}")
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
-  message(FATAL_ERROR "GCC version must be at least 4.8!")
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7)
+  message(FATAL_ERROR "GCC version must be at least 7!")
 endif()
 
 # Require a C++17 compliant compiler
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+#Find ZMQ Libraries
+find_library(ZMQ_LIBRARY NAMES zmq)
+set(ZMQ_LIBRARIES ${ZMQ_LIBRARY})
 
 # Include Threads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -88,16 +93,16 @@ if (ENABLE_BOOST)
   include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 endif (ENABLE_BOOST)
 
-set(BUILD_TESTS OFF) # disable zmq tests
 if(DEFINED BUILD_WITH_CPR)
   set(BUILD_WITH_CPR ${BUILD_WITH_CPR})
 else()
   set(BUILD_WITH_CPR ON)
   add_compile_definitions(BUILD_WITH_CPR)
 endif()
-set(USE_SYSTEM_CURL ON)
-set(BUILD_CPR_TESTS OFF)
-set(ZMQ_BUILD_TESTS OFF)
+# set(USE_SYSTEM_CURL ON)
+# set(BUILD_CPR_TESTS OFF)
+
+add_compile_definitions(FOLLY_NO_CONFIG) # Required for building with Folly library
 
 set(BUILD_SHARED_LIBS ON)
 
@@ -112,39 +117,8 @@ else()
   set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} Threads::Threads)
 endif()
 
-if(CERN_ENVIRONMENT)
-  include_directories(SYSTEM /opt/spdlog/include)
-  include_directories(SYSTEM /opt/json/single_include)
-  if(BUILD_WITH_CPR)
-    include_directories(SYSTEM /opt/cpr/include)
-  endif()
-  include_directories(SYSTEM /opt/libzmq/include)
-  include_directories(SYSTEM /opt/hedley)
-  if(BUILD_WITH_CPR)
-    link_directories(/opt/cpr/build/lib)
-  endif()
-  link_directories(/opt/libzmq/build/lib)
-
-  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} zmq)
-else()
-  # Build libzmq with libsodium instead of the built-in tweetnacl.
-  # Fixes zmq::context_t dtor when libzmq curve security is enabled.
-  set(WITH_LIBSODIUM ON)
-
-  add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/zmq)
-  if(BUILD_WITH_CPR)
-    add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/cpr)
-    include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cpr/include)
-  endif()
-
-  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/spdlog/include)
-  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/json/single_include)
-  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/zmq/include)
-  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/cppzmq)
-  include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty/hedley)
-
-  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} libzmq)
-endif()
+#Add ers library
+set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} ers)
 
 # https://cmake.org/cmake/help/v3.0/module/FindXMLRPC.html
 find_package(XMLRPC 1.51.06 EXACT REQUIRED c++2 abyss-server)
@@ -177,6 +151,7 @@ endif()
 if(CMAKE_BUILD_TYPE MATCHES Release)
   message(STATUS "Running release build, adding optimization flags")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+  add_compile_definitions(ERS_NO_DEBUG)
 
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-prefetch -unroll-aggressive -march=native -mtune=native")
@@ -190,6 +165,9 @@ if(NOT BUILD_Dummy)
 endif()
 if(NOT BUILD_MetricsSimulator)
   set(BUILD_MetricsSimulator OFF)
+endif()
+if(NOT BUILD_ErsTest)
+  set(BUILD_ErsTest OFF)
 endif()
 
 include_directories(${daqling_dir}/src)
@@ -208,6 +186,10 @@ if (hasParent)
   set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} PARENT_SCOPE)
 endif (hasParent)
 
+# Build Streams
+add_subdirectory(src/Streams)
+set(DAQLING_LIBRARIES ${DAQLING_LIBRARIES} DaqlingStreams)
+
 # Build core daqling library
 add_subdirectory(src/Core)
 set(DAQLING_LIBRARIES ${DAQLING_LIBRARIES} DaqlingCore)
@@ -215,7 +197,14 @@ set(DAQLING_LIBRARIES ${DAQLING_LIBRARIES} DaqlingCore)
 # Build modules
 add_subdirectory(src/Modules)
 
+# Build connections
+add_subdirectory(src/Connections)
+
+# Build queues
+add_subdirectory(src/Queues)
+
 # Build the executable
+add_compile_definitions(TDAQ_PACKAGE_NAME="core")
 add_subdirectory(src/Exec)
 
 # Build tests
@@ -224,3 +213,4 @@ add_subdirectory(test)
 # Add formatting targets
 file(GLOB_RECURSE FORMAT_CXX_SOURCE_FILES src/*.[ch]pp test/*.[ch]pp)
 include(cmake/clang-format.cmake)
+include(cmake/clang-tidy.cmake)
