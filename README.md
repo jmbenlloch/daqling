@@ -135,17 +135,24 @@ The custom module will be discovered and built by CMake as part of the project.
 
 To run a newly created Module (e.g. `MyDummyModule`), it is necessary to add a corresponding entry in `components:` to a JSON configuration file. Note that the name of the Module needs to be specified in the `type:` field. E.g.:
 
-    {
-      "name": "mydummymodule01",
-      "host": "localhost",
-      "port": 5555,
-      "type": "MyDummyModule",
-      "loglevel": {"core": "INFO", "module": "DEBUG"},
-      "settings": {
-      },
-      "connections": {
-      }    
-    }
+```json
+{
+  "name": "mydummymodule01",
+  "host": "localhost",
+  "port": 5555,
+  "modules": [
+   {
+     "type": "MyDummyModule",
+     "name":"mydummymodule",
+     "connections": {
+     }
+   }
+  ],
+  "loglevel": {"core": "INFO", "module": "DEBUG","connection":"WARNING"},
+  "settings": {
+  }    
+}
+```
 
 ## Contributors
 
