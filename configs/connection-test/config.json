@@ -7,7 +7,7 @@
       "host": "localhost",
       "port": 5555,
       "modules":[{
-        "name": {"$ref": "#/../name"},
+        "name": "readoutinterface01",
         "type": "ReadoutInterface",
       "settings": {
         "board_id": 0,
@@ -40,7 +40,7 @@
       "host": "localhost",
       "port": 5561,
       "modules":[{
-        "name": {"$ref": "#/../name"},
+        "name": "filewriter01",
         "type": "FileWriter",
         "settings": {
           "filename_pattern": "/tmp/test-%D.%r.%c.%n.bin"

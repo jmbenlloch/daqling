@@ -147,20 +147,28 @@ class daqcontrol:
   def getStatus(self, p):
       sw = supervisor_wrapper(p['host'], self.group)
       req = 'status'
+      status = []
+      module_names = []
       try:
         status = self.handleRequest(p['host'], p['port'], req)
         if(status==[]):
-          status='booted'
-          module_names=''
+          for mod in p['modules']:
+            status.append('booted')
+            module_names.append(mod['name'])
         else:
           module_names, status = map(list, zip(*(x.split(' , ') for x in status)))
       except:
         if self.use_supervisor:
-          module_names = ''
-          status = 'added'
+          for mod in p['modules']:
+            status.append('added')
+            module_names.append(mod['name'])
           try:
             sw.getProcessState(p['name'])['statename']
           except:
-            status = 'not_added'
+            status=[]
+            module_names = []
+            for mod in p['modules']:
+              status.append('not_added')
+              module_names.append(mod['name'])
       return status, module_names
 

@@ -8,7 +8,7 @@
         "host": "localhost",
         "port": 5555,
         "modules":[{
-          "name": {"$ref": "#/../name"},
+          "name": "readoutinterface01",
           "type": {
             "$ref": "common.json#/common/readoutinterface/type"
           },
@@ -49,7 +49,7 @@
         "host": "localhost",
         "port": 5556,
         "modules":[{
-          "name": {"$ref": "#/../name"},
+          "name": "readoutinterface02",
           "type": {
             "$ref": "common.json#/common/readoutinterface/type"
           },
@@ -90,7 +90,7 @@
         "host": "localhost",
         "port": 5560,
         "modules":[{
-          "name": {"$ref": "#/../name"},
+          "name": "eventbuilder01",
           "type": "EventBuilder",
           "settings": {},
           "connections": {
@@ -148,7 +148,7 @@
         "host": "localhost",
         "port": 5561,
         "modules":[{
-          "name": {"$ref": "#/../name"},
+          "name": "filewriter01",
           "type": "FileWriter",
           "settings": {
             "filename_pattern": "/tmp/test-%D.%r.%c.%n.bin"
