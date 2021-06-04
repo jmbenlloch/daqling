@@ -29,10 +29,16 @@ var usr = "{{usr}}";
 var currConfigFile = "{{ currConfigFile }}";
 var urlForGrafana = "{{url_for('grafanaJson')}}"
 function returnIcon(state){
+    var states =state
+    if(typeof state === "string")
+    {
+        states = []
+        states[0]=state
+    }
     if (1 === 0){
     }
 {% for state, value in statesGraphics.items() -%}
-    else if (state  === "{{ state }}") {
+    else if (states.every(e => e === "{{ state }}")) {
         return "{{ value }}";
     }
 {% endfor %}

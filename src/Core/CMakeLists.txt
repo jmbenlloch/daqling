@@ -6,6 +6,7 @@ add_library(DaqlingCore SHARED
   Core.cpp
   Command.cpp
   ConnectionManager.cpp
+  ModuleManager.cpp
   ModuleLoader.cpp
   Statistics.cpp
   ConnectionLoader.cpp

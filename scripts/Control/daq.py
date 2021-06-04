@@ -72,13 +72,21 @@ class statusChecker():
     self.dc = dc
 
   def statusCheck(self, p):
-    status = ""
+    sleep(0.5)
+    status, module_names=self.dc.getStatus(p)
+    if(type(module_names) is not list):
+      module_names = p['modules'] 
+    for s,m in zip(status,module_names):
+      print(p['name'],"-",m, "in status", s)
     while(not self.stop_check):
       sleep(0.5)
-      new_status = self.dc.getStatus(p)
-      if new_status != status:
-        print(p['name'], "in status", new_status)
-        status = new_status
+      new_status,module_names = self.dc.getStatus(p)
+      if(type(module_names) is not list):
+        module_names = p['modules'] 
+      for s,ns,m in zip(status,new_status,module_names):
+        if ns != s:
+          print(p['name'],"-",m, "in status", ns)
+      status=new_status
 
   def startChecker(self, components):
     for p in components:

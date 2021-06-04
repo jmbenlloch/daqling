@@ -36,7 +36,7 @@ public:
 protected:
 private:
   unsigned int m_capacity;
-  moodycamel::BlockingReaderWriterQueue<T> m_queue;
+  moodycamel::ReaderWriterQueue<T> m_queue;
 };
 } // namespace queue
 } // namespace daqling

@@ -27,10 +27,10 @@ from json import dumps
 class NodeTree(NodeMixin):
   ## Constructor
   #  @param type The type of node to instanciate
-  def __init__(self, name, type=None, parent=None, children=None):
+  def __init__(self, name, types=None, parent=None, children=None):
     self.name = name
-    if type:
-      self.type = type
+    if types:
+      self.types = types
     self.parent = parent
     self.state = "not_added"
     self.included = True
@@ -103,22 +103,36 @@ class NodeTree(NodeMixin):
   #  The method is transparent to the node being a parent or children and acts accordingly.
   #  In the case of a parent it forwards the action to children, according to the order_rules.
   #  In the case of a children it executes the daqcontrol correspondent method if the action is allowed by state_action rules.
-  def executeAction(self, action, arg=None):
+  def executeAction(self, action, arg=None,types=[]):
     if self.getIncluded() == True:
       if not self.is_leaf:  # parent/controller
         with concurrent.futures.ThreadPoolExecutor() as executor:
           if action in self.order_rules:
-            children_with_type = [x for x in self.children if hasattr(x, "type")]
+            children_with_type = [x for x in self.children if hasattr(x, "types")]
             rvs = []
             for t in self.order_rules[action]:  # loop on the types in the order rule
-              children_matching = [x for x in children_with_type if x.type == t]
+              children_matching=[]
+              qualified_types=[]
+              for child in children_with_type: #loop on children with types
+                for module_type in child.types: #loop on types in each child
+                  if module_type['type'] == t: #if type matches current order type
+                    children_matching.append(child) #add child to matching
+                    qualified_types.append(module_type.get('qualified_types')) #save qualified type for later use
               futures = []
-              for c in children_matching:
-                f = executor.submit(c.executeAction, action, arg)
-                futures.append(f)
+              for c,q in zip(children_matching,qualified_types): #iterate through matching children and their respective qualified types
+                if(type(q)==list): #check if qualified type is list
+                  f = executor.submit(c.executeAction, action, arg,types=q) #send command for each type (maybe command could be changed to support multiple types)
+                  futures.append(f)
+                elif(type(q)==str):
+                  t=[q]
+                  f = executor.submit(c.executeAction, action, arg,types=t)#send command to single type
+                  futures.append(f)
+                else:
+                  f = executor.submit(c.executeAction, action, arg)#send command to w/o type
+                  futures.append(f)
               for f in futures:
                 rvs.append(f.result())
-            children_without_type = [x for x in self.children if not hasattr(x, "type")]
+            children_without_type = [x for x in self.children if not hasattr(x, "types")]
             futures = []
             for c in children_without_type:
               f = executor.submit(c.executeAction, action, arg)
@@ -136,7 +150,13 @@ class NodeTree(NodeMixin):
               rvs.append(f.result())
             return rvs
       else:  # children/device
-        if action in self.state_action[self.state]:
+        if type(self.state)==list:
+          valid_actions=[]
+          for x in self.state:
+            valid_actions=self.state_action[x]+valid_actions
+        else:
+          valid_actions=self.state_action[self.state]
+        if action in valid_actions:
           # allow time for nodes to refresh their own state before printing
           if action == "add":
             return self.dc.addProcess(self.host, self.name, self.full_exe, self.dir, lib_path=self.lib_path)
@@ -145,23 +165,23 @@ class NodeTree(NodeMixin):
           elif action == "remove":
             return self.dc.removeProcess(self.host, self.name)
           elif action == "configure":
-            return self.dc.handleRequest(self.host, self.port, action, dumps(self.pconf))
+            return self.dc.handleRequest(self.host, self.port, action, dumps(self.pconf),*types)
           elif action == "unconfigure":
-            return self.dc.handleRequest(self.host, self.port, action)
+            return self.dc.handleRequest(self.host, self.port, action,*types)
           elif action == "start":
             run_num = 0
             if arg != None:
               run_num = int(arg)
-            return self.dc.handleRequest(self.host, self.port, action, run_num)
+            return self.dc.handleRequest(self.host, self.port, action, run_num,*types)
           elif action == "stop":
-            return self.dc.handleRequest(self.host, self.port, action)
+            return self.dc.handleRequest(self.host, self.port, action,*types)
           elif action == "shutdown":
-            return self.dc.handleRequest(self.host, self.port, "down")
+            return self.dc.handleRequest(self.host, self.port, "down",*types)
           else:
             custom_arg = ""
             if arg != None:
               custom_arg = arg
-            return self.dc.handleRequest(self.host, self.port, "custom", action, custom_arg)
+            return self.dc.handleRequest(self.host, self.port, "custom", action, custom_arg,*types)
         else:
           return "Action not allowed"
     else:
@@ -171,7 +191,7 @@ class NodeTree(NodeMixin):
     prev = None
     while (self.check):
       if self.is_leaf:  # child
-        self.state = self.dc.getStatus(self.pconf)
+        self.state, _ = self.dc.getStatus(self.pconf)
       if prev != self.state:
         prev = self.state
         # print((self.name, self.state))
@@ -182,7 +202,12 @@ class NodeTree(NodeMixin):
       states = []
       for c in self.children:
         if c.getIncluded() == True:
-          states.append(c.getState())
+          if type(c.getState())==str:
+            states.append(c.getState())
+          elif type(c.getState())==list:
+            for item in c.getState(): states.append(item)
+          else:
+            raise Exception("getState returned object of invalid type.") 
       # if no children is included
       if len(states) == 0:
         # add back all of them as to have a meaningful state

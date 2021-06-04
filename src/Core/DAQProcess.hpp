@@ -27,7 +27,7 @@
 #include "ConnectionManager.hpp"
 #include "Statistics.hpp"
 #include "Utils/Ers.hpp"
-
+#include "Utils/ThreadTagger.hpp"
 namespace daqling {
 #include <ers/Issue.h>
 
@@ -45,13 +45,18 @@ using namespace std::placeholders;
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class DAQProcess {
 public:
-  DAQProcess() = default;
+  DAQProcess(const std::string &name)
+      : m_name(name),
+        m_connections(daqling::core::ConnectionManager::instance().addSubManager(name)) {
+    addTag();
+  }
   std::string senderType;
   std::string receiverType;
   virtual ~DAQProcess() = default;
 
   /* use virtual otherwise linker will try to perform static linkage */
   virtual void configure() {
+    // assign submanager
     setupStatistics();
     if (m_statistics->isStatsOn()) {
       m_statistics->start();
@@ -64,7 +69,7 @@ public:
     m_run_number = run_num;
     ERS_DEBUG(0, "run number " << m_run_number);
     m_run = true;
-    m_runner_thread = std::thread(&DAQProcess::runner, this);
+    m_runner_thread = std::thread(&DAQProcess::runner_wrapper, this);
   };
 
   virtual void stop() {
@@ -139,6 +144,12 @@ public:
   bool running() const { return m_runner_thread.joinable(); }
 
 protected:
+  std::string m_name;
+  void runner_wrapper() {
+    addTag();
+    runner();
+  }
+  void addTag() const { daqling::utilities::ThreadTagger::instance().writeTag(m_name); }
   /**
    * Registers a custom command under the name `cmd`.
    * Returns whether the command was inserted (false meaning that command `cmd` already exists)
@@ -152,7 +163,7 @@ protected:
   }
 
   // ZMQ ConnectionManager
-  daqling::core::ConnectionManager &m_connections = daqling::core::ConnectionManager::instance();
+  daqling::core::ConnectionSubManager &m_connections;
   // JSON Configuration map
   daqling::core::Configuration &m_config = daqling::core::Configuration::instance();
 

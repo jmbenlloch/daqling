@@ -18,13 +18,14 @@
 #pragma once
 #include "Common/DataType.hpp"
 #include "Utils/Binary.hpp"
+#include "Utils/Resource.hpp"
 namespace daqling {
 namespace core {
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
-class Queue {
+class Queue : public daqling::utilities::Resource {
 public:
   // Virtual destructor
-  virtual ~Queue() = default;
+  ~Queue() override = default;
 
   virtual bool read(DataType &) = 0;
   virtual bool write(DataType &) = 0;
@@ -33,9 +34,12 @@ public:
   virtual uint sizeGuess() = 0;
   virtual uint capacity() = 0;
   virtual void set_sleep_duration(uint ms);
+  virtual void set_write_sleep_duration(uint ms) { m_write_sleep_duration = ms; }
+  virtual void set_read_sleep_duration(uint ms) { m_read_sleep_duration = ms; }
 
 protected:
-  uint m_sleep_duration{};
+  uint m_write_sleep_duration{};
+  uint m_read_sleep_duration{};
 };
 } // namespace core
 } // namespace daqling

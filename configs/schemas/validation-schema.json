@@ -71,8 +71,44 @@
           "port": {
             "type": "integer"
           },
-          "type": {
-            "type": "string"
+          "modules":{
+            "type":"array",
+            "format":"table",
+            "title":"modules",
+            "items":{
+              "type":"object",
+              "title":"module",
+              "properties":{
+                "type": {
+                  "type": "string"
+                },
+                "settings": {
+                  "title": "Settings",
+                  "options": {
+                    "collapsed": true
+                  }
+                },
+                "connections": {
+                  "type": "object",
+                  "title": "Connections",
+                  "options": {
+                    "collapsed": true
+                  },
+                  "properties": {
+                    "receivers":{
+                      "oneOf":[{"$ref":"refs/connection-schema.json#/definitions/receivers"}]
+                    },
+                    "senders":{
+                      "oneOf":[{"$ref":"refs/connection-schema.json#/definitions/senders"}]
+                    }
+                  }
+                }
+              },
+              "required": [
+                "name",
+                "type"
+              ]
+            }
           },
           "loglevel": {
             "type": "object",
@@ -113,12 +149,6 @@
             ],
             "additionalProperties": false
           },
-          "settings": {
-            "title": "Settings",
-            "options": {
-              "collapsed": true
-            }
-          },
           "metrics_settings": {
             "title": "Metrics Settings",
             "options": {
@@ -135,29 +165,40 @@
                 "$ref": "validation-schema.json#/definitions/metrics_manager"
               }
             ]
-          },
-          "connections": {
-            "type": "object",
-            "title": "Connections",
-            "options": {
-              "collapsed": true
-            },
-            "properties": {
-              "receivers":{
-                "oneOf":[{"$ref":"refs/connection-schema.json#/definitions/receivers"}]
-              },
-              "senders":{
-                "oneOf":[{"$ref":"refs/connection-schema.json#/definitions/senders"}]
-              }
-            }
           }
         },
         "required": [
           "name",
           "host",
           "port",
-          "type",
+          "modules",
           "loglevel"
+        ]
+      }
+    },
+    "resources":{
+      "type": "array",
+      "format": "table",
+      "title": "Resources",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "title": "Resource",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "resource": {
+            "type": "object"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "resource"
         ]
       }
     }

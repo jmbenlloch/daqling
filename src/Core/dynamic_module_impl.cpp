@@ -21,6 +21,7 @@
 
 #include "Utils/Ers.hpp"
 #include <chrono>
+#include <utility>
 
 #include DAQLING_MODULE_HEADER
 
@@ -36,13 +37,13 @@ namespace daqling {
 namespace core {
 extern "C" {
 // forward-declare to satisfy -Werror=missing-declarations
-DAQProcess *daqling_module_create();
+DAQProcess *daqling_module_create(const std::string &name);
 void daqling_module_delete(DAQProcess * /*module*/);
 }
 
-DAQProcess *daqling_module_create() {
+DAQProcess *daqling_module_create(const std::string &name) {
 
-  auto module = new DAQLING_MODULE_NAME();
+  auto module = new DAQLING_MODULE_NAME(name);
   return static_cast<DAQProcess *>(module);
 }
 

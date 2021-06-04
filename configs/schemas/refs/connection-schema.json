@@ -14,6 +14,9 @@
             "$ref": "#/definitions/ZMQipcPair"
           },
           {
+            "$ref": "#/definitions/ZMQinprocPair"
+          },
+          {
             "$ref": "#/definitions/ZMQtcpPair"
           },
           {
@@ -23,7 +26,13 @@
             "$ref": "#/definitions/ZMQipcPubSubSender"
           },
           {
+            "$ref": "#/definitions/ZMQinprocPubSubSender"
+          },
+          {
             "$ref": "#/definitions/BoostAsioUdp"
+          },
+          {
+            "$ref": "#/definitions/Local"
           }
         ]
       }
@@ -43,13 +52,43 @@
             "$ref": "#/definitions/ZMQtcpPair"
           },
           {
+            "$ref": "#/definitions/ZMQinprocPair"
+          },
+          {
             "$ref": "#/definitions/ZMQPubSubReceiver"
           },
           {
             "$ref": "#/definitions/BoostAsioUdp"
+          },
+          {
+            "$ref": "#/definitions/Local"
           }
         ]
       }
+    },
+    "Local":{
+      "title":"Local",
+      "type":"object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "Local"
+          ]
+        },
+        "chid":{
+          "type":"integer"
+        },
+        "id": {
+          "type":"integer"
+        }
+      },
+      "required":[
+        "chid",
+        "id",
+        "type"
+      ]
+
     },
     "BoostAsioUdp": {
       "title": "BoostAsioUdp",
@@ -136,6 +175,53 @@
         "path",
         "transport",
         "chid"
+      ],
+      "additionalProperties": false
+    },
+    "ZMQinprocPair": {
+      "title": "ZMQinprocPair",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "ZMQPair"
+          ]
+        },
+        "chid":{
+          "type":"integer"
+        },
+        "transport": {
+          "type": "string",
+          "enum": [
+            "inproc"
+          ]
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "id":{
+          "type": "integer"
+        },
+        "filter": {
+          "type": "integer"
+        },
+        "filter_size": {
+          "type": "integer"
+        },
+        "queue": {
+          "type": "object",
+          "oneof": {
+            "$ref": "#/definitions/queues"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "endpoint",
+        "transport",
+        "chid",
+        "id"
       ],
       "additionalProperties": false
     },
@@ -276,8 +362,8 @@
       ],
       "additionalProperties": false
     },
-    "ZMQPubSubReceiver": {
-      "title": "ZMQtcpPubSubReceiver",
+    "ZMQinprocPubSubSender": {
+      "title": "ZMQinprocPubSubSender",
       "type": "object",
       "properties": {
         "type": {
@@ -287,6 +373,56 @@
           ]
         },
         "chid":{
+          "type":"integer"
+        },
+        "transport": {
+          "type": "string",
+          "enum": [
+            "inproc"
+          ]
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "id":{
+          "type":"integer"
+        },
+        "filter": {
+          "type": "integer"
+        },
+        "filter_size": {
+          "type": "integer"
+        },
+        "queue": {
+          "type": "object",
+          "oneof": {
+            "$ref": "#/definitions/queues"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "endpoint",
+        "transport",
+        "chid",
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "ZMQPubSubReceiver": {
+      "title": "ZMQPubSubReceiver",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "ZMQPubSub"
+          ]
+        },
+        "chid":{
+          "type":"integer"
+        },
+        "id":{
           "type":"integer"
         },
         "connections": {
@@ -326,6 +462,21 @@
                     ]
                   },
                   "path": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "title": "inproc",
+                "type": "object",
+                "properties": {
+                  "transport": {
+                    "type": "string",
+                    "enum": [
+                      "inproc"
+                    ]
+                  },
+                  "endpoint": {
                     "type": "string"
                   }
                 }

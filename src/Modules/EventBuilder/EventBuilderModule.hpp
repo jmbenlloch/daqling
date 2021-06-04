@@ -34,7 +34,7 @@ class EventBuilderModule : public daqling::core::DAQProcess {
   std::atomic<size_t> m_complete_ev_size_guess;
 
 public:
-  EventBuilderModule();
+  EventBuilderModule(const std::string & /*n*/);
 
   void configure() override;
   void start(unsigned run_num) override;

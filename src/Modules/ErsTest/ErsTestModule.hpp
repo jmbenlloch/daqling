@@ -32,7 +32,7 @@ ERS_DECLARE_ISSUE_BASE(module, ErsTestInherittedIssue, module::ErsTestIssue,
 class ErsTestModule : public daqling::core::DAQProcess {
 
 public:
-  ErsTestModule();
+  ErsTestModule(const std::string & /*n*/);
 
   void configure() override; // optional (configuration can be handled in the constructor)
   void start(unsigned run_num) override;

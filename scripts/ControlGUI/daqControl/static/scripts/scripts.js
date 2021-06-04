@@ -368,14 +368,29 @@ $('#ajax').on('changed.jstree', function () {
             selState = idList[$("#ajax").jstree("get_selected",true)[0].id].state
             $(".control").off("click");
             $( "#stateButtonsDiv" ).empty()
-            $.each( fsmrules[selState], function(key, value ){
-                $("#stateButtonsDiv").append("<button id='"+value+"_button' class='green button control' style='margin:5px;'>"+value.toUpperCase()+"</button> &nbsp &nbsp");
-                $("#"+value+"_button").on('click', function(){
-                    var id = $("#ajax").jstree("get_selected",true)[0].id;
-                    var node = $("#ajax").jstree("get_selected",true)[0].text;
-                    sendComm(id, node, value);
-                 });
-            })
+            var statearr = selState;
+            if(typeof(selState)==="string")
+            {
+                statearr=[]
+                statearr[0] = selState
+            }
+            var values = []
+            $.each( statearr, function(key, value){
+                    $.each( fsmrules[value], function(key, value ){
+                        if(!(values.includes(value)))
+                        {
+                            values.push(value)
+                        }
+                    })
+                })
+                $.each(values, function(key, value){
+                    $("#stateButtonsDiv").append("<button id='"+value+"_button' class='green button control' style='margin:5px;'>"+value.toUpperCase()+"</button> &nbsp &nbsp");
+                    $("#"+value+"_button").on('click', function(){
+                        var id = $("#ajax").jstree("get_selected",true)[0].id;
+                        var node = $("#ajax").jstree("get_selected",true)[0].text;
+                        sendComm(id, node, value);
+                    });
+                })
 
             redrawLock()
             $("#state:text").val(idList[$("#ajax").jstree("get_selected",true)[0].id].state);

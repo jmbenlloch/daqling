@@ -25,6 +25,8 @@ void ers::DaqlingStandardStream<Device>::report(std::ostream &out, const Issue &
 
   // time
   out << "[" << issue.time<std::chrono::milliseconds>("%Y-%m-%d %H:%M:%S") << "] ";
+  // thread
+  out << "[" << m_thread_tagger.readTag(issue.context().thread_id()) << "] ";
   // package
   out << "[" << issue.context().package_name() << "] ";
   // loglvl

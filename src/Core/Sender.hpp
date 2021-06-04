@@ -16,9 +16,8 @@
  */
 
 #pragma once
-#include "Common/DataFormat.hpp"
+#include "Common/DataType.hpp"
 #include "Queue.hpp"
-#include "Utils/Binary.hpp"
 #include <atomic>
 #include <mutex>
 #include <thread>

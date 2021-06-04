@@ -18,7 +18,6 @@
 #pragma once
 #include "Common/DataType.hpp"
 #include "Queue.hpp"
-#include "Utils/Binary.hpp"
 #include <atomic>
 #include <thread>
 namespace daqling {

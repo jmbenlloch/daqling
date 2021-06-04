@@ -57,7 +57,7 @@ bool BoostAsioUdpReceiver::receive(DataType &bin) {
   m_io_context.run();
   if (m_len != 0u) {
     ERS_DEBUG(0, "Received msg with size: " << m_len);
-    bin.reconstruct(m_len, m_recv_buf.data());
+    bin.reconstruct(m_recv_buf.data(), m_len);
     ++m_msg_handled;
     return true;
   }
@@ -75,7 +75,7 @@ bool BoostAsioUdpReceiver::sleep_receive(DataType &bin) {
   m_io_context.run();
   if (m_len != 0u) {
     ERS_DEBUG(0, "Received msg with size: " << m_len);
-    bin.reconstruct(m_len, m_recv_buf.data());
+    bin.reconstruct(m_recv_buf.data(), m_len);
     ++m_msg_handled;
     return true;
   }

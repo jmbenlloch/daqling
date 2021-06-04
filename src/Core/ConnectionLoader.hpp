@@ -122,6 +122,17 @@ public:
     m_queueMap[s] = [](const nlohmann::json &json) { return std::make_unique<T>(json); };
   }
   // static ConnectionLoader& instance();
+  std::shared_ptr<daqling::core::Queue>
+  getQueue(const std::string &type, const std::string &datatype, const nlohmann::json &json) {
+    auto key = type + datatype;
+    if (m_queueMap.find(key) == m_queueMap.end()) {
+      loadQueue(type);
+      if (m_queueMap.find(key) == m_queueMap.end()) {
+        throw UnrecognizedQueueType(ERS_HERE, key.c_str());
+      }
+    }
+    return m_queueMap[key](json);
+  }
 
 private:
   /**

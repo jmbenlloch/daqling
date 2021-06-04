@@ -28,9 +28,9 @@ ModuleLoader::~ModuleLoader() {
   }
 }
 
-bool ModuleLoader::load(const std::string &name) {
+bool ModuleLoader::load(const std::string &name, const std::string &type) {
   // Load the shared object
-  std::string pluginName = "libDaqlingModule" + name + ".so";
+  std::string pluginName = "libDaqlingModule" + type + ".so";
   m_handle = dlopen(pluginName.c_str(), RTLD_NOW);
   if (*m_handle == nullptr) {
     throw CannotOpenModule(ERS_HERE, name.c_str(), dlerror());
@@ -46,7 +46,8 @@ bool ModuleLoader::load(const std::string &name) {
     // return false;
   }
 
-  m_dp = m_create();
+  // create with correct number
+  m_dp = m_create(name);
   m_loaded = true;
   return true;
 }

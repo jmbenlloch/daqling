@@ -19,7 +19,7 @@
 #define DAQLING_CORE_CORE_HPP
 
 #include "Command.hpp"
-#include "ModuleLoader.hpp"
+#include "ModuleManager.hpp"
 #include "Utils/Ers.hpp"
 
 namespace daqling {
@@ -44,7 +44,7 @@ private:
   // JSON Configuration map
   daqling::core::Configuration &m_config = daqling::core::Configuration::instance();
   // Plugin manager
-  daqling::core::ModuleLoader &m_plugin = daqling::core::ModuleLoader::instance();
+  daqling::core::ModuleManager &m_plugin = daqling::core::ModuleManager::instance();
 };
 
 } // namespace core

@@ -21,7 +21,7 @@
 using namespace daqling::core;
 using namespace daqling::module;
 
-ErsTestModule::ErsTestModule() { ERS_INFO(""); }
+ErsTestModule::ErsTestModule(const std::string &n) : DAQProcess(n) { ERS_INFO(""); }
 
 // optional (configuration can be handled in the constructor)
 void ErsTestModule::configure() {

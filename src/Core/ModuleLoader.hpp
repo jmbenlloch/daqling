@@ -32,9 +32,9 @@ namespace daqling {
 #include "DynamicLinkIssues.hpp"
 namespace core {
 
-class ModuleLoader : public daqling::utilities::Singleton<ModuleLoader> {
+class ModuleLoader {
 private:
-  using CreateFunc = DAQProcess *(); //(daqling::utilities::LoggerType);
+  using CreateFunc = DAQProcess *(std::string);
   using DeleteFunc = void(DAQProcess *);
 
   CreateFunc *m_create;
@@ -72,10 +72,10 @@ public:
   std::string getReceiverType();
   std::string getSenderType();
   /**
-   * Tries to load a module of name `name`.
+   * Tries to load a module of name `name`, with number 'no'.
    * Returns whether the operation succeeded.
    */
-  bool load(const std::string &name);
+  bool load(const std::string &name, const std::string &type);
 
   /**
    * Unloads the loaded module.
