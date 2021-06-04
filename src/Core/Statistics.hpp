@@ -65,6 +65,7 @@ public:
   void start();
 
   template <class T> void registerMetric(T *pointer, std::string name, metrics::metric_type mtype) {
+    ERS_INFO("Registering metrics: " << name << " with module name: " << m_name);
     name = m_name + "-" + name;
     if (typeid(T) == typeid(std::atomic<int>)) {
       registerVariable<T, int>(pointer, name, mtype, metrics::INT);
@@ -111,9 +112,6 @@ public:
   }
 
   void flushPublishValues() {
-    static daqling::utilities::Timer<std::micro> timer;
-    ERS_INFO("Batch publishing. Time elapsed: " << timer.elapsed());
-    timer.reset();
     if (m_zmq_publisher) {
       // Move rest of posting to new func
       if (influx_msg.str().empty()) {

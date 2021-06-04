@@ -32,7 +32,7 @@ class ReadoutInterfaceModule : public daqling::core::DAQProcess {
   void resume();
 
 public:
-  ReadoutInterfaceModule();
+  ReadoutInterfaceModule(const std::string & /*n*/);
   void configure() override;
   void start(unsigned run_num) override;
   void stop() override;

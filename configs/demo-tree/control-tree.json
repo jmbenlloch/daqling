@@ -3,7 +3,7 @@
   "children": [
     {
       "name": "ReadoutInterfaces",
-      "type": "RI",
+      "types": [{"type":"RI"}],
       "children": [
         {
           "name": "readoutinterface01"
@@ -15,11 +15,11 @@
     },
     {
       "name": "eventbuilder01",
-      "type": "EB"
+      "types": [{"type":"EB"}]
     },
     {
       "name": "filewriter01",
-      "type": "FW"
+      "types": [{"type":"FW"}]
     }
   ]
 }

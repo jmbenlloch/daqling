@@ -1,2 +1,2 @@
-add_library(DaqlingStreams SHARED DaqlingStandardStream.cpp ZMQSinkStream.cpp)
 
+add_library(DaqlingStreams SHARED DaqlingStandardStream.cpp ZMQSinkStream.cpp)

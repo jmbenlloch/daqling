@@ -16,6 +16,7 @@
  */
 
 #include <chrono>
+#include <utility>
 
 #include "Common/DataFormat.hpp"
 #include "EventBuilderModule.hpp"
@@ -25,11 +26,12 @@
 using namespace std::chrono_literals;
 using namespace daqling::module;
 using Binary = DataFragment<daqling::utilities::Binary>;
-EventBuilderModule::EventBuilderModule() : m_eventmap_size{0}, m_complete_ev_size_guess{0} {
+EventBuilderModule::EventBuilderModule(const std::string &n)
+    : DAQProcess(n), m_eventmap_size{0}, m_complete_ev_size_guess{0} {
   senderType = "DataFragment<daqling::utilities::Binary>";
   receiverType = "DataFragment<daqling::utilities::Binary>";
-  ERS_DEBUG(0, "With config: " << m_config.dump());
-  m_nreceivers = m_config.getNumReceiverConnections();
+  ERS_DEBUG(0, "With config: " << m_config.getModuleSettings(m_name));
+  m_nreceivers = m_config.getNumReceiverConnections(m_name);
 }
 
 void EventBuilderModule::configure() {
@@ -57,7 +59,9 @@ void EventBuilderModule::runner() noexcept {
   std::mutex mtx;
 
   std::thread consumer{[&]() {
+    addTag();
     while (m_run || !complete_seq.isEmpty()) { // finish to process complete events
+      ERS_DEBUG(0, "Consumer thread Running...");
       unsigned seq;
       while (!complete_seq.read(seq) && m_run) {
         std::this_thread::sleep_for(1ms);
@@ -79,6 +83,7 @@ void EventBuilderModule::runner() noexcept {
       while (!m_connections.sleep_send(0, out) && m_run) {
         ERS_WARNING("send() failed. Trying again");
       }
+      ERS_DEBUG(0, "Sent msg.");
     }
   }};
   // store previous sequence number per channel
@@ -89,6 +94,7 @@ void EventBuilderModule::runner() noexcept {
     for (unsigned ch = 0; ch < m_nreceivers; ch++) {
       Binary b;
       if (m_connections.sleep_receive(ch, std::ref(b))) {
+        ERS_DEBUG(0, "Received msg.");
         unsigned seq_number;
         auto *d = static_cast<data_t *>(b.data());
         seq_number = d->header.seq_number;

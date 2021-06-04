@@ -21,7 +21,7 @@
 #include "Configuration.hpp"
 #include "ConnectionLoader.hpp"
 #include "ConnectionManager.hpp"
-#include "ModuleLoader.hpp"
+#include "ModuleManager.hpp"
 
 using namespace daqling::core;
 using namespace std::chrono_literals;
@@ -31,85 +31,93 @@ public:
   status() = default;
 
   void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
-    std::string response;
-    paramList.verifyEnd(0);
+    auto &plugin = daqling::core::ModuleManager::instance();
+    std::unordered_set<std::string> types_affected =
+        daqling::core::Command::paramListToUnordered_set(paramList, 0, paramList.size());
     try {
-      auto &command = daqling::core::Command::instance();
-      response = command.getState();
+      // auto &command = daqling::core::Command::instance();
+      auto resVec = plugin.getIndividualStates();
+      std::vector<xmlrpc_c::value> rpc_vec;
+      rpc_vec.reserve(resVec.size());
+      for (const auto &item : resVec) {
+        rpc_vec.push_back(xmlrpc_c::value_string(item));
+      }
+      *retvalP = xmlrpc_c::value_array(rpc_vec);
     } catch (ers::Issue &i) {
       ers::error(CommandIssue(ERS_HERE, i));
-      response = "Failure: " + std::string(i.message());
+      std::string error_response = "Failure: " + std::string(i.message());
+      *retvalP = xmlrpc_c::value_string(error_response);
     } catch (std::exception const &e) {
       ers::fatal(UnknownException(ERS_HERE, e.what()));
     }
-    *retvalP = xmlrpc_c::value_string(response);
   };
 };
 
 class configure : public xmlrpc_c::method {
 public:
   configure() = default;
-
   void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
     std::string argument = paramList.getString(0);
-    paramList.verifyEnd(1);
-
-    auto &command = daqling::core::Command::instance();
+    std::unordered_set<std::string> types_affected =
+        daqling::core::Command::paramListToUnordered_set(paramList, 1, paramList.size());
     auto &cm = daqling::core::ConnectionManager::instance();
-    auto &plugin = daqling::core::ModuleLoader::instance();
-
-    std::string entry_state = command.getState();
+    auto &plugin = daqling::core::ModuleManager::instance();
     try {
-      if (command.getState() != "booted") {
+      if (plugin.getStatesAsString() != "booted") {
         throw InvalidCommand(ERS_HERE);
       }
-      command.setState("configuring");
       auto &cfg = Configuration::instance();
+      auto &rf = ResourceFactory::instance();
       cfg.load(argument);
       ERS_DEBUG(0, "Get config: " << argument);
 
-      auto type = cfg.get<std::string>("type");
-      ERS_DEBUG(0, "Loading type: " << type);
-      try {
-        plugin.load(type);
-
-      } catch (ers::Issue &i) {
-        throw CannotLoadPlugin(ERS_HERE, type.c_str(), i);
+      // Add all local resources.
+      for (const auto &resourceConfig : cfg.getResources()) {
+        rf.createResource(resourceConfig);
       }
-
-      auto j = cfg.getConfig();
-      auto rcvs = j["connections"]["receivers"];
-      ERS_DEBUG(0, "receivers empty " << rcvs.empty());
-      for (auto &it : rcvs) {
-        ERS_DEBUG(0, "key" << it);
+      for (auto moduleConfigs : cfg.getModules()) {
+        ERS_DEBUG(0, "module configs: " << moduleConfigs);
+        auto type = moduleConfigs.at("type").get<std::string>();
+        auto name = moduleConfigs.at("name").get<std::string>();
+        ERS_DEBUG(0, "Loading type: " << type);
         try {
-          cm.addReceiverChannel(it, plugin.getReceiverType());
+          plugin.load(name, type);
+
         } catch (ers::Issue &i) {
-          // couldn't add receiver issue
-          throw AddChannelFailed(ERS_HERE, it["chid"].get<uint>(), i);
+          throw CannotLoadPlugin(ERS_HERE, type.c_str(), i);
+        }
+        auto rcvs = moduleConfigs["connections"]["receivers"];
+        ERS_DEBUG(0, "receivers empty " << rcvs.empty());
+        for (auto &it : rcvs) {
+          ERS_DEBUG(0, "key" << it);
+          try {
+            cm.addReceiverChannel(name, it, plugin.getReceiverType(name));
+          } catch (ers::Issue &i) {
+            // couldn't add receiver issue
+            throw AddChannelFailed(ERS_HERE, it["chid"].get<uint>(), i);
+          }
+        }
+        auto sndrs = moduleConfigs["connections"]["senders"];
+        ERS_DEBUG(0, "senders empty " << sndrs.empty());
+        for (auto &it : sndrs) {
+          ERS_DEBUG(0, "key" << it);
+          try {
+            cm.addSenderChannel(name, it, plugin.getSenderType(name));
+          } catch (ers::Issue &i) {
+            // couldn't add receiver issue
+            throw AddChannelFailed(ERS_HERE, it["chid"].get<uint>(), i);
+          }
         }
       }
 
-      auto sndrs = j["connections"]["senders"];
-      ERS_DEBUG(0, "senders empty " << sndrs.empty());
-      for (auto &it : sndrs) {
-        ERS_DEBUG(0, "key" << it);
-        try {
-          cm.addSenderChannel(it, plugin.getSenderType());
-        } catch (ers::Issue &i) {
-          // couldn't add receiver issue
-          throw AddChannelFailed(ERS_HERE, it["chid"].get<uint>(), i);
-        }
-      }
-
-      plugin.configure();
-      command.setState("ready");
+      // only apply command to modules in a state that allows the command.
+      auto modules_affected = plugin.getModulesEligibleForCommand(types_affected, "booted");
+      plugin.configure(modules_affected);
       response = "Success";
     } catch (ers::Issue &i) {
       ers::error(CommandIssue(ERS_HERE, i));
       response = "Failure: " + std::string(i.message());
-      command.setState(entry_state);
     } catch (std::exception const &e) {
       ers::fatal(UnknownException(ERS_HERE, e.what()));
     }
@@ -123,34 +131,20 @@ public:
 
   void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
-    paramList.verifyEnd(0);
-    auto &plugin = daqling::core::ModuleLoader::instance();
-    auto &cm = daqling::core::ConnectionManager::instance();
-    auto &command = daqling::core::Command::instance();
-    std::string entry_state = command.getState();
+    std::unordered_set<std::string> types_affected =
+        daqling::core::Command::paramListToUnordered_set(paramList, 0, paramList.size());
+    auto &plugin = daqling::core::ModuleManager::instance();
     try {
-      if (command.getState() != "ready") {
+      auto modules_affected = plugin.getModulesEligibleForCommand(types_affected, "ready");
+      if (modules_affected.empty()) {
         throw InvalidCommand(ERS_HERE);
       }
-      command.setState("unconfiguring");
-      plugin.unconfigure();
-      while (!cm.getReceiverMap().empty()) {
-        for (auto & [ ch, receiver ] : cm.getReceiverMap()) {
-          cm.removeReceiverChannel(ch);
-        }
-      }
-      while (!cm.getSenderMap().empty()) {
-        for (auto & [ ch, sender ] : cm.getSenderMap()) {
-          cm.removeSenderChannel(ch);
-        }
-      }
-      plugin.unload();
-      command.setState("booted");
+      plugin.unconfigure(modules_affected);
+      plugin.unload(modules_affected);
       response = "Success";
     } catch (ers::Issue &i) {
       response = "Failure: " + std::string(i.message());
       ers::error(CommandIssue(ERS_HERE, i));
-      command.setState(entry_state);
     } catch (std::exception const &e) {
       ers::fatal(UnknownException(ERS_HERE, e.what()));
     }
@@ -165,24 +159,21 @@ public:
   void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
     const auto run_num = static_cast<unsigned>(paramList.getInt(0));
-    paramList.verifyEnd(1);
-    auto &plugin = daqling::core::ModuleLoader::instance();
-    auto &cm = daqling::core::ConnectionManager::instance();
-    auto &command = daqling::core::Command::instance();
-    std::string entry_state = command.getState();
+    std::unordered_set<std::string> types_affected =
+        daqling::core::Command::paramListToUnordered_set(paramList, 1, paramList.size());
+    auto &plugin = daqling::core::ModuleManager::instance();
     try {
-      if (std::string s = command.getState(); s != "ready" or s == "running") {
+      // only apply command to modules in a state that allows the command.
+      auto modules_affected = plugin.getModulesEligibleForCommand(
+          types_affected, std::unordered_set<std::string>{"ready", "running"});
+      if (modules_affected.empty()) {
         throw InvalidCommand(ERS_HERE);
       }
-      command.setState("starting");
-      cm.start();
-      plugin.start(run_num);
-      command.setState("running");
+      plugin.start(run_num, modules_affected);
       response = "Success";
     } catch (ers::Issue &i) {
       response = "Failure: " + std::string(i.message());
       ers::error(CommandIssue(ERS_HERE, i));
-      command.setState(entry_state);
     } catch (std::exception const &e) {
       ers::fatal(UnknownException(ERS_HERE, e.what()));
     }
@@ -196,24 +187,20 @@ public:
 
   void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
-    paramList.verifyEnd(0);
-    auto &plugin = daqling::core::ModuleLoader::instance();
-    auto &cm = daqling::core::ConnectionManager::instance();
-    auto &command = daqling::core::Command::instance();
-    std::string entry_state = command.getState();
+    std::unordered_set<std::string> types_affected =
+        daqling::core::Command::paramListToUnordered_set(paramList, 0, paramList.size());
+    auto &plugin = daqling::core::ModuleManager::instance();
     try {
-      if (command.getState() != "running") {
+      // only apply command to modules in a state that allows the command.
+      auto modules_affected = plugin.getModulesEligibleForCommand(types_affected, "running");
+      if (modules_affected.empty()) {
         throw InvalidCommand(ERS_HERE);
       }
-      command.setState("stopping");
-      plugin.stop();
-      cm.stop();
-      command.setState("ready");
+      plugin.stop(modules_affected);
       response = "Success";
     } catch (ers::Issue &i) {
       response = "Failure";
       ers::error(CommandIssue(ERS_HERE, i));
-      command.setState(entry_state);
     } catch (std::exception const &e) {
       ers::fatal(UnknownException(ERS_HERE, e.what()));
     }
@@ -227,23 +214,29 @@ public:
 
   void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP) override {
     std::string response;
-    paramList.verifyEnd(0);
-    auto &plugin = daqling::core::ModuleLoader::instance();
+    std::unordered_set<std::string> types_affected =
+        daqling::core::Command::paramListToUnordered_set(paramList, 0, paramList.size());
+    auto &plugin = daqling::core::ModuleManager::instance();
     auto &command = daqling::core::Command::instance();
-    std::string entry_state = command.getState();
     try {
-      if (std::string s = command.getState(); s != "booted" and s != "ready" and s != "running") {
+      // only apply command to modules in a state that allows the command.
+      auto modules_affected = plugin.getModulesEligibleForCommand(
+          types_affected, std::unordered_set<std::string>{"booted", "ready", "running"});
+      if (modules_affected.empty()) {
         throw InvalidCommand(ERS_HERE);
       }
-      command.setState("shutting");
-      plugin.unconfigure();
-      command.stop_and_notify();
-      command.setState("added");
+      auto modules_to_unconfigure = plugin.getModulesEligibleForCommand(
+          types_affected, std::unordered_set<std::string>{"ready", "running"});
+      if (!modules_to_unconfigure.empty()) {
+        plugin.unconfigure(modules_to_unconfigure);
+      }
+      if (plugin.getStatesAsString() == "booted") {
+        command.stop_and_notify();
+      }
       response = "Success";
     } catch (ers::Issue &i) {
       response = "Failure: " + std::string(i.message());
       ers::error(CommandIssue(ERS_HERE, i));
-      command.setState(entry_state);
     } catch (std::exception const &e) {
       ers::fatal(UnknownException(ERS_HERE, e.what()));
     }
@@ -259,15 +252,15 @@ public:
     std::string response;
     const std::string command_name = paramList.getString(0);
     const std::string argument = paramList.getString(1);
-    paramList.verifyEnd(2);
-    auto &plugin = daqling::core::ModuleLoader::instance();
-    auto &command = daqling::core::Command::instance();
-    std::string entry_state = command.getState();
+    std::unordered_set<std::string> types_affected =
+        daqling::core::Command::paramListToUnordered_set(paramList, 2, paramList.size());
+    auto &plugin = daqling::core::ModuleManager::instance();
+    // get modules in types_affected, which has command.
+    // apply command to these modules only.
     try {
-      if (plugin.isCommandRegistered(command_name)) {
-        command.setState(plugin.getCommandTransitionState(command_name));
-        plugin.command(command_name, argument);
-        command.setState(plugin.getCommandTargetState(command_name));
+      auto modules_affected = plugin.CommandRegistered(command_name, types_affected);
+      if (!modules_affected.empty()) {
+        plugin.command(command_name, argument, modules_affected);
         response = "Success";
       } else {
         throw UnregisteredCommand(ERS_HERE, command_name.c_str());
@@ -275,7 +268,6 @@ public:
     } catch (ers::Issue &i) {
       response = "Failure: " + std::string(i.message());
       ers::error(CommandIssue(ERS_HERE, i));
-      command.setState(entry_state);
     } catch (std::exception const &e) {
       ers::fatal(UnknownException(ERS_HERE, e.what()));
     }
@@ -300,6 +292,8 @@ void daqling::core::Command::setupServer(unsigned port) {
         xmlrpc_c::serverAbyss::constrOpt().registryP(&m_registry).portNumber(port));
     m_cmd_handler = std::thread([&]() { m_server_p->run(); });
     ERS_INFO("Server set up on port: " << port);
+    auto &plugin = daqling::core::ModuleManager::instance();
+    plugin.AddModules();
   } catch (ers::Issue &i) {
     ers::error(CommandIssue(ERS_HERE, i));
   } catch (std::exception const &e) {

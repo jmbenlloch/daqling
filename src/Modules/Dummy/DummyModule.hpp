@@ -28,7 +28,7 @@ class DummyModule : public daqling::core::DAQProcess {
   void foobar(const std::string &arg);
 
 public:
-  DummyModule();
+  DummyModule(const std::string & /*n*/);
   ~DummyModule() override;
 
   void configure() override; // optional (configuration can be handled in the constructor)

@@ -6,15 +6,18 @@
       "name": "metricssimulator",
       "host": "localhost",
       "port": 5555,
-      "type": "MetricsSimulator",
-      "loglevel": {"core": "INFO", "module": "DEBUG","connection":"WARNING"},
-      "settings": {
-        "stats_uri": "tcp://localhost:6007",
-        "influxDb_uri": "http://localhost:8086/write?db=",
-        "influxDb_name": "DAQlingMetrics"
-      },
-      "connections": {
-      }
+      "modules":[{
+        "name": {"$ref": "#/../name"},
+        "type": "MetricsSimulator",
+        "settings": {
+          "stats_uri": "tcp://localhost:6007",
+          "influxDb_uri": "http://localhost:8086/write?db=",
+          "influxDb_name": "DAQlingMetrics"
+        },
+        "connections": {
+        }
+      }],
+      "loglevel": {"core": "INFO", "module": "DEBUG","connection":"WARNING"}
     }
   ]
 }

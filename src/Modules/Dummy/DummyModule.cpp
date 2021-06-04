@@ -19,7 +19,7 @@
 #include "Utils/Ers.hpp"
 using namespace daqling::core;
 using namespace daqling::module;
-DummyModule::DummyModule() { ERS_INFO(""); }
+DummyModule::DummyModule(const std::string &n) : DAQProcess(n) { ERS_INFO(""); }
 
 DummyModule::~DummyModule() { ERS_INFO(""); }
 

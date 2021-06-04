@@ -27,7 +27,7 @@ bool Queue::sleep_read(DataType &bin) {
   if (read(bin)) {
     return true;
   }
-  std::this_thread::sleep_for((std::chrono::milliseconds(m_sleep_duration)));
+  std::this_thread::sleep_for((std::chrono::milliseconds(m_read_sleep_duration)));
   return false;
 }
 
@@ -35,7 +35,7 @@ bool Queue::sleep_write(DataType &bin) {
   if (write(bin)) {
     return true;
   }
-  std::this_thread::sleep_for(std::chrono::milliseconds(m_sleep_duration));
+  std::this_thread::sleep_for(std::chrono::milliseconds(m_write_sleep_duration));
   return false;
 }
-void Queue::set_sleep_duration(uint ms) { m_sleep_duration = ms; }
+void Queue::set_sleep_duration(uint ms) { m_write_sleep_duration = m_read_sleep_duration = ms; }

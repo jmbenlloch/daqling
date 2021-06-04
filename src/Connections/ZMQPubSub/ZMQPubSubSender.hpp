@@ -36,10 +36,10 @@ public:
 
 protected:
   bool send(DataType &bin) override;
-
+  bool m_private_zmq_context{true};
   // ZMQ Context number of threads to use
   uint8_t ioT = 1;
-  std::unique_ptr<zmq::context_t> m_context;
+  zmq::context_t *m_context;
   std::unique_ptr<zmq::socket_t> m_socket;
 };
 } // namespace connection

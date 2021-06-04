@@ -4,14 +4,17 @@
     "components": [
       {
         "name": "ersTester1",
-        "type": "ErsTest",
+        "modules":[{
+          "name": {"$ref": "#/../name"},
+          "type": "ErsTest",
+          "connections": {
+          },
+          "settings": {
+          }
+        }],
         "loglevel": {"core": "DEBUG", "module": "DEBUG", "connection": "WARNING"},
         "host": "localhost",
-        "port": 5555,
-        "settings": {
-        },
-        "connections": {
-        }
+        "port": 5555
       }
       
     ]

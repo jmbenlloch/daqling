@@ -149,12 +149,18 @@ class daqcontrol:
       req = 'status'
       try:
         status = self.handleRequest(p['host'], p['port'], req)
+        if(status==[]):
+          status='booted'
+          module_names=''
+        else:
+          module_names, status = map(list, zip(*(x.split(' , ') for x in status)))
       except:
         if self.use_supervisor:
+          module_names = ''
           status = 'added'
           try:
             sw.getProcessState(p['name'])['statename']
           except:
             status = 'not_added'
-      return status
+      return status, module_names
 

@@ -37,7 +37,7 @@ ERS_DECLARE_ISSUE(module, OfstreamFail, "std::ofstream::fail()", ERS_EMPTY)
  */
 class FileWriterModule : public daqling::core::DAQProcess {
 public:
-  FileWriterModule();
+  FileWriterModule(const std::string & /*n*/);
 
   void configure() override;
   void start(unsigned run_num) override;

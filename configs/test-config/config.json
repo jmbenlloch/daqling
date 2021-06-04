@@ -6,12 +6,15 @@
       "name": "dummy01",
       "host": "localhost",
       "port": 5555,
-      "type": "Dummy",
-      "loglevel": {"core": "INFO", "module": "DEBUG","connection":"WARNING"},
-      "settings": {
-      },
-      "connections": {
-      }
+      "modules":[{
+        "name": {"$ref": "#/../name"},
+        "type": "Dummy",
+        "settings": {
+        },
+        "connections": {
+        }
+      }],
+      "loglevel": {"core": "INFO", "module": "DEBUG"}
     }
   ]
 }

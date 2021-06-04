@@ -25,7 +25,8 @@ Note that the example file uses the same `demo.json` that can be used with `daqp
 
 ### Tree definition
 
-In order to define the tree, with is automatically imported, one needs to define for each node a `name`, an optional `type` (see Rules of FSM), and, if the node is a controller, a `children` array.
+In order to define the tree, which is automatically imported, one needs to define for each node a `name`, an optional `types` (see Rules of FSM), and, if the node is a controller, a `children` array.
+The `types` field consists of an array with objects containing a `type` field, with the name of the daqtree node type, and an optional array `qualified-types`, with the c++ typenames of DAQ modules to be treated as `type`.
 
 Entries inside the `children` array, are just nodes, as previously described.
 

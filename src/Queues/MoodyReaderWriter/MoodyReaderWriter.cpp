@@ -30,7 +30,7 @@ template <typename T> bool MoodyReaderWriter<T>::read(DataType &bin) {
 }
 // bool MoodyReaderWriter::sleep_read(daqling::utilities::Binary& bin)
 // {
-//     return m_queue.wait_dequeue_timed(bin,std::chrono::milliseconds(m_sleep_duration));
+//     return m_queue.wait_dequeue_timed(bin,std::chrono::milliseconds(m_read_sleep_duration));
 // }
 template <typename T> bool MoodyReaderWriter<T>::write(DataType &bin) {
   // return m_queue.try_emplace(std::move(bin));

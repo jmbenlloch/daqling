@@ -20,18 +20,19 @@
 #include "Utils/Ers.hpp"
 #include <chrono>
 #include <random>
+#include <utility>
 using namespace std::chrono_literals;
 using namespace std::chrono;
 using namespace daqling::module;
 
-ReadoutInterfaceModule::ReadoutInterfaceModule() {
-  ERS_DEBUG(0, "With config: " << m_config.dump());
+ReadoutInterfaceModule::ReadoutInterfaceModule(const std::string &n) : DAQProcess(n) {
+  ERS_DEBUG(0, "With config: " << m_config.getModuleSettings(m_name));
   senderType = "DataFragment<data_t>";
   receiverType = "DataFragment<data_t>";
-  m_board_id = m_config.getSettings()["board_id"];
-  m_delay_us = std::chrono::microseconds(m_config.getSettings()["delay_us"]);
-  m_min_payload = m_config.getSettings()["payload"]["min"];
-  m_max_payload = m_config.getSettings()["payload"]["max"];
+  m_board_id = m_config.getModuleSettings(m_name)["board_id"];
+  m_delay_us = std::chrono::microseconds(m_config.getModuleSettings(m_name)["delay_us"]);
+  m_min_payload = m_config.getModuleSettings(m_name)["payload"]["min"];
+  m_max_payload = m_config.getModuleSettings(m_name)["payload"]["max"];
   m_pause = false;
   registerCommand("pause", "pausing", "paused", &ReadoutInterfaceModule::pause, this);
   registerCommand("resume", "resuming", "running", &ReadoutInterfaceModule::resume, this);
@@ -79,7 +80,7 @@ void ReadoutInterfaceModule::runner() noexcept {
     dataFrag->header.source_id = m_board_id;
     dataFrag->header.timestamp = static_cast<uint64_t>(timestamp.count());
     memset(dataFrag->payload, 0xFE, payload_size);
-    while (!m_connections.sleep_send(0, dataFrag) && m_run) {
+    while ((!m_connections.sleep_send(0, dataFrag)) && m_run) {
       ERS_WARNING("put() failed. Trying again");
     };
 

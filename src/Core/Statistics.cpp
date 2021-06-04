@@ -16,6 +16,7 @@
  */
 
 #include "Statistics.hpp"
+#include "Utils/ThreadTagger.hpp"
 using namespace daqling::core;
 
 Statistics::Statistics(nlohmann::json &j) {
@@ -59,7 +60,8 @@ Statistics::Statistics(nlohmann::json &j) {
     m_stats_on = true;
   }
   try {
-    m_name = m_config.getName();
+    m_name = daqling::utilities::ThreadTagger::instance().readTagCurrentThread();
+    ERS_WARNING("m_name = " << m_name);
   } catch (const std::exception &) {
     m_name = "";
   }
@@ -121,7 +123,8 @@ void Statistics::start() {
 }
 
 void Statistics::CheckStatistics() {
-  ERS_INFO("Statistics thread about to spawn...");
+  daqling::utilities::ThreadTagger::instance().writeTag(m_name);
+  ERS_INFO("Statistics thread for " << m_name << " about to spawn...");
   daqling::utilities::Timer<std::milli> deadlineTimer;
   deadlineTimer.expires_from_now(m_interval);
   while (!m_stop_thread) {

@@ -21,10 +21,10 @@
 #include "Utils/Ers.hpp"
 #include "Utils/ReusableThread.hpp"
 #include "Utils/Singleton.hpp"
+#include <unordered_set>
 #include <xmlrpc-c/base.hpp>
 #include <xmlrpc-c/registry.hpp>
 #include <xmlrpc-c/server_abyss.hpp>
-
 namespace daqling {
 #include <ers/Issue.h>
 
@@ -51,22 +51,10 @@ namespace core {
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class Command : public daqling::utilities::Singleton<Command> {
 public:
-  Command()
-      : m_should_stop{false}, m_state{"booted"}, m_command{""}, m_argument{""}, m_response{""} {}
+  Command() : m_should_stop{false}, m_command{""}, m_argument{""}, m_response{""} {}
   ~Command() {
     m_server_p->terminate();
     m_cmd_handler.join();
-  }
-
-  void setState(const std::string &state) {
-    ERS_DEBUG(0, "Setting state: " << state);
-    const std::lock_guard<std::mutex> lock(m_state_mtx);
-    m_state = state;
-  }
-
-  std::string getState() {
-    const std::lock_guard<std::mutex> lock(m_state_mtx);
-    return m_state;
   }
 
   void setupServer(unsigned port);
@@ -81,10 +69,17 @@ public:
     m_should_stop = true;
     m_cv.notify_one();
   }
+  static std::unordered_set<std::string>
+  paramListToUnordered_set(xmlrpc_c::paramList const &paramList, unsigned start, unsigned end) {
+    std::unordered_set<std::string> types_affected;
+    for (unsigned i = start; i < end; i++) {
+      types_affected.insert(paramList.getString(i));
+    }
+    return types_affected;
+  }
 
 private:
   bool m_should_stop;
-  std::string m_state;
   std::string m_command;
   std::string m_argument;
   std::string m_response;

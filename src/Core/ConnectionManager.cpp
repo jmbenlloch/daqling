@@ -24,7 +24,8 @@
 
 using namespace daqling::core;
 
-bool ConnectionManager::addReceiverChannel(const nlohmann::json &j, const std::string &datatype) {
+bool ConnectionManager::addReceiverChannel(const std::string &key, const nlohmann::json &j,
+                                           const std::string &datatype) {
   auto &cl = daqling::core::ConnectionLoader::instance();
   std::string type;
   uint chid;
@@ -36,24 +37,26 @@ bool ConnectionManager::addReceiverChannel(const nlohmann::json &j, const std::s
     return false;
   }
 
-  if (m_receivers.find(chid) != m_receivers.end()) {
+  if (m_sub_managers[key]->m_receivers.find(chid) != m_sub_managers[key]->m_receivers.end()) {
     ERS_INFO(" Socket for channel already exists... Won't add this channel again.");
     return false;
   }
 
   try {
-    m_receivers[chid] = cl.getReceiver(type, chid, j, datatype);
+    m_sub_managers[key]->m_receivers[chid] = cl.getReceiver(type, chid, j, datatype);
     ERS_INFO(" Adding RECEIVER channel for: [" << chid << "] type: " << type);
   } catch (ers::Issue &i) {
     throw CannotAddChannel(ERS_HERE, "Caught Issue", i);
     return false;
   }
-  m_receivers[chid]->set_sleep_duration(1);
+  m_sub_managers[key]->m_receivers[chid]->set_sleep_duration(1);
   m_receiver_channels++;
+  m_sub_managers[key]->m_receiver_channels++;
   return true;
 }
 
-bool ConnectionManager::addSenderChannel(const nlohmann::json &j, const std::string &datatype) {
+bool ConnectionManager::addSenderChannel(const std::string &key, const nlohmann::json &j,
+                                         const std::string &datatype) {
   auto &cl = daqling::core::ConnectionLoader::instance();
   uint chid;
   std::string type;
@@ -65,76 +68,116 @@ bool ConnectionManager::addSenderChannel(const nlohmann::json &j, const std::str
     return false;
   }
 
-  if (m_senders.find(chid) != m_senders.end()) {
+  if (m_sub_managers[key]->m_senders.find(chid) != m_sub_managers[key]->m_senders.end()) {
     ERS_INFO(" Socket for channel already exists... Won't add this channel again.");
     return false;
   }
 
   try {
-    m_senders[chid] = cl.getSender(type, chid, j, datatype);
+    m_sub_managers[key]->m_senders[chid] = cl.getSender(type, chid, j, datatype);
     ERS_INFO(" Adding SENDER channel for: [" << chid << "] type: " << type);
   } catch (ers::Issue &i) {
     throw CannotAddChannel(ERS_HERE, "Caught issue", i);
     return false;
   }
-  m_senders[chid]->set_sleep_duration(1);
+  m_sub_managers[key]->m_senders[chid]->set_sleep_duration(1);
   m_sender_channels++;
+  m_sub_managers[key]->m_sender_channels++;
   return true;
 }
 
-bool ConnectionManager::removeReceiverChannel(unsigned chn) {
-  m_receivers.erase(chn);
-  m_receiver_channels--;
-  return true;
+bool ConnectionManager::start(const std::string &name) {
+  if (m_sub_managers.find(name) != m_sub_managers.end()) {
+    auto subManager = m_sub_managers[name];
+    ERS_INFO("starting submanager with name: " << name);
+    for (auto const &it : subManager->m_receivers) //([first: chn, second:dir])
+    {
+      it.second->start();
+    }
+    for (auto const &it : subManager->m_senders) //([first: chn, second:dir])
+    {
+
+      it.second->start();
+    }
+    return true;
+  }
+  return false; // TODO: put some meaning or return void
 }
 
-bool ConnectionManager::removeSenderChannel(unsigned chn) {
+bool ConnectionManager::stop(const std::string &name) {
+  if (m_sub_managers.find(name) != m_sub_managers.end()) {
+    auto subManager = m_sub_managers[name];
+    for (auto const &it : subManager->m_receivers) //([first: chn, second:dir])
+    {
+      it.second->stop();
+    }
+    for (auto const &it : subManager->m_senders) //([first: chn, second:dir])
+    {
+      it.second->stop();
+    }
+  }
+  return true; // TODO: put some meaning or return void
+}
+bool ConnectionManager::removeChannel(const std::string &name) {
+  if (m_sub_managers.find(name) != m_sub_managers.end()) {
+    auto subManager = m_sub_managers[name];
+    while (!subManager->getReceiverMap().empty()) {
+      for (auto & [ ch, receiver ] : subManager->getReceiverMap()) {
+        subManager->removeReceiverChannel(ch);
+        m_receiver_channels--;
+      }
+    }
+    while (!subManager->getSenderMap().empty()) {
+      for (auto & [ ch, sender ] : subManager->getSenderMap()) {
+        subManager->removeSenderChannel(ch);
+        m_sender_channels--;
+      }
+    }
+  }
+  return !((m_sender_channels != 0u) || (m_receiver_channels != 0u));
+}
+std::shared_ptr<daqling::utilities::Resource> ConnectionManager::getLocalResource(unsigned id) {
+  auto &rf = ResourceFactory::instance();
+  return rf.getResource(id);
+}
+ConnectionSubManager &ConnectionManager::addSubManager(std::string key) {
+  if (m_sub_managers.find(key) == m_sub_managers.end()) {
+    m_sub_managers[key] = std::make_shared<ConnectionSubManager>(key);
+    ERS_INFO("Creating sub manager for: " << key);
+  } else {
+    ERS_WARNING("Sub-manager with module name " << key << " Already exists");
+  }
+  return *m_sub_managers[key].get();
+}
+
+bool ConnectionSubManager::receive(const unsigned &chn, DataType &bin) {
+  return m_receivers[chn]->receive(bin);
+}
+bool ConnectionSubManager::sleep_receive(const unsigned &chn, DataType &bin) {
+  return m_receivers[chn]->sleep_receive(bin);
+}
+
+bool ConnectionSubManager::send(const unsigned &chn, DataType &msgBin) {
+  return m_senders[chn]->send(msgBin);
+}
+bool ConnectionSubManager::sleep_send(const unsigned &chn, DataType &msgBin) {
+  return m_senders[chn]->sleep_send(msgBin);
+}
+
+void ConnectionSubManager::set_receiver_sleep_duration(const unsigned &chn, uint ms) {
+  m_receivers[chn]->set_sleep_duration(ms);
+}
+void ConnectionSubManager::set_sender_sleep_duration(const unsigned &chn, uint ms) {
+  m_senders[chn]->set_sleep_duration(ms);
+}
+bool ConnectionSubManager::removeSenderChannel(unsigned chn) {
   m_senders.erase(chn);
   m_sender_channels--;
   return true;
 }
-
-bool ConnectionManager::receive(const unsigned &chn, DataType &bin) {
-  return m_receivers[chn]->receive(bin);
+bool ConnectionSubManager::removeReceiverChannel(unsigned chn) {
+  m_receivers.erase(chn);
+  m_receiver_channels--;
+  return true;
 }
-bool ConnectionManager::sleep_receive(const unsigned &chn, DataType &bin) {
-  return m_receivers[chn]->sleep_receive(bin);
-}
-
-bool ConnectionManager::send(const unsigned &chn, DataType &msgBin) {
-  return m_senders[chn]->send(msgBin);
-}
-bool ConnectionManager::sleep_send(const unsigned &chn, DataType &msgBin) {
-  return m_senders[chn]->sleep_send(msgBin);
-}
-
-void ConnectionManager::set_receiver_sleep_duration(const unsigned &chn, uint ms) {
-  m_receivers[chn]->set_sleep_duration(ms);
-}
-void ConnectionManager::set_sender_sleep_duration(const unsigned &chn, uint ms) {
-  m_senders[chn]->set_sleep_duration(ms);
-}
-bool ConnectionManager::start() {
-  for (auto const &it : m_receivers) //([first: chn, second:dir])
-  {
-    it.second->start();
-  }
-  for (auto const &it : m_senders) //([first: chn, second:dir])
-  {
-
-    it.second->start();
-  }
-  return true; // TODO: put some meaning or return void
-}
-
-bool ConnectionManager::stop() {
-  for (auto const &it : m_receivers) //([first: chn, second:dir])
-  {
-    it.second->stop();
-  }
-  for (auto const &it : m_senders) //([first: chn, second:dir])
-  {
-    it.second->stop();
-  }
-  return true; // TODO: put some meaning or return void
-}
+ConnectionSubManager::ConnectionSubManager(std::string name) : m_name(std::move(name)) {}

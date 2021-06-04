@@ -16,20 +16,36 @@
  */
 
 #include "ZMQPubSubReceiver.hpp"
+#include "Core/ConnectionManager.hpp"
+#include "Core/ResourceFactory.hpp"
 #include "Utils/ConnectionMacros.hpp"
 #include "Utils/Ers.hpp"
 #include "ZMQIssues.hpp"
-
 using namespace daqling::connection;
 
 REGISTER_RECEIVER(ZMQPubSubReceiver, "ZMQPubSub")
 
-ZMQPubSubReceiver::~ZMQPubSubReceiver() { m_socket->setsockopt(ZMQ_LINGER, 1); }
+ZMQPubSubReceiver::~ZMQPubSubReceiver() {
+  m_socket->setsockopt(ZMQ_LINGER, 1);
+  if (m_private_zmq_context) {
+    m_socket.reset();
+    delete m_context;
+  }
+}
 ZMQPubSubReceiver::ZMQPubSubReceiver(uint chid, const nlohmann::json &j)
     : daqling::core::Receiver(chid) {
+  auto &manager = daqling::core::ConnectionManager::instance();
   try {
-    m_context = std::make_unique<zmq::context_t>(ioT);
-    m_socket = std::make_unique<zmq::socket_t>(*(m_context.get()), ZMQ_SUB);
+    if (j.contains("id")) {
+      auto id = j.at("id").get<unsigned>();
+      auto context =
+          std::static_pointer_cast<daqling::core::ZMQ_Context>(manager.getLocalResource(id));
+      m_context = context->getContext();
+      m_private_zmq_context = false;
+    } else {
+      m_context = new zmq::context_t(ioT);
+    }
+    m_socket = std::make_unique<zmq::socket_t>(*m_context, ZMQ_SUB);
     m_socket->setsockopt(ZMQ_RCVTIMEO, 1);
     std::string connStr;
     for (auto it : j.at("connections")) {
@@ -38,6 +54,8 @@ ZMQPubSubReceiver::ZMQPubSubReceiver(uint chid, const nlohmann::json &j)
       } else if (it.at("transport") == "tcp") {
         connStr = "tcp://" + it.at("host").get<std::string>() + ":" +
                   std::to_string(it.at("port").get<uint>());
+      } else if ((it.at("transport") == "inproc") && (!m_private_zmq_context)) {
+        connStr = "inproc://" + it.at("endpoint").get<std::string>();
       } else {
         throw InvalidTransportType(ERS_HERE, j.at("transport").get<std::string>().c_str());
       }
@@ -62,7 +80,7 @@ void ZMQPubSubReceiver::set_sleep_duration(uint ms) { m_socket->setsockopt(ZMQ_R
 bool ZMQPubSubReceiver::receive(DataType &bin) {
   zmq::message_t msg;
   if (m_socket->recv(&msg, ZMQ_DONTWAIT)) {
-    bin.reconstruct(msg.size(), msg.data());
+    bin.reconstruct(msg.data(), msg.size());
     ++m_msg_handled;
     return true;
   }
@@ -71,7 +89,7 @@ bool ZMQPubSubReceiver::receive(DataType &bin) {
 bool ZMQPubSubReceiver::sleep_receive(DataType &bin) {
   zmq::message_t msg;
   if (m_socket->recv(&msg)) {
-    bin.reconstruct(msg.size(), msg.data());
+    bin.reconstruct(msg.data(), msg.size());
     ++m_msg_handled;
     return true;
   }
