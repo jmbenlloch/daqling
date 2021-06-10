@@ -38,7 +38,6 @@ public:
   std::string dump() { return m_config.dump(); }
   void load(const std::string &jsonStr) { m_config = nlohmann::json::parse(jsonStr); }
   nlohmann::json &getConfig() { return m_config; }
-  nlohmann::json &getSettings() { return m_config["settings"]; }
   nlohmann::json &getModuleSettings(const std::string &key) { return getModule(key)["settings"]; }
   nlohmann::json
   getModules(std::unordered_set<std::string> typearg = std::unordered_set<std::string>()) {
