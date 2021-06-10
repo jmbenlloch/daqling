@@ -54,6 +54,7 @@ public:
   std::string receiverType;
   virtual ~DAQProcess() = default;
 
+  std::string getName() { return m_name; }
   /* use virtual otherwise linker will try to perform static linkage */
   virtual void configure() {
     // assign submanager
