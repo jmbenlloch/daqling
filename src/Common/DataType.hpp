@@ -196,6 +196,20 @@ public:
     }
     return data_ptr->data();
   }
+  template <typename U = void *> U data() {
+    static_assert(std::is_pointer<U>(), "Type parameter must be a pointer type");
+    if (data_ptr == nullptr) {
+      return static_cast<U>(nullptr);
+    }
+    return static_cast<U>(data_ptr->data());
+  }
+  template <typename U = void *> const U data() const {
+    static_assert(std::is_pointer<U>(), "Type parameter must be a pointer type");
+    if (data_ptr == nullptr) {
+      return static_cast<U>(nullptr);
+    }
+    return static_cast<U>(data_ptr->data());
+  }
 
   freeptr free() override {
     return [](void *, void *hint) {
@@ -227,7 +241,7 @@ public:
   };
 
   DataFragment() : data_ptr(nullptr){};
-  DataFragment(const void *data, const size_t size) { reconstruct(data, size); }
+  DataFragment(const void *data, const size_t size) : data_ptr(nullptr) { reconstruct(data, size); }
   DataFragment(T *ptr) : data_ptr(ptr){};
   /// Move constructor
   DataFragment(DataFragment<T> &&rhs) noexcept {
@@ -295,9 +309,14 @@ public:
   }
 
   DataFragment<T> &operator+=(DataFragment<T> &rhs) {
-    *data_ptr += *rhs.data_ptr;
+    if (data_ptr != nullptr && rhs.data_ptr != nullptr) {
+      *data_ptr += *rhs.data_ptr;
+    } else if (rhs.data_ptr != nullptr) {
+      data_ptr = new T(rhs.data_ptr->data(), rhs.data_ptr->size());
+    }
     return *this;
   }
+
   bool operator==(DataFragment<T> &rhs) { return *data_ptr == *rhs.data_ptr; }
   bool operator!=(DataFragment<T> &rhs) { return *data_ptr != *rhs.data_ptr; }
   bool operator<(DataFragment<T> &rhs) { return *data_ptr < *rhs.data_ptr; }
@@ -329,6 +348,20 @@ public:
       return data_ptr;
     }
     return data_ptr->data();
+  }
+  template <typename U = void *> U data() {
+    static_assert(std::is_pointer<U>(), "Type parameter must be a pointer type");
+    if (data_ptr == nullptr) {
+      return static_cast<U>(nullptr);
+    }
+    return static_cast<U>(data_ptr->data());
+  }
+  template <typename U = void *> const U data() const {
+    static_assert(std::is_pointer<U>(), "Type parameter must be a pointer type");
+    if (data_ptr == nullptr) {
+      return static_cast<U>(nullptr);
+    }
+    return static_cast<U>(data_ptr->data());
   }
 
   freeptr free() override {
