@@ -78,7 +78,7 @@ bool ModuleManager::load(const std::string &name, const std::string &type) {
 
 bool ModuleManager::unload(std::unordered_set<std::string> modargs) {
   setTag("core");
-  auto mod_func = SimpleModuleFunction(
+  auto mod_func = ModuleFunction(
       [](const std::string &key, module_info &mod, std::unordered_set<std::string> modargs) {
         if (modargs.find(key) != modargs.end()) {
           if (mod.m_module_loader->unload()) {
@@ -104,7 +104,7 @@ void ModuleManager::configure(std::unordered_set<std::string> modargs) {
     ERS_INFO("No modules eligible for configure.");
     return;
   }
-  auto mod_func = SimpleModuleFunction(
+  auto mod_func = ModuleFunction(
       [](const std::string &key, module_info &mod, std::unordered_set<std::string> modargs) {
         if (modargs.find(key) != modargs.end()) {
           mod.m_module_status = "configuring";
@@ -130,7 +130,7 @@ void ModuleManager::start(unsigned run_num, std::unordered_set<std::string> moda
     ERS_INFO("No modules eligible for start.");
     return;
   }
-  auto mod_func = StartModuleFunction(
+  auto mod_func = ModuleFunction(
       [](const std::string &key, module_info &mod, std::unordered_set<std::string> modargs,
          unsigned run_num) {
         auto &cm = daqling::core::ConnectionManager::instance();
@@ -160,7 +160,7 @@ void ModuleManager::stop(std::unordered_set<std::string> modargs) {
     ERS_INFO("No modules eligible for stop.");
     return;
   }
-  auto mod_func = SimpleModuleFunction(
+  auto mod_func = ModuleFunction(
       [](const std::string &key, module_info &mod, std::unordered_set<std::string> modargs) {
         if (modargs.find(key) != modargs.end()) {
           auto &cm = daqling::core::ConnectionManager::instance();
@@ -187,7 +187,7 @@ bool ModuleManager::command(const std::string &cmd, const std::string &arg,
     ERS_INFO("No modules eligible for command " << arg << ".");
     return false;
   }
-  auto mod_func = CustomModuleFunction(
+  auto mod_func = ModuleFunction(
       [](const std::string &key, module_info &mod, std::unordered_set<std::string> modargs,
          const std::string &cmd, const std::string &arg) {
         if (modargs.find(key) != modargs.end()) {
@@ -228,7 +228,7 @@ void ModuleManager::unconfigure(std::unordered_set<std::string> modargs) {
     ERS_INFO("No modules eligible for unconfigure.");
     return;
   }
-  auto mod_func = SimpleModuleFunction(
+  auto mod_func = ModuleFunction(
       [](const std::string &key, module_info &mod, std::unordered_set<std::string> modargs) {
         auto &cm = daqling::core::ConnectionManager::instance();
         if (modargs.find(key) != modargs.end()) {
