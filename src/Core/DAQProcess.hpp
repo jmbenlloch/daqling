@@ -52,8 +52,11 @@ public:
   }
   std::string senderType;
   std::string receiverType;
-  virtual ~DAQProcess() = default;
 
+  virtual ~DAQProcess() = default;
+  nlohmann::json &getModuleSettings() {
+    return daqling::core::Configuration::instance().getModuleSettings(getName());
+  }
   std::string getName() { return m_name; }
   /* use virtual otherwise linker will try to perform static linkage */
   virtual void configure() {
