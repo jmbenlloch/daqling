@@ -98,12 +98,10 @@ FileWriterModule::FileWriterModule(const std::string &n) : DAQProcess(n), m_stop
 void FileWriterModule::configure() {
   DAQProcess::configure();
   // Read out required and optional configurations
-  m_max_filesize =
-      m_config.getModuleSettings(m_name).value("max_filesize", 1 * daqutils::Constant::Giga);
-  m_buffer_size =
-      m_config.getModuleSettings(m_name).value("buffer_size", 4 * daqutils::Constant::Kilo);
+  m_max_filesize = getModuleSettings().value("max_filesize", 1 * daqutils::Constant::Giga);
+  m_buffer_size = getModuleSettings().value("buffer_size", 4 * daqutils::Constant::Kilo);
   m_channels = m_config.getNumReceiverConnections(m_name);
-  m_pattern = m_config.getModuleSettings(m_name)["filename_pattern"];
+  m_pattern = getModuleSettings()["filename_pattern"];
   ERS_INFO("Configuration --> Maximum filesize: " << m_max_filesize << "B"
                                                   << " | Buffer size: " << m_buffer_size << "B"
                                                   << " | channels: " << m_channels);

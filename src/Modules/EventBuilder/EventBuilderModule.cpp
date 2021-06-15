@@ -30,7 +30,7 @@ EventBuilderModule::EventBuilderModule(const std::string &n)
     : DAQProcess(n), m_eventmap_size{0}, m_complete_ev_size_guess{0} {
   senderType = "DataFragment<daqling::utilities::Binary>";
   receiverType = "DataFragment<daqling::utilities::Binary>";
-  ERS_DEBUG(0, "With config: " << m_config.getModuleSettings(m_name));
+  ERS_DEBUG(0, "With config: " << getModuleSettings());
   m_nreceivers = m_config.getNumReceiverConnections(m_name);
 }
 
