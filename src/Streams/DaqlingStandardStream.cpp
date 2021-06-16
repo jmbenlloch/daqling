@@ -36,8 +36,11 @@ void ers::DaqlingStandardStream<Device>::report(std::ostream &out, const Issue &
       << std::string(issue.context().file_name())
              .substr(std::string(issue.context().file_name()).find_last_of('/') + 1)
       << ":" << issue.context().line_number() << "] ";
+
+#ifndef DONT_LOG_FUNCTION_NAME
   // function
   out << "[" << issue.context().function_name() << "] ";
+#endif
   // message
   out << issue.message() << " ";
 
