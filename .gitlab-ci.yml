@@ -45,7 +45,7 @@ compile:
             - build
         expire_in: 1 hours
     before_script:
-        - source cmake/setup.sh /daqling-spack-repo
+        - source cmake/setup.sh /daqling-spack-repo configs/
 
 # Default tests
 test:
@@ -57,7 +57,7 @@ test:
     dependencies:
         - compile
     before_script:
-        - source cmake/setup.sh /daqling-spack-repo
+        - source cmake/setup.sh /daqling-spack-repo configs/
 
 format:
     image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cibase
@@ -68,7 +68,7 @@ format:
     dependencies:
         - compile
     before_script:
-        - source cmake/setup.sh /daqling-spack-repo
+        - source cmake/setup.sh /daqling-spack-repo configs/
     allow_failure: true
 tidy:
     image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cibase
@@ -79,5 +79,5 @@ tidy:
     dependencies:
         - compile
     before_script:
-        - source cmake/setup.sh /daqling-spack-repo
+        - source cmake/setup.sh /daqling-spack-repo configs/
     allow_failure: true
