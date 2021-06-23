@@ -50,8 +50,6 @@ public:
         m_connections(daqling::core::ConnectionManager::instance().addSubManager(name)) {
     addTag();
   }
-  std::string senderType;
-  std::string receiverType;
 
   virtual ~DAQProcess() = default;
   nlohmann::json &getModuleSettings() {

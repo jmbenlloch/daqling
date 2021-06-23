@@ -26,7 +26,7 @@ public:
   DummyReceiver(uint chid, const nlohmann::json &j = NULL);
 
 protected:
-  bool receive(DataType &bin) override;
+  bool receive(DataTypeWrapper &bin) override;
 };
 } // namespace connection
 } // namespace daqling

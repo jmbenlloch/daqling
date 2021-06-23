@@ -35,7 +35,7 @@ public:
   ZMQPairSender &operator=(ZMQPairSender &&) = delete;      // Move assign
 
 protected:
-  bool send(DataType &bin) override;
+  bool send(DataTypeWrapper &bin) override;
   // ZMQ Context number of threads to use
   uint8_t ioT = 1;
   bool m_private_zmq_context{true};

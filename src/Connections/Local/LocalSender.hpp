@@ -24,8 +24,8 @@ namespace connection {
 class LocalSender : public daqling::core::Sender {
 public:
   LocalSender(uint chid, const nlohmann::json &j = NULL);
-  bool send(DataType &bin) override;
-  bool sleep_send(DataType &bin) override;
+  bool send(DataTypeWrapper &bin) override;
+  bool sleep_send(DataTypeWrapper &bin) override;
   void set_sleep_duration(uint ms) override;
   std::atomic<size_t> &getPcqSize() override {
     m_pcq_size = m_queue->sizeGuess();

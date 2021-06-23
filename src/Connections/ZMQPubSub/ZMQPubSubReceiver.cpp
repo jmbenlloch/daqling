@@ -23,7 +23,7 @@
 #include "ZMQIssues.hpp"
 using namespace daqling::connection;
 
-REGISTER_RECEIVER(ZMQPubSubReceiver, "ZMQPubSub")
+REGISTER_RECEIVER(ZMQPubSubReceiver)
 
 ZMQPubSubReceiver::~ZMQPubSubReceiver() {
   m_socket->setsockopt(ZMQ_LINGER, 1);
@@ -77,19 +77,19 @@ ZMQPubSubReceiver::ZMQPubSubReceiver(uint chid, const nlohmann::json &j)
 }
 void ZMQPubSubReceiver::set_sleep_duration(uint ms) { m_socket->setsockopt(ZMQ_RCVTIMEO, ms); }
 
-bool ZMQPubSubReceiver::receive(DataType &bin) {
+bool ZMQPubSubReceiver::receive(DataTypeWrapper &bin) {
   zmq::message_t msg;
   if (m_socket->recv(&msg, ZMQ_DONTWAIT)) {
-    bin.reconstruct(msg.data(), msg.size());
+    bin.reconstruct_or_store(msg.data(), msg.size());
     ++m_msg_handled;
     return true;
   }
   return false;
 }
-bool ZMQPubSubReceiver::sleep_receive(DataType &bin) {
+bool ZMQPubSubReceiver::sleep_receive(DataTypeWrapper &bin) {
   zmq::message_t msg;
   if (m_socket->recv(&msg)) {
-    bin.reconstruct(msg.data(), msg.size());
+    bin.reconstruct_or_store(msg.data(), msg.size());
     ++m_msg_handled;
     return true;
   }

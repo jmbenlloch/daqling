@@ -18,9 +18,6 @@
 #ifndef DAQLING_CORE_CONNECTIONMANAGER_HPP
 #define DAQLING_CORE_CONNECTIONMANAGER_HPP
 
-#include <map>
-#include <mutex>
-
 #include "Core/Receiver.hpp"
 #include "Core/Sender.hpp"
 #include "ResourceFactory.hpp"
@@ -28,6 +25,9 @@
 #include "Utils/Ers.hpp"
 #include "Utils/Singleton.hpp"
 #include "nlohmann/json.hpp"
+#include <map>
+#include <mutex>
+#include <type_traits>
 namespace daqling {
 
 // change to be more general, e.g. couldn't add connection with name bla. bla. -> cause
@@ -63,10 +63,8 @@ public:
   // Teardown
   bool removeChannel(const std::string &name);
   // Add a channel (sockets and queues)
-  bool addSenderChannel(const std::string & /*key*/, const nlohmann::json &j,
-                        const std::string &datatype);
-  bool addReceiverChannel(const std::string & /*key*/, const nlohmann::json &j,
-                          const std::string &datatype);
+  bool addSenderChannel(const std::string & /*key*/, const nlohmann::json &j);
+  bool addReceiverChannel(const std::string & /*key*/, const nlohmann::json &j);
 
   // Utilities
   ConnectionSubManager &addSubManager(std::string key);
@@ -108,15 +106,43 @@ public:
    * @param chn receiver channel id
    * @return true when binary file is successfully passed
    */
-  bool receive(const unsigned &chn, DataType &bin);
-  bool sleep_receive(const unsigned &chn, DataType &bin);
+  template <class T> bool receive(const unsigned &chn, T &bin) {
+    if (bin.size() != 0) {
+      ERS_WARNING("got non-empty receiver Data with size: " << bin.size());
+    }
+    DataTypeWrapper msg(bin);
+    bool retval = m_receivers[chn]->sleep_receive(msg);
+    if (retval) {
+      msg.transfer_into(bin);
+      return true;
+    }
+    return false;
+  }
+  template <class T> bool sleep_receive(const unsigned &chn, T &bin) {
+    if (bin.size() != 0) {
+      ERS_WARNING("got non-empty receiver Data with size: " << bin.size());
+    }
+    DataTypeWrapper msg(bin);
+    bool retval = m_receivers[chn]->sleep_receive(msg);
+    if (retval) {
+      msg.transfer_into(bin);
+      return true;
+    }
+    return false;
+  }
   /**
    * @brief Send binary to channel
    * @param chn sender channel id
    * @return true when binary file is successfully passed
    */
-  bool send(const unsigned &chn, DataType &msgBin);
-  bool sleep_send(const unsigned &chn, DataType &msgBin);
+  template <class T> bool send(const unsigned &chn, T &msgBin) {
+    DataTypeWrapper msg(std::move(msgBin));
+    return m_senders[chn]->send(msg);
+  }
+  template <class T> bool sleep_send(const unsigned &chn, T &msgBin) {
+    DataTypeWrapper msg(std::move(msgBin));
+    return m_senders[chn]->sleep_send(msg);
+  }
 
   /**
    * @brief Set sleep duration for receiver

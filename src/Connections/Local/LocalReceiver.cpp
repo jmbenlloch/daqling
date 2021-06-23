@@ -20,24 +20,31 @@
 #include "Utils/ConnectionMacros.hpp"
 using namespace daqling::connection;
 
-REGISTER_RECEIVER(LocalReceiver, "Local")
+REGISTER_RECEIVER(LocalReceiver)
 LocalReceiver::LocalReceiver(uint chid, const nlohmann::json &j) : daqling::core::Receiver(chid) {
   auto &manager = daqling::core::ConnectionManager::instance();
   auto id = j.at("id").get<unsigned>();
   m_queue = std::static_pointer_cast<daqling::core::Queue>(manager.getLocalResource(id));
 }
 
-bool LocalReceiver::receive(DataType &bin) {
+bool LocalReceiver::receive(DataTypeWrapper &bin) {
   if (m_queue->sizeGuess() != 0) {
 
-    return m_queue->read(bin);
+    if (m_queue->read(bin)) {
+      m_msg_handled++;
+      return true;
+    }
   }
   return false;
 }
-bool LocalReceiver::sleep_receive(DataType &bin) {
+bool LocalReceiver::sleep_receive(DataTypeWrapper &bin) {
   if (m_queue->sizeGuess() != 0) {
 
-    return m_queue->sleep_read(bin);
+    if (m_queue->sleep_read(bin)) {
+      m_msg_handled++;
+      return true;
+    }
+    return false;
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(m_sleep_duration));
   return false;

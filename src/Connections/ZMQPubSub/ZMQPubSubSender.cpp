@@ -23,7 +23,7 @@
 #include "ZMQIssues.hpp"
 using namespace daqling::connection;
 
-REGISTER_SENDER(ZMQPubSubSender, "ZMQPubSub")
+REGISTER_SENDER(ZMQPubSubSender)
 ZMQPubSubSender::~ZMQPubSubSender() {
   m_socket->setsockopt(ZMQ_LINGER, 1);
   if (m_private_zmq_context) {
@@ -63,9 +63,10 @@ ZMQPubSubSender::ZMQPubSubSender(uint chid, const nlohmann::json &j) : daqling::
     throw CannotAddChannel(ERS_HERE, e.what());
   }
 }
-bool ZMQPubSubSender::send(DataType &bin) {
-  bin.detach();
-  zmq::message_t message(bin.data(), bin.size(), bin.free(), bin.hint());
+bool ZMQPubSubSender::send(DataTypeWrapper &bin) {
+  auto any_data = bin.getDataTypePtr();
+  any_data->detach();
+  zmq::message_t message(any_data->data(), any_data->size(), any_data->free(), any_data->hint());
   if (m_socket->send(std::move(message))) {
     ++m_msg_handled;
     return true;

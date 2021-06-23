@@ -32,8 +32,8 @@ public:
   bool stop() override;
 
 protected:
-  bool receive(DataType &bin) override;
-  bool sleep_receive(DataType &bin) override;
+  bool receive(DataTypeWrapper &bin) override;
+  bool sleep_receive(DataTypeWrapper &bin) override;
   void handle_receive(const boost::system::error_code & /*error*/, std::size_t /*size*/);
   void wait_callback(const boost::system::error_code &error);
 

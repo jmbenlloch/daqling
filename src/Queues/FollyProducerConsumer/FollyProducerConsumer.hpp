@@ -23,18 +23,18 @@
 
 namespace daqling {
 namespace queue {
-template <typename T> class FollyProducerConsumer : public daqling::core::Queue {
+class FollyProducerConsumer : public daqling::core::Queue {
 public:
   // using MessageQueue<T> = folly::ProducerConsumerQueue<T>;
   FollyProducerConsumer(const nlohmann::json &j);
-  bool read(DataType & /*bin*/) override;
-  bool write(DataType & /*bin*/) override;
+  bool read(DataTypeWrapper & /*bin*/) override;
+  bool write(DataTypeWrapper & /*bin*/) override;
   uint sizeGuess() override;
   uint capacity() override;
 
 protected:
 private:
-  folly::ProducerConsumerQueue<T> m_queue;
+  folly::ProducerConsumerQueue<DataTypeWrapper> m_queue;
 };
 } // namespace queue
 } // namespace daqling

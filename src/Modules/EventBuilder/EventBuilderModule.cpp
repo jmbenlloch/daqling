@@ -28,8 +28,6 @@ using namespace daqling::module;
 using Binary = DataFragment<daqling::utilities::Binary>;
 EventBuilderModule::EventBuilderModule(const std::string &n)
     : DAQProcess(n), m_eventmap_size{0}, m_complete_ev_size_guess{0} {
-  senderType = "DataFragment<daqling::utilities::Binary>";
-  receiverType = "DataFragment<daqling::utilities::Binary>";
   ERS_DEBUG(0, "With config: " << getModuleSettings());
   m_nreceivers = m_config.getNumReceiverConnections(m_name);
 }
@@ -93,7 +91,7 @@ void EventBuilderModule::runner() noexcept {
   while (m_run) {
     for (unsigned ch = 0; ch < m_nreceivers; ch++) {
       Binary b;
-      if (m_connections.sleep_receive(ch, std::ref(b))) {
+      if (m_connections.sleep_receive(ch, b)) {
         ERS_DEBUG(0, "Received msg.");
         unsigned seq_number;
         auto *d = static_cast<data_t *>(b.data());
