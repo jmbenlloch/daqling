@@ -1,4 +1,4 @@
-if [ $# -gt 1 ];
+if [ $# -gt 2 ] || [ $# -eq 1 ];
 then
   echo "Invalid number of arguments: $#"
   return 1
@@ -6,10 +6,11 @@ fi
 
 BASEDIR="$(dirname "$(realpath "$BASH_SOURCE")" )"
 CONFIG_FILE="${BASEDIR}/setup.cfg"
-if [ $# -eq 1 ]
+if [ $# -eq 2 ]
 then
   touch ${CONFIG_FILE}
   echo "DAQLING_SPACK_REPO_PATH=$1" > ${CONFIG_FILE}
+  echo "DAQ_CONFIG_PATH=$2" >> ${CONFIG_FILE}
   if [ -d "/opt/ohpc/pub/compiler/gcc/8.3.0/" ]
   then  
     echo "CUSTOM_GCC_PATH=/opt/ohpc/pub/compiler/gcc/8.3.0/" >> ${CONFIG_FILE}
@@ -26,9 +27,10 @@ else
   return 1
 fi
 
-export DAQ_CONFIG_DIR=$PWD/configs/
+DAQLING_REPO_PATH="$(dirname "$(realpath "${BASEDIR}")" )"
+export DAQ_CONFIG_DIR=${DAQ_CONFIG_PATH}
 export DAQ_BUILD_DIR=$PWD/build/
-export DAQ_SCRIPT_DIR=$PWD/scripts/
+export DAQ_SCRIPT_DIR=${DAQLING_REPO_PATH}/scripts/
 daqpy_path=$(find -name daq.py | cut -c3-)
 alias daqpy='python3 $PWD/$daqpy_path'
 daqtree_path=$(find -name daqtree.py | cut -c3-)
