@@ -23,7 +23,7 @@
 
 using namespace daqling::connection;
 
-REGISTER_SENDER(BoostAsioUdpSender, "BoostAsioUdp")
+REGISTER_SENDER(BoostAsioUdpSender)
 
 BoostAsioUdpSender::BoostAsioUdpSender(uint chid, const nlohmann::json &j)
     : daqling::core::Sender(chid) {
@@ -42,28 +42,27 @@ BoostAsioUdpSender::BoostAsioUdpSender(uint chid, const nlohmann::json &j)
   }
 }
 
-bool BoostAsioUdpSender::send(DataType &bin) {
+bool BoostAsioUdpSender::send(DataTypeWrapper &bin) {
   try {
-    ERS_DEBUG(0, "Sending message of size: " << bin.size());
-    bin.detach();
-    if (m_socket->send_to(boost::asio::buffer(bin.data(), bin.size()), *m_dest_endpoint) ==
-        bin.size()) {
+    auto any_data = bin.getDataTypePtr();
+    ERS_DEBUG(0, "Sending message of size: " << any_data->size());
+    if (m_socket->send_to(boost::asio::buffer(any_data->data(), any_data->size()),
+                          *m_dest_endpoint) == any_data->size()) {
       ++m_msg_handled;
-      bin.free()(bin.data(), bin.hint());
       return true;
     }
-    bin.free()(bin.data(), bin.hint());
     return false;
 
   } catch (std::exception &e) {
     throw SendFailed(ERS_HERE, e.what());
   }
 }
-bool BoostAsioUdpSender::sleep_send(DataType &bin) {
+bool BoostAsioUdpSender::sleep_send(DataTypeWrapper &bin) {
   try {
+    auto any_data = bin.getDataTypePtr();
     uint len;
-    bin.detach();
-    m_socket->async_send_to(boost::asio::buffer(bin.data(), bin.size()), *m_dest_endpoint,
+    m_socket->async_send_to(boost::asio::buffer(any_data->data(), any_data->size()),
+                            *m_dest_endpoint,
                             [&](const boost::system::error_code &error, std::size_t size) {
                               if (error || (size == 0u)) {
                                 len = 0;
@@ -72,7 +71,7 @@ bool BoostAsioUdpSender::sleep_send(DataType &bin) {
                                 len = size;
                               }
                             });
-    ERS_DEBUG(0, "Sending message of size: " << bin.size());
+    ERS_DEBUG(0, "Sending message of size: " << any_data->size());
     m_timeout->expires_from_now(boost::posix_time::milliseconds(m_sleep_duration));
     m_timeout->async_wait([&](const boost::system::error_code &error) {
       if (error) {
@@ -83,12 +82,10 @@ bool BoostAsioUdpSender::sleep_send(DataType &bin) {
     m_io_context.restart();
     m_io_context.run();
 
-    if (len == bin.size()) {
-      bin.free()(bin.data(), bin.hint());
+    if (len == any_data->size()) {
       ++m_msg_handled;
       return true;
     }
-    bin.free()(bin.data(), bin.hint());
     ERS_DEBUG(0, "Sleep send failed.");
     return false;
 

@@ -39,7 +39,7 @@
         "connection": "WARNING"
       },
       "metrics_settings": {
-        "influxDb_uri": "http://epdtdi-daq01.cern.ch:8086/write?db=",
+        "influxDb_uri": "http://localhost:8086/write?db=",
         "influxDb_name": "DAQlingMetrics"
       }
     },
@@ -80,7 +80,7 @@
       "connection": "WARNING"
     },
       "metrics_settings": {
-        "influxDb_uri": "http://epdtdi-daq01.cern.ch:8086/write?db=",
+        "influxDb_uri": "http://localhost:8086/write?db=",
         "influxDb_name": "DAQlingMetrics"
       }
     },
@@ -136,7 +136,7 @@
       }
     }],
     "metrics_settings": {
-      "influxDb_uri": "http://epdtdi-daq01.cern.ch:8086/write?db=",
+      "influxDb_uri": "http://localhost:8086/write?db=",
       "influxDb_name": "DAQlingMetrics"
     },
     "loglevel": {
@@ -171,7 +171,7 @@
       }
     }],
     "metrics_settings": {
-      "influxDb_uri": "http://epdtdi-daq01.cern.ch:8086/write?db=",
+      "influxDb_uri": "http://localhost:8086/write?db=",
       "influxDb_name": "DAQlingMetrics"
     },
     "loglevel": {

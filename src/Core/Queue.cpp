@@ -23,7 +23,7 @@
 using namespace daqling::core;
 using namespace std::chrono_literals;
 
-bool Queue::sleep_read(DataType &bin) {
+bool Queue::sleep_read(DataTypeWrapper &bin) {
   if (read(bin)) {
     return true;
   }
@@ -31,7 +31,7 @@ bool Queue::sleep_read(DataType &bin) {
   return false;
 }
 
-bool Queue::sleep_write(DataType &bin) {
+bool Queue::sleep_write(DataTypeWrapper &bin) {
   if (write(bin)) {
     return true;
   }

@@ -23,7 +23,7 @@
 
 using namespace daqling::connection;
 
-REGISTER_RECEIVER(BoostAsioUdpReceiver, "BoostAsioUdp")
+REGISTER_RECEIVER(BoostAsioUdpReceiver)
 BoostAsioUdpReceiver::BoostAsioUdpReceiver(uint chid, const nlohmann::json &j)
     : daqling::core::Receiver(chid), m_io_context() {
   std::string connStr;
@@ -45,7 +45,7 @@ BoostAsioUdpReceiver::BoostAsioUdpReceiver(uint chid, const nlohmann::json &j)
     throw InvalidTransportType(ERS_HERE, j.at("transport").get<std::string>().c_str());
   }
 }
-bool BoostAsioUdpReceiver::receive(DataType &bin) {
+bool BoostAsioUdpReceiver::receive(DataTypeWrapper &bin) {
   m_socket->async_receive_from(boost::asio::buffer(m_recv_buf), *m_src_endpoint,
                                boost::bind(&BoostAsioUdpReceiver::handle_receive, this,
                                            boost::asio::placeholders::error,
@@ -57,13 +57,13 @@ bool BoostAsioUdpReceiver::receive(DataType &bin) {
   m_io_context.run();
   if (m_len != 0u) {
     ERS_DEBUG(0, "Received msg with size: " << m_len);
-    bin.reconstruct(m_recv_buf.data(), m_len);
+    bin.reconstruct_or_store(m_recv_buf.data(), m_len);
     ++m_msg_handled;
     return true;
   }
   return false;
 }
-bool BoostAsioUdpReceiver::sleep_receive(DataType &bin) {
+bool BoostAsioUdpReceiver::sleep_receive(DataTypeWrapper &bin) {
   m_socket->async_receive_from(boost::asio::buffer(m_recv_buf), *m_src_endpoint,
                                boost::bind(&BoostAsioUdpReceiver::handle_receive, this,
                                            boost::asio::placeholders::error,
@@ -75,7 +75,7 @@ bool BoostAsioUdpReceiver::sleep_receive(DataType &bin) {
   m_io_context.run();
   if (m_len != 0u) {
     ERS_DEBUG(0, "Received msg with size: " << m_len);
-    bin.reconstruct(m_recv_buf.data(), m_len);
+    bin.reconstruct_or_store(m_recv_buf.data(), m_len);
     ++m_msg_handled;
     return true;
   }

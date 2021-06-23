@@ -35,8 +35,8 @@ public:
   ZMQPairReceiver &operator=(ZMQPairReceiver &&) = delete;      // Move assign
 protected:
   bool m_private_zmq_context{true};
-  bool receive(DataType &bin) override;
-  bool sleep_receive(DataType &bin) override;
+  bool receive(DataTypeWrapper &bin) override;
+  bool sleep_receive(DataTypeWrapper &bin) override;
   // ZMQ Context number of threads to use
   uint8_t ioT = 1;
   zmq::context_t *m_context;

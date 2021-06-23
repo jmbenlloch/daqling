@@ -69,8 +69,6 @@ public:
   ModuleLoader(ModuleLoader &&) = delete;                 // Move construct
   ModuleLoader &operator=(ModuleLoader const &) = delete; // Copy assign
   ModuleLoader &operator=(ModuleLoader &&) = delete;      // Move assign
-  std::string getReceiverType();
-  std::string getSenderType();
   /**
    * Tries to load a module of name `name`, with number 'no'.
    * Returns whether the operation succeeded.

@@ -35,8 +35,8 @@ public:
   void set_sleep_duration(uint ms) override;
 
 protected:
-  bool receive(DataType &bin) override;
-  bool sleep_receive(DataType &bin) override;
+  bool receive(DataTypeWrapper &bin) override;
+  bool sleep_receive(DataTypeWrapper &bin) override;
   bool m_private_zmq_context{true};
   // ZMQ Context number of threads to use
   uint8_t ioT = 1;

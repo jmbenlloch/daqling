@@ -27,8 +27,6 @@ using namespace daqling::module;
 
 ReadoutInterfaceModule::ReadoutInterfaceModule(const std::string &n) : DAQProcess(n) {
   ERS_DEBUG(0, "With config: " << getModuleSettings());
-  senderType = "DataFragment<data_t>";
-  receiverType = "DataFragment<data_t>";
   m_board_id = getModuleSettings()["board_id"];
   m_delay_us = std::chrono::microseconds(getModuleSettings()["delay_us"]);
   m_min_payload = getModuleSettings()["payload"]["min"];

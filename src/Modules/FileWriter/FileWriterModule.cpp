@@ -89,8 +89,6 @@ bool FileWriterModule::FileGenerator::yields_unique(const std::string &pattern) 
 
 FileWriterModule::FileWriterModule(const std::string &n) : DAQProcess(n), m_stopWriters{false} {
   ERS_DEBUG(0, "");
-  senderType = "SharedDataType<daqling::utilities::Binary>";
-  receiverType = "DataFragment<daqling::utilities::Binary>";
   // Set up static resources...
   std::ios_base::sync_with_stdio(false);
 }
@@ -199,7 +197,7 @@ void FileWriterModule::runner() noexcept {
 
       while (m_run) {
         DataFragment<daqling::utilities::Binary> pl;
-        while (!m_connections.sleep_receive(it.first, std::ref(pl)) && m_run) {
+        while (!m_connections.sleep_receive(it.first, pl) && m_run) {
           if (m_statistics) {
             m_channelMetrics.at(it.first).payload_queue_size = pq.sizeGuess();
           }

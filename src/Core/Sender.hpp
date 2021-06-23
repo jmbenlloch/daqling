@@ -18,6 +18,7 @@
 #pragma once
 #include "Common/DataType.hpp"
 #include "Queue.hpp"
+#include <any>
 #include <atomic>
 #include <mutex>
 #include <thread>
@@ -28,8 +29,8 @@ class Sender {
 public:
   // virtual destructor
   virtual ~Sender() = default;
-  virtual bool send(DataType &bin) = 0;
-  virtual bool sleep_send(DataType &bin);
+  virtual bool send(DataTypeWrapper &bin) = 0;
+  virtual bool sleep_send(DataTypeWrapper &bin);
   virtual bool start();
   virtual bool stop();
   virtual void set_sleep_duration(uint ms);
@@ -46,12 +47,12 @@ protected:
 private:
 };
 
-template <class T> class QueueSender : public Sender {
+class QueueSender : public Sender {
 public:
   QueueSender(uint /*chid*/, std::unique_ptr<Queue> /*ptr*/,
               const std::shared_ptr<Sender> & /*chained_ptr*/);
-  bool send(DataType &bin) override;
-  bool sleep_send(DataType &bin) override;
+  bool send(DataTypeWrapper &bin) override;
+  bool sleep_send(DataTypeWrapper &bin) override;
   bool start() override;
   bool stop() override;
   virtual void setChainedSender(std::shared_ptr<daqling::core::Sender> /*ptr*/);
@@ -66,66 +67,5 @@ protected:
   std::unique_ptr<Queue> m_queue;
 };
 
-#include <chrono>
-#include <ctime>
-#include <utility>
-using namespace std::chrono_literals;
-// Queue sender
-template <class T>
-QueueSender<T>::QueueSender(uint chid, std::unique_ptr<Queue> ptr,
-                            const std::shared_ptr<Sender> &chained_ptr)
-    : Sender(chid) {
-  m_queue = std::move(ptr);
-  setChainedSender(chained_ptr);
-}
-template <class T> bool QueueSender<T>::send(DataType &bin) { return m_queue->write(bin); }
-template <class T> bool QueueSender<T>::sleep_send(DataType &bin) {
-  return m_queue->sleep_write(bin);
-}
-template <class T> void QueueSender<T>::set_sleep_duration(uint ms) {
-  m_sleep_duration = ms;
-  if (m_queue) {
-    m_queue->set_sleep_duration(ms);
-  }
-}
-template <class T> bool QueueSender<T>::start() {
-  m_stop_handler.store(false);
-  return (addSendHandler() && m_chained_sender->start());
-}
-template <class T> bool QueueSender<T>::stop() {
-  m_stop_handler.store(true);
-  bool retval = m_chained_sender->stop();
-  m_handler_thread.join();
-  return retval;
-}
-template <class T> bool QueueSender<T>::addSendHandler() {
-  ERS_INFO(" [SERVER] SendHandler for channel [" << m_chid << "] starting...");
-  m_handler_thread = std::thread([&]() {
-    while (!m_stop_handler) {
-      if (m_queue->sizeGuess() != 0) {
-        T m_container;
-        if (m_queue->sleep_read(m_container)) {
-          m_chained_sender->send(m_container);
-        }
-      } else {
-        std::this_thread::sleep_for(1ms);
-      }
-      m_pcq_size.store(m_queue->sizeGuess());
-      if (m_queue->sizeGuess() > m_queue->capacity() * 0.9) {
-        ERS_WARNING("SERVER -> queue population: " << m_queue->sizeGuess());
-      }
-    }
-    ERS_INFO(" joining channel [" << m_chid << "] handler.");
-  });
-  return true;
-}
-template <class T>
-void QueueSender<T>::setChainedSender(std::shared_ptr<daqling::core::Sender> ptr) {
-  m_chained_sender = std::move(ptr);
-  m_chained_sender->set_sleep_duration(1);
-}
-template <class T> std::atomic<size_t> &QueueSender<T>::getMsgsHandled() {
-  return m_chained_sender->getMsgsHandled();
-}
 } // namespace core
 } // namespace daqling

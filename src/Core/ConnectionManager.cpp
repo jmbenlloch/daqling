@@ -24,8 +24,7 @@
 
 using namespace daqling::core;
 
-bool ConnectionManager::addReceiverChannel(const std::string &key, const nlohmann::json &j,
-                                           const std::string &datatype) {
+bool ConnectionManager::addReceiverChannel(const std::string &key, const nlohmann::json &j) {
   auto &cl = daqling::core::ConnectionLoader::instance();
   std::string type;
   uint chid;
@@ -43,7 +42,7 @@ bool ConnectionManager::addReceiverChannel(const std::string &key, const nlohman
   }
 
   try {
-    m_sub_managers[key]->m_receivers[chid] = cl.getReceiver(type, chid, j, datatype);
+    m_sub_managers[key]->m_receivers[chid] = cl.getReceiver(type, chid, j);
     ERS_INFO(" Adding RECEIVER channel for: [" << chid << "] type: " << type);
   } catch (ers::Issue &i) {
     throw CannotAddChannel(ERS_HERE, "Caught Issue", i);
@@ -55,8 +54,7 @@ bool ConnectionManager::addReceiverChannel(const std::string &key, const nlohman
   return true;
 }
 
-bool ConnectionManager::addSenderChannel(const std::string &key, const nlohmann::json &j,
-                                         const std::string &datatype) {
+bool ConnectionManager::addSenderChannel(const std::string &key, const nlohmann::json &j) {
   auto &cl = daqling::core::ConnectionLoader::instance();
   uint chid;
   std::string type;
@@ -74,7 +72,7 @@ bool ConnectionManager::addSenderChannel(const std::string &key, const nlohmann:
   }
 
   try {
-    m_sub_managers[key]->m_senders[chid] = cl.getSender(type, chid, j, datatype);
+    m_sub_managers[key]->m_senders[chid] = cl.getSender(type, chid, j);
     ERS_INFO(" Adding SENDER channel for: [" << chid << "] type: " << type);
   } catch (ers::Issue &i) {
     throw CannotAddChannel(ERS_HERE, "Caught issue", i);
@@ -148,20 +146,6 @@ ConnectionSubManager &ConnectionManager::addSubManager(std::string key) {
     ERS_WARNING("Sub-manager with module name " << key << " Already exists");
   }
   return *m_sub_managers[key].get();
-}
-
-bool ConnectionSubManager::receive(const unsigned &chn, DataType &bin) {
-  return m_receivers[chn]->receive(bin);
-}
-bool ConnectionSubManager::sleep_receive(const unsigned &chn, DataType &bin) {
-  return m_receivers[chn]->sleep_receive(bin);
-}
-
-bool ConnectionSubManager::send(const unsigned &chn, DataType &msgBin) {
-  return m_senders[chn]->send(msgBin);
-}
-bool ConnectionSubManager::sleep_send(const unsigned &chn, DataType &msgBin) {
-  return m_senders[chn]->sleep_send(msgBin);
 }
 
 void ConnectionSubManager::set_receiver_sleep_duration(const unsigned &chn, uint ms) {

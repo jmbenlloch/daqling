@@ -21,15 +21,15 @@
 
 using namespace daqling::connection;
 
-REGISTER_SENDER(DummySender, "Dummy")
+REGISTER_SENDER(DummySender)
 
 DummySender::DummySender(uint chid, const nlohmann::json &j) : daqling::core::Sender(chid) {
   if (j.empty()) {
   }
 }
 
-bool DummySender::send(DataType &bin) {
+bool DummySender::send(DataTypeWrapper &bin) {
+  bin.getDataTypePtr()->detach();
   ERS_DEBUG(0, "Hello from DummySender protocolHandler");
-  bin.detach();
   return true;
 }

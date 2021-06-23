@@ -20,21 +20,15 @@
 
 using namespace daqling::queue;
 REGISTER_QUEUE(MoodyReaderWriter)
-template <typename T>
-MoodyReaderWriter<T>::MoodyReaderWriter(const nlohmann::json &j)
+MoodyReaderWriter::MoodyReaderWriter(const nlohmann::json &j)
     : m_queue(j.at("queue_size").get<unsigned int>()) {
   m_capacity = j.at("queue_size").get<unsigned int>();
 }
-template <typename T> bool MoodyReaderWriter<T>::read(DataType &bin) {
-  return m_queue.try_dequeue(static_cast<T &>(bin));
-}
+bool MoodyReaderWriter::read(DataTypeWrapper &bin) { return m_queue.try_dequeue(bin); }
 // bool MoodyReaderWriter::sleep_read(daqling::utilities::Binary& bin)
 // {
 //     return m_queue.wait_dequeue_timed(bin,std::chrono::milliseconds(m_read_sleep_duration));
 // }
-template <typename T> bool MoodyReaderWriter<T>::write(DataType &bin) {
-  // return m_queue.try_emplace(std::move(bin));
-  return m_queue.try_enqueue(static_cast<T &>(bin));
-}
-template <typename T> uint MoodyReaderWriter<T>::sizeGuess() { return m_queue.size_approx(); }
-template <typename T> uint MoodyReaderWriter<T>::capacity() { return m_capacity; }
+bool MoodyReaderWriter::write(DataTypeWrapper &bin) { return m_queue.emplace(std::move(bin)); }
+uint MoodyReaderWriter::sizeGuess() { return m_queue.size_approx(); }
+uint MoodyReaderWriter::capacity() { return m_capacity; }

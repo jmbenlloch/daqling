@@ -31,8 +31,8 @@ public:
   BoostAsioUdpSender(uint chid, const nlohmann::json &j = NULL);
 
 protected:
-  bool send(DataType &bin) override;
-  bool sleep_send(DataType &bin) override;
+  bool send(DataTypeWrapper &bin) override;
+  bool sleep_send(DataTypeWrapper &bin) override;
 
   boost::asio::io_context m_io_context;
   std::unique_ptr<udp::endpoint> m_dest_endpoint;

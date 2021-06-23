@@ -143,13 +143,6 @@ public:
   std::string getCommandTransitionState(const std::string &,
                                         std::unordered_set<std::string> modarg);
 
-  std::string getReceiverType(const std::string &key) {
-    return m_modloaders[key].m_module_loader->getReceiverType();
-  }
-  std::string getSenderType(const std::string &key) {
-    return m_modloaders[key].m_module_loader->getSenderType();
-  }
-
   // bool getLoaded() { return m_loaded; }
   std::unordered_set<std::string> CommandRegistered(const std::string & /*com*/,
                                                     std::unordered_set<std::string> modargs);

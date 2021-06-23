@@ -20,14 +20,10 @@
 
 using namespace daqling::queue;
 REGISTER_QUEUE(FollyProducerConsumer)
-template <typename T>
-FollyProducerConsumer<T>::FollyProducerConsumer(const nlohmann::json &j)
+
+FollyProducerConsumer::FollyProducerConsumer(const nlohmann::json &j)
     : m_queue(j.at("queue_size").get<unsigned int>()) {}
-template <typename T> bool FollyProducerConsumer<T>::read(DataType &bin) {
-  return m_queue.read(static_cast<T &>(bin));
-}
-template <typename T> bool FollyProducerConsumer<T>::write(DataType &bin) {
-  return m_queue.write(std::move(static_cast<T &>(bin)));
-}
-template <typename T> uint FollyProducerConsumer<T>::sizeGuess() { return m_queue.sizeGuess(); }
-template <typename T> uint FollyProducerConsumer<T>::capacity() { return m_queue.capacity(); }
+bool FollyProducerConsumer::read(DataTypeWrapper &bin) { return m_queue.read(bin); }
+bool FollyProducerConsumer::write(DataTypeWrapper &bin) { return m_queue.write(std::move(bin)); }
+uint FollyProducerConsumer::sizeGuess() { return m_queue.sizeGuess(); }
+uint FollyProducerConsumer::capacity() { return m_queue.capacity(); }

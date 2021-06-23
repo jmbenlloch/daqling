@@ -23,20 +23,18 @@
 
 namespace daqling {
 namespace queue {
-template <typename T> class MoodyReaderWriter : public daqling::core::Queue {
+class MoodyReaderWriter : public daqling::core::Queue {
 public:
-  // using MessageQueue<T> = moodycamel::BlockingReaderWriterQueue<T>;
   MoodyReaderWriter(const nlohmann::json &j);
-  bool read(DataType & /*bin*/) override;
-  // bool sleep_read(daqling::utilities::Binary&) override;
-  bool write(DataType & /*bin*/) override;
+  bool read(DataTypeWrapper & /*bin*/) override;
+  bool write(DataTypeWrapper & /*bin*/) override;
   uint sizeGuess() override;
   uint capacity() override;
 
 protected:
 private:
   unsigned int m_capacity;
-  moodycamel::ReaderWriterQueue<T> m_queue;
+  moodycamel::ReaderWriterQueue<DataTypeWrapper> m_queue;
 };
 } // namespace queue
 } // namespace daqling
