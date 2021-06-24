@@ -128,9 +128,12 @@ public:
     if (m_influxDb) {
 #ifndef BUILD_WITHOUT_CPR
 
-      auto r = cpr::Post(cpr::Url{m_influxDb_uri + m_influxDb_name}, cpr::Body{influx_msg.str()},
-                         cpr::Header{{"Content-Type", "text/plain"}});
-      ERS_DEBUG(0, "InfluxDB response: " << r.status_code << "\t" << r.text);
+      cpr::PostCallback(
+          [](cpr::Response r) {
+            ERS_DEBUG(0, "InfluxDB response: " << r.status_code << "\t" << r.text);
+          },
+          cpr::Url{m_influxDb_uri + m_influxDb_name}, cpr::Body{influx_msg.str()},
+          cpr::Header{{"Content-Type", "text/plain"}}, cpr::Timeout{1000});
 #else
       throw NoHTTPSupport(ERS_HERE);
 #endif
