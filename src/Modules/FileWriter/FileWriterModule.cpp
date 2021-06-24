@@ -89,8 +89,6 @@ bool FileWriterModule::FileGenerator::yields_unique(const std::string &pattern) 
 
 FileWriterModule::FileWriterModule(const std::string &n) : DAQProcess(n), m_stopWriters{false} {
   ERS_DEBUG(0, "");
-  senderType = "SharedDataType<daqling::utilities::Binary>";
-  receiverType = "DataFragment<daqling::utilities::Binary>";
   // Set up static resources...
   std::ios_base::sync_with_stdio(false);
 }
@@ -98,12 +96,10 @@ FileWriterModule::FileWriterModule(const std::string &n) : DAQProcess(n), m_stop
 void FileWriterModule::configure() {
   DAQProcess::configure();
   // Read out required and optional configurations
-  m_max_filesize =
-      m_config.getModuleSettings(m_name).value("max_filesize", 1 * daqutils::Constant::Giga);
-  m_buffer_size =
-      m_config.getModuleSettings(m_name).value("buffer_size", 4 * daqutils::Constant::Kilo);
+  m_max_filesize = getModuleSettings().value("max_filesize", 1 * daqutils::Constant::Giga);
+  m_buffer_size = getModuleSettings().value("buffer_size", 4 * daqutils::Constant::Kilo);
   m_channels = m_config.getNumReceiverConnections(m_name);
-  m_pattern = m_config.getModuleSettings(m_name)["filename_pattern"];
+  m_pattern = getModuleSettings()["filename_pattern"];
   ERS_INFO("Configuration --> Maximum filesize: " << m_max_filesize << "B"
                                                   << " | Buffer size: " << m_buffer_size << "B"
                                                   << " | channels: " << m_channels);
@@ -201,7 +197,7 @@ void FileWriterModule::runner() noexcept {
 
       while (m_run) {
         DataFragment<daqling::utilities::Binary> pl;
-        while (!m_connections.sleep_receive(it.first, std::ref(pl)) && m_run) {
+        while (!m_connections.sleep_receive(it.first, pl) && m_run) {
           if (m_statistics) {
             m_channelMetrics.at(it.first).payload_queue_size = pq.sizeGuess();
           }

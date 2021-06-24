@@ -26,13 +26,11 @@ using namespace std::chrono;
 using namespace daqling::module;
 
 ReadoutInterfaceModule::ReadoutInterfaceModule(const std::string &n) : DAQProcess(n) {
-  ERS_DEBUG(0, "With config: " << m_config.getModuleSettings(m_name));
-  senderType = "DataFragment<data_t>";
-  receiverType = "DataFragment<data_t>";
-  m_board_id = m_config.getModuleSettings(m_name)["board_id"];
-  m_delay_us = std::chrono::microseconds(m_config.getModuleSettings(m_name)["delay_us"]);
-  m_min_payload = m_config.getModuleSettings(m_name)["payload"]["min"];
-  m_max_payload = m_config.getModuleSettings(m_name)["payload"]["max"];
+  ERS_DEBUG(0, "With config: " << getModuleSettings());
+  m_board_id = getModuleSettings()["board_id"];
+  m_delay_us = std::chrono::microseconds(getModuleSettings()["delay_us"]);
+  m_min_payload = getModuleSettings()["payload"]["min"];
+  m_max_payload = getModuleSettings()["payload"]["max"];
   m_pause = false;
   registerCommand("pause", "pausing", "paused", &ReadoutInterfaceModule::pause, this);
   registerCommand("resume", "resuming", "running", &ReadoutInterfaceModule::resume, this);

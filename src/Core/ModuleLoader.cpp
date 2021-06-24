@@ -51,14 +51,6 @@ bool ModuleLoader::load(const std::string &name, const std::string &type) {
   m_loaded = true;
   return true;
 }
-std::string ModuleLoader::getReceiverType() {
-  ERS_PRECONDITION(m_loaded);
-  return m_dp.value()->receiverType;
-}
-std::string ModuleLoader::getSenderType() {
-  ERS_PRECONDITION(m_loaded);
-  return m_dp.value()->senderType;
-}
 
 bool ModuleLoader::unload() {
   if (m_loaded) {

@@ -19,6 +19,7 @@
 #include "Common/DataType.hpp"
 #include "Utils/Binary.hpp"
 #include "Utils/Resource.hpp"
+#include <any>
 namespace daqling {
 namespace core {
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
@@ -27,10 +28,10 @@ public:
   // Virtual destructor
   ~Queue() override = default;
 
-  virtual bool read(DataType &) = 0;
-  virtual bool write(DataType &) = 0;
-  virtual bool sleep_read(DataType & /*bin*/);
-  virtual bool sleep_write(DataType & /*bin*/);
+  virtual bool read(DataTypeWrapper &) = 0;
+  virtual bool write(DataTypeWrapper &) = 0;
+  virtual bool sleep_read(DataTypeWrapper & /*bin*/);
+  virtual bool sleep_write(DataTypeWrapper & /*bin*/);
   virtual uint sizeGuess() = 0;
   virtual uint capacity() = 0;
   virtual void set_sleep_duration(uint ms);

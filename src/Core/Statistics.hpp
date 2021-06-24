@@ -27,7 +27,7 @@
 #include <thread>
 #include <vector>
 #include <zmq.hpp>
-#ifdef BUILD_WITH_CPR
+#ifndef BUILD_WITHOUT_CPR
 #include <cpr/cpr.h>
 #endif
 
@@ -121,22 +121,24 @@ public:
       memcpy(message.data(), influx_msg.str().data(), influx_msg.str().size() - 1);
       ERS_DEBUG(0, " MSG " << influx_msg.str());
       bool rc = m_stat_socket->send(message);
-      influx_msg.str("");
       if (!rc) {
         ERS_WARNING("Failed to publish metrics");
       }
     }
     if (m_influxDb) {
-#ifdef BUILD_WITH_CPR
+#ifndef BUILD_WITHOUT_CPR
 
-      auto r = cpr::Post(cpr::Url{m_influxDb_uri + m_influxDb_name}, cpr::Body{influx_msg.str()},
-                         cpr::Header{{"Content-Type", "text/plain"}});
-      influx_msg.str("");
-      ERS_DEBUG(0, "InfluxDB response: " << r.status_code << "\t" << r.text);
+      cpr::PostCallback(
+          [](cpr::Response r) {
+            ERS_DEBUG(0, "InfluxDB response: " << r.status_code << "\t" << r.text);
+          },
+          cpr::Url{m_influxDb_uri + m_influxDb_name}, cpr::Body{influx_msg.str()},
+          cpr::Header{{"Content-Type", "text/plain"}}, cpr::Timeout{1000});
 #else
       throw NoHTTPSupport(ERS_HERE);
 #endif
     }
+    influx_msg.str("");
   }
 
   template <class T, class U> void publishValue(Metric_base *m) {

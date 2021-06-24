@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 set(PACKAGE daqling)
-set(PACKAGE_VERSION 1.0.0)
+set(PACKAGE_VERSION 1.0.1)
 
 project(${PACKAGE} VERSION ${PACKAGE_VERSION}
         DESCRIPTION "Data acquisition framework"
@@ -93,11 +93,10 @@ if (ENABLE_BOOST)
   include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 endif (ENABLE_BOOST)
 
-if(DEFINED BUILD_WITH_CPR)
-  set(BUILD_WITH_CPR ${BUILD_WITH_CPR})
+if(BUILD_WITHOUT_CPR)
+  add_compile_definitions(BUILD_WITHOUT_CPR)
 else()
-  set(BUILD_WITH_CPR ON)
-  add_compile_definitions(BUILD_WITH_CPR)
+  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} cpr curl)
 endif()
 # set(USE_SYSTEM_CURL ON)
 # set(BUILD_CPR_TESTS OFF)
@@ -111,11 +110,7 @@ set(BUILD_SHARED_LIBS ON)
 ########################
 
 set(DAQLING_LIBRARIES "")
-if(BUILD_WITH_CPR)
-  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} Threads::Threads cpr curl)
-else()
-  set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} Threads::Threads)
-endif()
+set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} Threads::Threads)
 
 #Add ers library
 set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} ers)

@@ -24,8 +24,8 @@ namespace connection {
 class LocalReceiver : public daqling::core::Receiver {
 public:
   LocalReceiver(uint chid, const nlohmann::json &j = NULL);
-  bool receive(DataType &bin) override;
-  bool sleep_receive(DataType &bin) override;
+  bool receive(DataTypeWrapper &bin) override;
+  bool sleep_receive(DataTypeWrapper &bin) override;
   void set_sleep_duration(uint ms) override;
   std::atomic<size_t> &getPcqSize() override {
     m_pcq_size = m_queue->sizeGuess();

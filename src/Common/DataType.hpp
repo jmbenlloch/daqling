@@ -196,6 +196,20 @@ public:
     }
     return data_ptr->data();
   }
+  template <typename U = void *> U data() {
+    static_assert(std::is_pointer<U>(), "Type parameter must be a pointer type");
+    if (data_ptr == nullptr) {
+      return static_cast<U>(nullptr);
+    }
+    return static_cast<U>(data_ptr->data());
+  }
+  template <typename U = void *> const U data() const {
+    static_assert(std::is_pointer<U>(), "Type parameter must be a pointer type");
+    if (data_ptr == nullptr) {
+      return static_cast<U>(nullptr);
+    }
+    return static_cast<U>(data_ptr->data());
+  }
 
   freeptr free() override {
     return [](void *, void *hint) {
@@ -227,7 +241,7 @@ public:
   };
 
   DataFragment() : data_ptr(nullptr){};
-  DataFragment(const void *data, const size_t size) { reconstruct(data, size); }
+  DataFragment(const void *data, const size_t size) : data_ptr(nullptr) { reconstruct(data, size); }
   DataFragment(T *ptr) : data_ptr(ptr){};
   /// Move constructor
   DataFragment(DataFragment<T> &&rhs) noexcept {
@@ -295,9 +309,14 @@ public:
   }
 
   DataFragment<T> &operator+=(DataFragment<T> &rhs) {
-    *data_ptr += *rhs.data_ptr;
+    if (data_ptr != nullptr && rhs.data_ptr != nullptr) {
+      *data_ptr += *rhs.data_ptr;
+    } else if (rhs.data_ptr != nullptr) {
+      data_ptr = new T(rhs.data_ptr->data(), rhs.data_ptr->size());
+    }
     return *this;
   }
+
   bool operator==(DataFragment<T> &rhs) { return *data_ptr == *rhs.data_ptr; }
   bool operator!=(DataFragment<T> &rhs) { return *data_ptr != *rhs.data_ptr; }
   bool operator<(DataFragment<T> &rhs) { return *data_ptr < *rhs.data_ptr; }
@@ -330,6 +349,20 @@ public:
     }
     return data_ptr->data();
   }
+  template <typename U = void *> U data() {
+    static_assert(std::is_pointer<U>(), "Type parameter must be a pointer type");
+    if (data_ptr == nullptr) {
+      return static_cast<U>(nullptr);
+    }
+    return static_cast<U>(data_ptr->data());
+  }
+  template <typename U = void *> const U data() const {
+    static_assert(std::is_pointer<U>(), "Type parameter must be a pointer type");
+    if (data_ptr == nullptr) {
+      return static_cast<U>(nullptr);
+    }
+    return static_cast<U>(data_ptr->data());
+  }
 
   freeptr free() override {
     return [](void *, void *hint) { delete static_cast<T *>(hint); };
@@ -343,8 +376,89 @@ protected:
   void detach_data() override { m_detached = true; }
 };
 
-#define datatypeList                                                                               \
-  (SharedDataType<daqling::utilities::Binary>)(DataFragment<data_t>)(                              \
-      DataFragment<daqling::utilities::Binary>)
-#define DATATYPE_TO_STRING(DATATYPE)                                                               \
-  { BOOST_PP_STRINGIZE(DATATYPE) }
+class DataTypeWrapper {
+public:
+  DataTypeWrapper(const DataTypeWrapper &) = delete;
+  DataTypeWrapper(DataTypeWrapper &&rhs) noexcept
+      : m_datatype(rhs.m_datatype), m_data(rhs.m_data), m_size(rhs.m_size),
+        m_dealloc(rhs.m_dealloc) {
+    rhs.m_dealloc = false;
+  }
+  DataTypeWrapper() = default;
+  ~DataTypeWrapper() {
+    if (m_dealloc) {
+      delete m_datatype;
+      // NOLINTNEXTLINE(cppcoreguidelines-no-malloc)
+      free(m_data);
+    }
+  }
+  DataTypeWrapper &operator=(const DataTypeWrapper &) = delete;
+  DataTypeWrapper &operator=(DataTypeWrapper &&rhs) noexcept {
+    if (&rhs == this) {
+      return *this;
+      // If rhs side type is already determined
+    }
+    if (rhs.m_datatype != nullptr) {
+      std::swap(m_datatype, rhs.m_datatype);
+      std::swap(m_dealloc, rhs.m_dealloc);
+      // If this already knows its type
+    } else if (this->m_datatype != nullptr && rhs.m_data != nullptr) {
+      m_datatype->reconstruct(rhs.m_data, rhs.m_size);
+      if (rhs.m_dealloc) {
+        // NOLINTNEXTLINE(cppcoreguidelines-no-malloc)
+        free(rhs.m_data);
+      }
+      rhs.m_data = nullptr;
+    } else {
+      std::swap(m_data, rhs.m_data);
+      std::swap(m_size, rhs.m_size);
+      std::swap(m_dealloc, rhs.m_dealloc);
+    }
+    return *this;
+  };
+  template <class T> DataTypeWrapper(T &ptr) {
+    static_assert(std::is_base_of<DataType, T>::value);
+    m_datatype = new T(ptr);
+    m_dealloc = true;
+  }
+  // NOLINTNEXTLINE(misc-forwarding-reference-overload)
+  template <class T> DataTypeWrapper(T &&ptr) {
+    static_assert(std::is_base_of<DataType, T>::value);
+    m_datatype = new T(std::forward<T>(ptr));
+    m_dealloc = true;
+  }
+  DataType *getDataTypePtr() { return m_datatype; }
+  void reconstruct_or_store(void *data, size_t size) {
+    if (m_datatype != nullptr) {
+      m_datatype->reconstruct(data, size);
+    } else {
+      if (m_dealloc) {
+        // NOLINTNEXTLINE(cppcoreguidelines-no-malloc)
+        free(m_data);
+      }
+      // NOLINTNEXTLINENEXTLINE(cppcoreguidelines-no-malloc)
+      m_data = malloc(size);
+      memcpy(m_data, data, size);
+      m_size = size;
+    }
+    m_dealloc = true;
+  }
+  template <typename T> void transfer_into(T &ref) {
+    static_assert(std::is_base_of<DataType, T>::value);
+    if (m_datatype && m_dealloc) {
+      ref = std::move(*(static_cast<T *>(m_datatype)));
+      delete m_datatype;
+      m_datatype = nullptr;
+    } else if (m_data) {
+      ref.reconstruct(m_data, m_size);
+    } else {
+      ERS_WARNING("Nothing to transfer!!!");
+    }
+  }
+
+private:
+  DataType *m_datatype{nullptr};
+  void *m_data{nullptr};
+  size_t m_size{0};
+  bool m_dealloc = false;
+};

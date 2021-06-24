@@ -38,72 +38,64 @@ bool ConnectionLoader::load(const std::string &name) {
   return true;
 }
 
-std::shared_ptr<daqling::core::Sender> ConnectionLoader::getSender(const std::string &s,
-                                                                   const uint &chid,
-                                                                   const nlohmann::json &json,
-                                                                   const std::string &datatype) {
-  if (m_senderMap.find(s) == m_senderMap.end()) {
+std::shared_ptr<daqling::core::Sender>
+ConnectionLoader::getSender(const std::string &s, const uint &chid, const nlohmann::json &json) {
+  auto key = s + "Sender";
+  if (m_senderMap.find(key) == m_senderMap.end()) {
     loadConnection(s);
 
-    if (m_senderMap.find(s) == m_senderMap.end()) {
+    if (m_senderMap.find(key) == m_senderMap.end()) {
       throw UnrecognizedConnectionType(ERS_HERE, s.c_str());
     }
   }
   ERS_DEBUG(0, "invoking lambda for sender: " << s);
 
-  return (json.contains("queue")
-              ? getQueueSender(m_senderMap[s](chid, json), chid, json["queue"], datatype)
-              : m_senderMap[s](chid, json));
+  return (json.contains("queue") ? getQueueSender(m_senderMap[key](chid, json), chid, json["queue"])
+                                 : m_senderMap[key](chid, json));
 }
 std::shared_ptr<daqling::core::Receiver>
-ConnectionLoader::getReceiver(const std::string &s, const uint &chid, const nlohmann::json &json,
-                              const std::string &datatype) {
-  if (m_receiverMap.find(s) == m_receiverMap.end()) {
+ConnectionLoader::getReceiver(const std::string &s, const uint &chid, const nlohmann::json &json) {
+  auto key = s + "Receiver";
+  if (m_receiverMap.find(key) == m_receiverMap.end()) {
     loadConnection(s);
-    if (m_receiverMap.find(s) == m_receiverMap.end()) {
-      throw UnrecognizedConnectionType(ERS_HERE, s.c_str());
+    if (m_receiverMap.find(key) == m_receiverMap.end()) {
+      throw UnrecognizedConnectionType(ERS_HERE, key.c_str());
     }
   }
   ERS_DEBUG(0, "invoking lambda for receiver: " << s);
 
   return (json.contains("queue")
-              ? getQueueReceiver(m_receiverMap[s](chid, json), chid, json["queue"], datatype)
-              : m_receiverMap[s](chid, json));
+              ? getQueueReceiver(m_receiverMap[key](chid, json), chid, json["queue"])
+              : m_receiverMap[key](chid, json));
 }
 
 std::shared_ptr<daqling::core::Sender>
 ConnectionLoader::getQueueSender(std::shared_ptr<daqling::core::Sender> sen, const uint &chid,
-                                 const nlohmann::json &json, const std::string &datatype) {
+                                 const nlohmann::json &json) {
   auto s = json.at("type").get<std::string>();
-  auto key = s + datatype;
-  if (m_queueMap.find(key) == m_queueMap.end()) {
+
+  if (m_queueMap.find(s) == m_queueMap.end()) {
     loadQueue(s);
-    if (m_queueMap.find(key) == m_queueMap.end()) {
-      throw UnrecognizedQueueType(ERS_HERE, key.c_str());
+    if (m_queueMap.find(s) == m_queueMap.end()) {
+      throw UnrecognizedQueueType(ERS_HERE, s.c_str());
     }
   }
-  if (m_queuesenderMap.find(datatype) == m_queuesenderMap.end()) {
-    throw UnrecognizedQueueType(ERS_HERE, datatype.c_str());
-  }
-  auto queueSen = m_queuesenderMap[datatype](chid, m_queueMap[s + datatype](json), std::move(sen));
+
+  auto queueSen = std::make_shared<QueueSender>(chid, m_queueMap[s](json), std::move(sen));
   return queueSen;
 }
 std::shared_ptr<daqling::core::Receiver>
 ConnectionLoader::getQueueReceiver(std::shared_ptr<daqling::core::Receiver> rec, const uint &chid,
-                                   const nlohmann::json &json, const std::string &datatype) {
+                                   const nlohmann::json &json) {
   auto s = json.at("type").get<std::string>();
-  auto key = s + datatype;
-  if (m_queueMap.find(key) == m_queueMap.end()) {
+  if (m_queueMap.find(s) == m_queueMap.end()) {
     loadQueue(s);
-    if (m_queueMap.find(key) == m_queueMap.end()) {
-      throw UnrecognizedQueueType(ERS_HERE, key.c_str());
+    if (m_queueMap.find(s) == m_queueMap.end()) {
+      throw UnrecognizedQueueType(ERS_HERE, s.c_str());
     }
   }
-  if (m_queuereceiverMap.find(datatype) == m_queuereceiverMap.end()) {
-    throw UnrecognizedQueueType(ERS_HERE, datatype.c_str());
-  }
-  auto queueRec =
-      m_queuereceiverMap[datatype](chid, m_queueMap[s + datatype](json), std::move(rec));
+
+  auto queueRec = std::make_shared<QueueReceiver>(chid, m_queueMap[s](json), std::move(rec));
   return queueRec;
 }
 } // namespace core

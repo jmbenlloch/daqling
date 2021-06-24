@@ -25,6 +25,7 @@
 
 /// \cond
 #include <dlfcn.h>
+#include <functional>
 #include <optional>
 #include <string>
 #include <unordered_set>
@@ -48,70 +49,18 @@ struct module_info {
   std::string m_module_name;
 };
 
-// Could be simplified to one class with variadic template arguments.
-class ModuleFunction {
-  virtual bool operator()(const std::string &str, module_info &mod) const = 0;
-};
-class SimpleModuleFunction : public ModuleFunction {
+template <typename Function, typename... FunctionArgs> class ModuleFunction {
 public:
-  SimpleModuleFunction(
-      std::function<bool(const std::string &, module_info &, std::unordered_set<std::string>)> func,
-      std::unordered_set<std::string> modargs) {
-    m_modargs = std::move(modargs);
-    m_func = std::move(func);
+  ModuleFunction(Function func, std::unordered_set<std::string> modargs,
+                 FunctionArgs... parameters) {
+    m_func = std::bind(func, std::placeholders::_1, std::placeholders::_2, modargs, parameters...);
   }
-  bool operator()(const std::string &str, module_info &mod) const override {
-    return m_func(str, mod, m_modargs);
-  }
+  bool operator()(const std::string &str, module_info &mod) const { return m_func(str, mod); }
 
 private:
-  std::unordered_set<std::string> m_modargs;
-  std::function<bool(const std::string &, module_info &, std::unordered_set<std::string>)> m_func;
+  std::function<bool(const std::string, module_info &)> m_func;
 };
-class StartModuleFunction : public ModuleFunction {
-public:
-  StartModuleFunction(std::function<bool(const std::string &, module_info &,
-                                         std::unordered_set<std::string>, unsigned)>
-                          func,
-                      std::unordered_set<std::string> modargs, unsigned run_num) {
-    m_modargs = std::move(modargs);
-    m_func = std::move(func);
-    m_run_num = run_num;
-  }
-  bool operator()(const std::string &str, module_info &mod) const override {
-    return m_func(str, mod, m_modargs, m_run_num);
-  }
 
-private:
-  std::unordered_set<std::string> m_modargs;
-  std::function<bool(const std::string &, module_info &, std::unordered_set<std::string>, unsigned)>
-      m_func;
-  unsigned m_run_num;
-};
-class CustomModuleFunction : public ModuleFunction {
-public:
-  CustomModuleFunction(
-      std::function<bool(const std::string &, module_info &, std::unordered_set<std::string>,
-                         std::string, std::string)>
-          func,
-      std::unordered_set<std::string> modargs, std::string command, std::string arg) {
-    m_modargs = std::move(modargs);
-    m_func = std::move(func);
-    m_command = std::move(command);
-    m_arg = std::move(arg);
-  }
-  bool operator()(const std::string &str, module_info &mod) const override {
-    return m_func(str, mod, m_modargs, m_command, m_arg);
-  }
-
-private:
-  std::unordered_set<std::string> m_modargs;
-  std::function<bool(const std::string &, module_info &, std::unordered_set<std::string>,
-                     std::string, std::string)>
-      m_func;
-  std::string m_command;
-  std::string m_arg;
-};
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class ModuleManager : public daqling::utilities::Singleton<ModuleManager> {
 private:
@@ -193,13 +142,6 @@ public:
 
   std::string getCommandTransitionState(const std::string &,
                                         std::unordered_set<std::string> modarg);
-
-  std::string getReceiverType(const std::string &key) {
-    return m_modloaders[key].m_module_loader->getReceiverType();
-  }
-  std::string getSenderType(const std::string &key) {
-    return m_modloaders[key].m_module_loader->getSenderType();
-  }
 
   // bool getLoaded() { return m_loaded; }
   std::unordered_set<std::string> CommandRegistered(const std::string & /*com*/,

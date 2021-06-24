@@ -92,7 +92,7 @@ public:
         for (auto &it : rcvs) {
           ERS_DEBUG(0, "key" << it);
           try {
-            cm.addReceiverChannel(name, it, plugin.getReceiverType(name));
+            cm.addReceiverChannel(name, it);
           } catch (ers::Issue &i) {
             // couldn't add receiver issue
             throw AddChannelFailed(ERS_HERE, it["chid"].get<uint>(), i);
@@ -103,7 +103,7 @@ public:
         for (auto &it : sndrs) {
           ERS_DEBUG(0, "key" << it);
           try {
-            cm.addSenderChannel(name, it, plugin.getSenderType(name));
+            cm.addSenderChannel(name, it);
           } catch (ers::Issue &i) {
             // couldn't add receiver issue
             throw AddChannelFailed(ERS_HERE, it["chid"].get<uint>(), i);
@@ -222,11 +222,14 @@ public:
       // only apply command to modules in a state that allows the command.
       auto modules_affected = plugin.getModulesEligibleForCommand(
           types_affected, std::unordered_set<std::string>{"booted", "ready", "running"});
-      if (modules_affected.empty()) {
+      if (modules_affected.empty() && plugin.getStatesAsString() != "booted") {
         throw InvalidCommand(ERS_HERE);
       }
-      auto modules_to_unconfigure = plugin.getModulesEligibleForCommand(
-          types_affected, std::unordered_set<std::string>{"ready", "running"});
+      auto modules_to_stop = plugin.getModulesEligibleForCommand(types_affected, "running");
+      if (!modules_to_stop.empty()) {
+        plugin.stop(modules_to_stop);
+      }
+      auto modules_to_unconfigure = plugin.getModulesEligibleForCommand(types_affected, "ready");
       if (!modules_to_unconfigure.empty()) {
         plugin.unconfigure(modules_to_unconfigure);
       }

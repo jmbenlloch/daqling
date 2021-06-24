@@ -20,20 +20,20 @@
 #include "Utils/ConnectionMacros.hpp"
 using namespace daqling::connection;
 
-REGISTER_SENDER(LocalSender, "Local")
+REGISTER_SENDER(LocalSender)
 LocalSender::LocalSender(uint chid, const nlohmann::json &j) : daqling::core::Sender(chid) {
   auto &manager = daqling::core::ConnectionManager::instance();
   auto id = j.at("id").get<unsigned>();
   m_queue = std::static_pointer_cast<daqling::core::Queue>(manager.getLocalResource(id));
 }
-bool LocalSender::send(DataType &bin) {
+bool LocalSender::send(DataTypeWrapper &bin) {
   if (m_queue->write(bin)) {
     m_msg_handled++;
     return true;
   }
   return false;
 }
-bool LocalSender::sleep_send(DataType &bin) {
+bool LocalSender::sleep_send(DataTypeWrapper &bin) {
   if (m_queue->sleep_write(bin)) {
     m_msg_handled++;
     return true;

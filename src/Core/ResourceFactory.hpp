@@ -39,8 +39,7 @@ private:
   std::shared_ptr<daqling::utilities::Resource> createQueue(const nlohmann::json &json) {
     auto &cl = daqling::core::ConnectionLoader::instance();
     auto queueType = json.at("resource").at("type").get<std::string>();
-    auto DataType = json.at("resource").at("data_type").get<std::string>();
-    auto queue = cl.getQueue(queueType, DataType, json.at("resource"));
+    auto queue = cl.getQueue(queueType, json.at("resource"));
     return std::static_pointer_cast<daqling::utilities::Resource>(queue);
   }
 

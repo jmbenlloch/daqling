@@ -21,13 +21,13 @@
 
 using namespace daqling::connection;
 
-REGISTER_RECEIVER(DummyReceiver, "Dummy")
+REGISTER_RECEIVER(DummyReceiver)
 DummyReceiver::DummyReceiver(uint chid, const nlohmann::json &j) : daqling::core::Receiver(chid) {
   if (j.empty()) {
   }
 }
-bool DummyReceiver::receive(DataType &bin) {
-  bin.detach();
+bool DummyReceiver::receive(DataTypeWrapper &bin) {
+  bin.getDataTypePtr()->detach();
   ERS_DEBUG(0, "Hello from DummyReceiver protocolHandler");
   return true;
 }
