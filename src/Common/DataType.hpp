@@ -33,6 +33,10 @@ using freeptr = void (*)(void *, void *);
 class DataType {
 public:
   /**
+   * @brief Clears inner data.
+   */
+  virtual void clear_inner_data() = 0;
+  /**
    * @brief Reconstructs inner data.
    * @param size size of the memory region to reconstruct.
    * @param data pointer to memory region.
@@ -217,7 +221,7 @@ public:
       delete ptr;
     };
   }
-
+  void clear_inner_data() override { data_ptr = nullptr; }
   void *hint() override { return static_cast<void *>(hint_ptr); }
 
   T *get() { return data_ptr.get(); }
@@ -369,6 +373,13 @@ public:
   }
 
   void *hint() override { return static_cast<void *>(data_ptr); }
+
+  void clear_inner_data() override {
+    if (!m_detached) {
+      delete data_ptr;
+    }
+    data_ptr = nullptr;
+  }
 
   T *get() { return data_ptr; }
 
