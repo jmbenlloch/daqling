@@ -108,10 +108,10 @@ public:
    */
   template <class T> bool receive(const unsigned &chn, T &bin) {
     if (bin.size() != 0) {
-      ERS_WARNING("got non-empty receiver Data with size: " << bin.size());
+      bin.clear_inner_data();
     }
     DataTypeWrapper msg(bin);
-    bool retval = m_receivers[chn]->sleep_receive(msg);
+    bool retval = m_receivers[chn]->receive(msg);
     if (retval) {
       msg.transfer_into(bin);
       return true;
@@ -120,7 +120,7 @@ public:
   }
   template <class T> bool sleep_receive(const unsigned &chn, T &bin) {
     if (bin.size() != 0) {
-      ERS_WARNING("got non-empty receiver Data with size: " << bin.size());
+      bin.clear_inner_data();
     }
     DataTypeWrapper msg(bin);
     bool retval = m_receivers[chn]->sleep_receive(msg);
