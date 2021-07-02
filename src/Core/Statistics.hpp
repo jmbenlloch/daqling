@@ -128,12 +128,16 @@ public:
     if (m_influxDb) {
 #ifndef BUILD_WITHOUT_CPR
 
+      std::int32_t status_code;
+      std::string text;
       cpr::PostCallback(
-          [](cpr::Response r) {
-            ERS_DEBUG(0, "InfluxDB response: " << r.status_code << "\t" << r.text);
+          [&status_code, &text](cpr::Response r) {
+            status_code = r.status_code;
+            text = r.text;
           },
           cpr::Url{m_influxDb_uri + m_influxDb_name}, cpr::Body{influx_msg.str()},
           cpr::Header{{"Content-Type", "text/plain"}}, cpr::Timeout{1000});
+      ERS_DEBUG(0, "InfluxDB response: " << status_code << "\t" << text);
 #else
       throw NoHTTPSupport(ERS_HERE);
 #endif
@@ -178,7 +182,8 @@ public:
                                    std::chrono::system_clock::now() - metric->m_timestamp)
                                    .count());
       } else {
-        ERS_WARNING(
+        ERS_DEBUG(
+            0,
             "Too short time interval to calculate RATE! Extend delta_t parameter of your metric");
         return;
       }

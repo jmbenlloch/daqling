@@ -61,7 +61,7 @@ Statistics::Statistics(nlohmann::json &j) {
   }
   try {
     m_name = daqling::utilities::ThreadTagger::instance().readTagCurrentThread();
-    ERS_WARNING("m_name = " << m_name);
+    ERS_DEBUG(0, "m_name = " << m_name);
   } catch (const std::exception &) {
     m_name = "";
   }
