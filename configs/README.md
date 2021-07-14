@@ -2,9 +2,9 @@
 
 ## General
 
-The `demo.json` file is an example of DAQling general configuration.
+The `demo/config.json` file is an example of DAQling general configuration.
 
-The `demo-metrics-manager.json` file extends `demo.json`, showcasing how to handle Python scripts automatically with `daqpy`.
+The `demo-metrics-manager/config.json` file extends `demo/config.json`, showcasing how to handle Python scripts automatically with `daqpy`.
 
 ## Schemas
 
@@ -19,9 +19,9 @@ The introduction of the `nodetree` library, comes with some new required configu
 
 These three configurations are kept in separate JSON files; therefore a dictionary is required in order to point to their relative paths (different sets of configuration files can be stored in separated folders).
 
-`demo-dict.json` is an example of such a dictionary, that can be used with `daqtree`.
+`demo-tree/config-dict.json` is an example of such a dictionary, that can be used with `daqtree`.
 
-Note that the example file uses the same `demo.json` that can be used with `daqpy`.
+Note that the example file uses the same `demo/config.json` that can be used with `daqpy`.
 
 ### Tree definition
 
@@ -30,7 +30,7 @@ The `types` field consists of an array with objects containing a `type` field, w
 
 Entries inside the `children` array, are just nodes, as previously described.
 
-See `control-tree.json` for an example.
+See `demo-tree/control-tree.json` for an example.
 
 ### Rules of FSM
 
@@ -42,9 +42,9 @@ In the `order` part, it's possible to specify the order in which a certain actio
 
 ## (NEW) Support for JSON reference extension
 
-The `demo-ref.json` file uses an extension of the JSON format that allows the use of references. This enables users to reference common parts of the configuration.
+The `demo-ref/config.json` file uses an extension of the JSON format that allows the use of references. This enables users to reference common parts of the configuration.
 
-The schema has been extended with respect to the previous one (the one used by `demo.json` for instance) and now features two main fields: `"common"` and `"configuration"`, the latter containing the classic DAQling configuration. The `"common"` part contains the "referenced" fields. The syntax for references themselves is:
+The schema has been extended with respect to the previous one (the one used by `demo/config.json` for instance) and now features two main fields: `"common"` and `"configuration"`, the latter containing the classic DAQling configuration. The `"common"` part contains the "referenced" fields. The syntax for references themselves is:
 
     "<name>": {
         "$ref": "#/common/<optional-path>/<field-name>"

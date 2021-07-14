@@ -14,27 +14,90 @@ To contact the developers: daqling-developers@cern.ch (only for "daqling-users" 
 
 ### Build dependencies installation
 
-In order to build the framework, dependencies must be installed following the instructions at:
+In order to build the framework, dependencies must be installed.
 
-https://gitlab.cern.ch/ep-dt-di/daq/daqling-spack-repo
+#### Installing the packages.
+
+##### Prerequisites
+
+Clone the DAQling Spack repository, containing Spack and custom packages.
+
+The project is found at https://gitlab.cern.ch/ep-dt-di/daq/daqling-spack-repo
+
+Use `--recurse-submodules` to initialize and update the Spack sub-module.
+
+    git clone --recurse-submodules https://:@gitlab.cern.ch:8443/ep-dt-di/daq/daqling-spack-repo.git
+
+A GCC C++17 enabled compiler is required.
+
+For CERN CentOS 7:
+
+    yum install http://build.openhpc.community/OpenHPC:/1.3/CentOS_7/x86_64/ohpc-release-1.3-1.el7.x86_64.rpm
+    yum install gnu8-compilers-ohpc cmake
+    export PATH=$PATH:/opt/ohpc/pub/compiler/gcc/8.3.0/bin
+
+For CentOS 8:
+
+    yum install gcc-c++ libasan libubsan cmake
+
+For Ubuntu (Server):
+
+    sudo apt install build-essential cmake
+
+#### Run the install script
+
+The install script should take care of the rest:
+
+    cd daqling-spack-repo/
+    ./Install.sh
 
 Dependencies installation does not require root access, unless you are installing on CentOS 7.
 
+Now all the dependencies required by DAQling will be installed in a spack environment inside this repository.
+
 ### Configure the host for running the framework
 
-The Ansible playbook will set up the host with the system libraries and tools
+To setup the host with the system libraries and tools, follow the steps below:
 
-    sudo yum install -y ansible
-    cd ansible/
-    ansible-playbook set-up-host.yml --ask-become
-
+1. Install Ansible:
+```
+sudo yum install -y ansible
+```
 Note: to set up an Ubuntu server follow the same procedure, using `apt` instead of `yum`.
 
+2. Run the `cmake/install.sh` script.
+
+Run the install script in the cmake folder in daqling.
+
+Note: A Python 2 executable is required for this step.
+
+The script takes the following arguments:
+
+    -d     Full path to daqling-spack-repo.
+    -c     Full path to configs folder to be used by DAQling.
+    -w     Boolean value - If set, installs web deps.
+    -a     Boolean value - If set, doesn't run ansible.
+
+On the first invocation of the install script, supply both the daqling-spack-repo and configuration folder paths.
+
+On subsequent invocations, it is possible to supply only one of these, to change its value.
+
+The `-w` flag can be set to true, if one wishes to install the dependencies required for running the daqling web services. If this flag is not set, only the dependencies for running the daqling control executables will be installed.
+
+Below is an example of how the script can be run:
+
+    ./cmake/install.sh -d /path/to/daqling-spack-repo -c /path/to/configs-folder
+
+Example installing web-deps:
+
+    ./cmake/install.sh -d /path/to/daqling-spack-repo -c /path/to/configs-folder -w
+
+To run the install script without running ansible, add the -a flag:
+
+    ./cmake/install.sh -d /path/to/daqling-spack-repo -c /path/to/configs-folder -a
+
+
 #### (Optional)
-
-Web dependencies:
-
-    ansible-playbook install-webdeps.yml --ask-become
 
 Local InfluxDB + Grafana stack:
 
@@ -46,11 +109,9 @@ Redis
 
 ### Build
 
-For the first-time sourcing of `cmake/setup.sh`, pass the location of the daqling-spack-repo to `cmake/setup.sh`:
+To activate the spack environment, as well as the virtual python environment containing the daqling control executable dependencies, source the cmake/setup.sh script:
 
-    source cmake/setup.sh </full/path/to/daqling-spack-repo/>
-
-More info in `README_SPACK.md`.
+    source cmake/setup.sh
 
 Then:
 
@@ -90,7 +151,7 @@ It showcases the use of the `daqcontrol` library, which can be used in any other
 It then allows to control the components via standard commands such as `start` (with optional run number), `stop`, as well as custom commands.
 
     source cmake/setup.sh
-    daqpy configs/demo.json
+    daqpy configs/demo/config.json
     start [run_num]
     stop
     down

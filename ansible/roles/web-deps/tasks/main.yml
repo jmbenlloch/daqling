@@ -1,76 +1,9 @@
-- name: Install python3-devel
-  yum:
-    name: python3-devel
-
-- name: Install gunicorn
+- name: Install web python deps
   pip:
-    name: gunicorn
-    executable: pip3
-
-- name: Install gevent
-  pip:
-    name: gevent
-    executable: pip3
-
-- name: Install redis client
-  pip:
-    name: redis
-    executable: pip3
-
-- name: Install flask
-  pip:
-    name: Flask
-    executable: pip3
-
-- name: Install flask-redis
-  pip:
-    name: Flask-Redis
-    executable: pip3
-
-- name: Install flask-caching
-  pip:
-    name: Flask-Caching
-    executable: pip3
-
-- name: Install flask-restful
-  pip:
-    name: Flask-Restful
-    executable: pip3
-
-- name: Install flask_scss
-  pip:
-    name: flask_scss
-    executable: pip3
-
-- name: Install apispec
-  pip:
-    name: apispec
-    executable: pip3
-
-- name: Install pymongo
-  pip:
-    name: pymongo
-    executable: pip3
-
-- name: Install marshmallow
-  pip:
-    name: marshmallow
-    executable: pip3
-
-- name: Install webargs
-  pip:
-    name: webargs
-    executable: pip3
-
-- name: Install flask-apispec
-  pip:
-    name: flask-apispec
-    executable: pip3
-
-- name: Install flask-login
-  pip:
-    name: flask-login
-    executable: pip3
+    requirements: "{{base_dir}}/etc/web-requirements.txt"
+    virtualenv: "{{base_dir}}/etc/daqling_venv"
+  vars:
+    base_dir: "{{ lookup('env','DAQLING_LOCATION') }}"
 
 - name: Open port 5000 on firewalld for Flask
   firewalld:
