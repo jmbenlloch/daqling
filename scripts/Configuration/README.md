@@ -35,19 +35,19 @@ Uploading a configuration folder with the same name, will automatically bump the
 The `checkoutConfig` tool, allows to get a list of available configuration collections:
 
 ```
-python3 checkoutConfig list
+python3 checkoutConfig.py list
 ```
 
 Checkout locally the latest version of a configuration collection name:
 
 ```
-python3 checkoutConfig <config_name>
+python3 checkoutConfig.py <config_name>
 ```
 
 Checkout a specific version of a configuration collection name:
 
 ```
-python3 checkoutConfig <config_name> <version>
+python3 checkoutConfig.py <config_name> <version>
 ```
 
 The checked out folder, will have a trailing `_vN` string reporting the version of the configuration.
