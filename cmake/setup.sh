@@ -1,24 +1,5 @@
-if [ $# -gt 2 ] || [ $# -eq 1 ];
-then
-  echo "Invalid number of arguments: $#"
-  return 1
-fi
-
 BASEDIR="$(dirname "$(realpath "$BASH_SOURCE")" )"
 CONFIG_FILE="${BASEDIR}/setup.cfg"
-if [ $# -eq 2 ]
-then
-  touch ${CONFIG_FILE}
-  echo "DAQLING_SPACK_REPO_PATH=$1" > ${CONFIG_FILE}
-  echo "DAQ_CONFIG_PATH=$2" >> ${CONFIG_FILE}
-  if [ -d "/opt/ohpc/pub/compiler/gcc/8.3.0/" ]
-  then  
-    echo "CUSTOM_GCC_PATH=/opt/ohpc/pub/compiler/gcc/8.3.0/" >> ${CONFIG_FILE}
-  else
-    echo "CUSTOM_GCC_PATH=" >> ${CONFIG_FILE}
-  fi
-fi
-
 if [ -s ${CONFIG_FILE} ]
 then
   . ${CONFIG_FILE}
@@ -40,12 +21,16 @@ alias daqtree='python3 $PWD/$daqtree_path'
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DAQ_BUILD_DIR/lib
 export TDAQ_ERS_STREAM_LIBS=DaqlingStreams
 
-echo "Activate Spack DAQling environment"
+echo "Activating Spack DAQling environment"
 source ${DAQLING_SPACK_REPO_PATH}/spack/share/spack/setup-env.sh
 spack env activate daqling
 spack find
 spack load cmake
-
+#check if virtualenv exists
+if [ -f ${DAQLING_REPO_PATH}/etc/daqling_venv/bin/activate ]; then
+  echo "Activating Python DAQling virtual environment"
+  source ${DAQLING_REPO_PATH}/etc/daqling_venv/bin/activate
+fi
 if [ ! -z $CUSTOM_GCC_PATH ]
 then 
   echo "Custom compiler, installed from OHPC."

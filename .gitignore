@@ -4,3 +4,4 @@ build
 *pyc
 .env
 cmake/setup.cfg
+etc/daqling_venv

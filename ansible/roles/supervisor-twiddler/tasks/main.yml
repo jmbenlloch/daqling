@@ -10,9 +10,9 @@
   notify:
     - restart supervisord
 
-- name: add cronjob to clear 1-day-old logs from /log folder every day
+- name: add cronjob to clear 30-days-old logs from /log folder every day
   cron:
     name: "remove old logs"
     minute: "0"
     hour: "0"
-    job: "find /log/ -type f -name '*.log' -mtime +1 -exec rm {} \\; >/dev/null 2>&1"
+    job: "find /log/ -type f -name '*.log' -mtime +30 -exec rm {} \\; >/dev/null 2>&1"

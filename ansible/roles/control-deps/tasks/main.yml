@@ -8,16 +8,26 @@
     name: python3-dev
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
-- name: Install pyzmq
+- name: Install virtual-env
   pip:
-    name: "{{ packages }}"
-    executable: pip3
+    name: "{{packages}}"
+    executable: pip3.6
   vars:
     packages:
-    - pyzmq
-    - jsonschema
-    - jsonref
-    - psutil
-    - influxdb
-    - redis
+    - virtualenv
+    - importlib-metadata
 
+- name: Manually create the initial virtualenv
+  command:
+    cmd: python3.6 -m venv "{{base_dir}}/etc/daqling_venv" 
+    creates: "{{base_dir}}/etc/daqling_venv"
+  vars:
+    base_dir: "{{ lookup('env','DAQLING_LOCATION') }}"
+
+- name: Install control python deps
+  pip:
+    requirements: "{{base_dir}}/etc/control-requirements.txt"
+    virtualenv: "{{base_dir}}/etc/daqling_venv"
+
+  vars:
+    base_dir: "{{ lookup('env','DAQLING_LOCATION') }}"
