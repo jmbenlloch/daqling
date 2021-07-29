@@ -22,8 +22,17 @@
 #include <vector>
 namespace daqling {
 namespace utilities {
+/*
+ * LogSettings
+ * Description: Sets up the ERS logging streams used by daqling.
+ * Date: July 2021
+ */
 struct LogSettings {
 
+  /**
+   * @brief Sets up the streams based on the commandline arguments.
+   * @param input commandlineInterpreter object, with configurations.
+   */
   static void setupLogs(const CommandlineInterpreter &input) {
     std::vector<std::string> const table = {"DEBUG", "LOG", "INFO", "WARNING", "ERROR"};
     std::map<std::string, std::vector<std::string>::const_iterator> areas;

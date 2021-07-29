@@ -19,6 +19,11 @@
 
 namespace daqling {
 namespace utilities {
+/*
+ * Resource
+ * Description: Empty interface for resources to be created and stored by the ResourceFactory class.
+ * Date: July 2021
+ */
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class Resource {
 public:
