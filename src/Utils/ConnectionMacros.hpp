@@ -19,6 +19,7 @@
 #define CONNECTION_MACROS_HPP
 #include "Common/DataType.hpp"
 #include "Core/ConnectionLoader.hpp"
+#include "Core/ResourceFactory.hpp"
 #include "Utils/Ers.hpp"
 #include <boost/preprocessor.hpp>
 #include <boost/preprocessor/cat.hpp>
@@ -50,6 +51,14 @@
   struct BOOST_PP_CAT(QueueRegistrator, __LINE__) {                                                \
     BOOST_PP_CAT(QueueRegistrator, __LINE__)() {                                                   \
       daqling::core::ConnectionLoader::instance().addQueue<TYPE>(BOOST_PP_STRINGIZE(TYPE));        \
+    }                                                                                              \
+  } BOOST_PP_CAT(registrator, __LINE__);                                                           \
+  }
+#define REGISTER_RESOURCE(TYPE)                                                                    \
+  namespace {                                                                                      \
+  struct BOOST_PP_CAT(ResourceRegistrator, __LINE__) {                                             \
+    BOOST_PP_CAT(ResourceRegistrator, __LINE__)() {                                                \
+      daqling::core::ResourceFactory::instance().addResource<TYPE>(BOOST_PP_STRINGIZE(TYPE));      \
     }                                                                                              \
   } BOOST_PP_CAT(registrator, __LINE__);                                                           \
   }

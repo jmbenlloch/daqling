@@ -17,9 +17,11 @@
 
 #pragma once
 #include "ConnectionLoader.hpp"
+#include "DynamicLinkIssues.hpp"
 #include "Utils/Resource.hpp"
 #include "Utils/Singleton.hpp"
 #include "nlohmann/json.hpp"
+#include <dlfcn.h>
 #include <zmq.hpp>
 namespace daqling {
 namespace core {
@@ -36,6 +38,10 @@ class ResourceFactory : public daqling::utilities::Singleton<ResourceFactory> {
 
 private:
   ProcessResourceMap m_process_resources;
+  std::unordered_map<std::string, std::function<std::unique_ptr<daqling::utilities::Resource>(
+                                      const nlohmann::json &)>>
+      m_loadable_resources;
+
   std::shared_ptr<daqling::utilities::Resource> createQueue(const nlohmann::json &json) {
     auto &cl = daqling::core::ConnectionLoader::instance();
     auto queueType = json.at("resource").at("type").get<std::string>();
@@ -53,11 +59,34 @@ public:
     } else if (type == "zmq_context") {
       m_process_resources[id] = std::make_shared<ZMQ_Context>();
     } else {
-      // throw issue
+      if (m_loadable_resources.find(type) != m_loadable_resources.end()) {
+        m_process_resources[id] = m_loadable_resources[type](json);
+      } else {
+        loadResource(type);
+        if (m_loadable_resources.find(type) != m_loadable_resources.end()) {
+          m_process_resources[id] = m_loadable_resources[type](json);
+        } else {
+          // throw invalid resource
+        }
+      }
     }
   }
+
   std::shared_ptr<daqling::utilities::Resource> getResource(unsigned id) {
     return m_process_resources[id];
+  }
+
+  template <class T> void addResource(const std::string &s) {
+    m_loadable_resources[s] = [](const nlohmann::json &json) { return std::make_unique<T>(json); };
+  }
+  bool loadResource(const std::string &name) {
+    std::string pluginName = "libDaqlingResource" + name + ".so";
+    void *handle = dlopen(pluginName.c_str(), RTLD_NOW | RTLD_GLOBAL);
+    if (handle == nullptr) {
+      throw CannotOpenModule(ERS_HERE, name.c_str(), dlerror());
+      return false;
+    }
+    return true;
   }
 };
 
