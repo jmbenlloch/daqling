@@ -70,7 +70,7 @@ macro(daqling_queue name)
 
     # Check if main header file is defined
     if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${_daqling_queue_class}.hpp")
-        message(FATAL_ERROR "Header file ${_daqling_queue_class}.hpp does not exist, cannot build module!")
+        message(FATAL_ERROR "Header file ${_daqling_queue_class}.hpp does not exist, cannot build queue!")
     endif()
 
     # Define the library
@@ -79,7 +79,27 @@ macro(daqling_queue name)
     target_include_directories(${${name}} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 endmacro()
+macro(daqling_resource name)
 
+    get_filename_component(_daqling_resource_dir ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+
+
+    set(${name} "DaqlingResource${_daqling_resource_dir}")
+
+    set(_daqling_resource_class "${_daqling_resource_dir}")
+    
+
+    # Check if main header file is defined
+    if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${_daqling_resource_class}.hpp")
+        message(FATAL_ERROR "Header file ${_daqling_resource_class}.hpp does not exist, cannot build resource!")
+    endif()
+
+    # Define the library
+    add_library(${${name}} SHARED "")
+
+    target_include_directories(${${name}} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+endmacro()
 
 macro(daqling_executable name)
     # Define the executable

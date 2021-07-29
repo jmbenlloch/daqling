@@ -17,14 +17,19 @@
 
 #pragma once
 #include "ConnectionLoader.hpp"
+#include "DynamicLinkIssues.hpp"
 #include "Utils/Ers.hpp"
 #include "Utils/Resource.hpp"
 #include "Utils/Singleton.hpp"
 #include "nlohmann/json.hpp"
+#include <dlfcn.h>
 #include <zmq.hpp>
 namespace daqling {
 ERS_DECLARE_ISSUE(core, InvalidID, "Trying to retrieve resource with invalid ID - ID: " << id,
                   ((unsigned)id))
+ERS_DECLARE_ISSUE(core, InvalidResource,
+                  "Trying to retrieve resource with invalid Type - Type: " << type,
+                  ((const char *)type))
 namespace core {
 /*
  * ZMQ_Context
@@ -62,6 +67,10 @@ private:
    * Value: shared pointer to resource.
    */
   ProcessResourceMap m_process_resources;
+  std::unordered_map<std::string, std::function<std::unique_ptr<daqling::utilities::Resource>(
+                                      const nlohmann::json &)>>
+      m_loadable_resources;
+
   /**
    * @brief Create a queue resource.
    * @param json json configuration to use when constructing queue.
@@ -89,9 +98,19 @@ public:
     } else if (type == "zmq_context") {
       m_process_resources[id] = std::make_shared<ZMQ_Context>();
     } else {
-      // throw issue
+      if (m_loadable_resources.find(type) != m_loadable_resources.end()) {
+        m_process_resources[id] = m_loadable_resources[type](json);
+      } else {
+        loadResource(type);
+        if (m_loadable_resources.find(type) != m_loadable_resources.end()) {
+          m_process_resources[id] = m_loadable_resources[type](json);
+        } else {
+          throw InvalidResource(ERS_HERE, type.c_str());
+        }
+      }
     }
   }
+
   /**
    * @brief Get a resource identified by a certain id.
    * @param id id identifying the resource to retreive.
@@ -102,6 +121,19 @@ public:
       return m_process_resources[id];
     }
     throw InvalidID(ERS_HERE, id);
+  }
+
+  template <class T> void addResource(const std::string &s) {
+    m_loadable_resources[s] = [](const nlohmann::json &json) { return std::make_unique<T>(json); };
+  }
+  bool loadResource(const std::string &name) {
+    std::string pluginName = "libDaqlingResource" + name + ".so";
+    void *handle = dlopen(pluginName.c_str(), RTLD_NOW | RTLD_GLOBAL);
+    if (handle == nullptr) {
+      throw CannotOpenModule(ERS_HERE, name.c_str(), dlerror());
+      return false;
+    }
+    return true;
   }
 };
 
