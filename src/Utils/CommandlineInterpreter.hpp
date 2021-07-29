@@ -27,7 +27,19 @@ ERS_DECLARE_ISSUE(utilities,                                             // name
                   "Failed to interpret commandline arguments: " << what, // Message
                   ((const char *)what))                                  // Attributes
 namespace utilities {
+/*
+ * CommandlineInterpreter
+ * Description: Responsible for interpreting commandline arguments to the daqling.cpp executable.
+ * Date: July 2021
+ */
 struct CommandlineInterpreter {
+
+  /**
+   * @brief Parses the commandline arguments, into a CommandlineInterpreter object.
+   * @param argc number of arguments
+   * @param argv arguments.
+   * @return CommandlineInterpreter object containing parsed arguments.
+   */
   static CommandlineInterpreter parse(int argc, char **argv) {
     CommandlineInterpreter output;
     auto map = CommandlineInterpreter::map(argc, argv);
@@ -44,6 +56,12 @@ struct CommandlineInterpreter {
 
     return output;
   }
+  /**
+   * @brief Maps all arguments into key-value pairs.
+   * @param argc number of arguments
+   * @param argv arguments.
+   * @return Map containing argument pairs.
+   */
   static std::map<std::string, std::string> map(int argc, char **argv) {
     std::map<std::string, std::string> map;
     std::string flag;
