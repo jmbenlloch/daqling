@@ -27,8 +27,9 @@
 namespace daqling {
 ERS_DECLARE_ISSUE(core, InvalidID, "Trying to retrieve resource with invalid ID - ID: " << id,
                   ((unsigned)id))
-ERS_DECLARE_ISSUE(core, InvalidResource, "Trying to retrieve resource with invalid Type - Type: " << type,
-                  ((const char*)type))
+ERS_DECLARE_ISSUE(core, InvalidResource,
+                  "Trying to retrieve resource with invalid Type - Type: " << type,
+                  ((const char *)type))
 namespace core {
 /*
  * ZMQ_Context
@@ -104,7 +105,7 @@ public:
         if (m_loadable_resources.find(type) != m_loadable_resources.end()) {
           m_process_resources[id] = m_loadable_resources[type](json);
         } else {
-          throw InvalidResource(ERS_HERE,type.c_str());
+          throw InvalidResource(ERS_HERE, type.c_str());
         }
       }
     }
