@@ -75,8 +75,6 @@ public:
 
   std::shared_ptr<daqling::utilities::Resource> getLocalResource(unsigned id);
 
-  void addLocalResource(const nlohmann::json &json);
-
 private:
   // Map of ConnectionSubManagers
   SubManagerMap m_sub_managers;
@@ -102,7 +100,9 @@ public:
 
   ConnectionSubManager(std::string name);
   /**
-   * @brief Receive binary from receiver channel
+   * @brief Receive binary from receiver channel.
+   * @param bin Datatype to receive into. Its current inner data will be cleared before passing it
+   * on.
    * @param chn receiver channel id
    * @return true when binary file is successfully passed
    */
@@ -118,6 +118,13 @@ public:
     }
     return false;
   }
+  /**
+   * @brief Sleep receive binary from receiver channel.
+   * @param bin Datatype to receive into. Its current inner data will be cleared before passing it
+   * on.
+   * @param chn receiver channel id
+   * @return true when binary file is successfully passed
+   */
   template <class T> bool sleep_receive(const unsigned &chn, T &bin) {
     if (bin.size() != 0) {
       bin.clear_inner_data();
@@ -133,12 +140,19 @@ public:
   /**
    * @brief Send binary to channel
    * @param chn sender channel id
+   * @param msgBin DataType with inner data to send.
    * @return true when binary file is successfully passed
    */
   template <class T> bool send(const unsigned &chn, T &msgBin) {
     DataTypeWrapper msg(std::move(msgBin));
     return m_senders[chn]->send(msg);
   }
+  /**
+   * @brief Sleep send binary to channel
+   * @param chn sender channel id
+   * @param msgBin DataType with inner data to send.
+   * @return true when binary file is successfully passed
+   */
   template <class T> bool sleep_send(const unsigned &chn, T &msgBin) {
     DataTypeWrapper msg(std::move(msgBin));
     return m_senders[chn]->sleep_send(msg);
