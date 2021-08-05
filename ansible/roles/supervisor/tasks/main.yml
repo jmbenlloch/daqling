@@ -28,16 +28,6 @@
     path: /var/log/supervisor
     state: directory
 
-- name: Create supervisor unix socket folder
-  file:
-    path: /var/run/supervisor/
-    state: directory
-
-- name: Touch supervisor unix socket file
-  file:
-    path: /var/run/supervisor/supervisor.sock
-    state: touch
-
 - name: Copy supervisor systemd service file
   copy:
     src: supervisord.service

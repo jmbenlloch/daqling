@@ -12,6 +12,7 @@ DAQLING_REPO_PATH="$(dirname "$(realpath "${BASEDIR}")" )"
 export DAQ_CONFIG_DIR=${DAQ_CONFIG_PATH}
 export DAQ_BUILD_DIR=$PWD/build/
 export DAQ_SCRIPT_DIR=${DAQLING_REPO_PATH}/scripts/
+export DAQLING_LOCATION=${DAQLING_REPO_PATH}
 daqpy_path=$(find -name daq.py | cut -c3-)
 alias daqpy='python3 $PWD/$daqpy_path'
 daqtree_path=$(find -name daqtree.py | cut -c3-)
