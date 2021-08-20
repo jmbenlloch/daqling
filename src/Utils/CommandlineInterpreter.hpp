@@ -43,8 +43,9 @@ struct CommandlineInterpreter {
   static CommandlineInterpreter parse(int argc, char **argv) {
     CommandlineInterpreter output;
     auto map = CommandlineInterpreter::map(argc, argv);
-    if (map.count("help") or argc == 1) {
-      INFO("Usage: daqling --port <port> [--name <name>] [--core_lvl <core_lvl>] [--module_lvl <module_lvl>] [--connection_lvl <connection_lvl>]");
+    if (map.count("help") != 0u or argc == 1) {
+      INFO("Usage: daqling --port <port> [--name <name>] [--core_lvl <core_lvl>] [--module_lvl "
+           "<module_lvl>] [--connection_lvl <connection_lvl>]");
       return output;
     }
     try {
