@@ -43,13 +43,18 @@ struct CommandlineInterpreter {
   static CommandlineInterpreter parse(int argc, char **argv) {
     CommandlineInterpreter output;
     auto map = CommandlineInterpreter::map(argc, argv);
+    if (map.count("help") != 0u or argc == 1) {
+      INFO("Usage: daqling --port <port> [--name <name>] [--core_lvl <core_lvl>] [--module_lvl "
+           "<module_lvl>] [--connection_lvl <connection_lvl>]");
+      return output;
+    }
     try {
       output.core_lvl = map["core_lvl"];
       output.name = map["name"];
       output.module_lvl = map["module_lvl"];
       output.connection_lvl = map["connection_lvl"];
       output.port = std::stoul(map["port"]);
-      output.succes = true;
+      output.success = true;
     } catch (const std::exception &e) {
       throw CommandLineIssue(ERS_HERE, e.what());
     }
@@ -69,6 +74,7 @@ struct CommandlineInterpreter {
       std::string str = argv[i]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       if (str.substr(0, 2) == "--") {
         flag = str.substr(2, std::string::npos);
+        map[flag] = "";
       } else if (!flag.empty()) {
         map[flag] = argv[i]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         flag.erase();
@@ -91,7 +97,7 @@ struct CommandlineInterpreter {
   std::string module_lvl;
   std::string connection_lvl;
   unsigned port{0};
-  bool succes{false};
+  bool success{false};
 };
 } // namespace utilities
 } // namespace daqling
