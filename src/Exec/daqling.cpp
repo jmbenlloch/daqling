@@ -24,8 +24,10 @@
 int main(int argc, char **argv) {
 
   auto args = daqling::utilities::CommandlineInterpreter::parse(argc, argv);
+  if (!args.success) {
+    return EXIT_FAILURE;
+  }
 
-  std::string name = args.name;
   daqling::utilities::LogSettings::setupLogs(args);
   // get port from options:
   unsigned port = args.port;
