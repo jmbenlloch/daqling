@@ -18,6 +18,7 @@
     - importlib-metadata
 
 - name: Manually create the initial virtualenv
+  become: no
   command:
     cmd: python3.6 -m venv "{{base_dir}}/etc/daqling_venv" 
     creates: "{{base_dir}}/etc/daqling_venv"

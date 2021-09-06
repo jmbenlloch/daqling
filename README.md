@@ -75,26 +75,27 @@ The script takes the following arguments:
 
     -d     Full path to daqling-spack-repo.
     -c     Full path to configs folder to be used by DAQling.
-    -w     Boolean value - If set, installs web deps.
-    -a     Boolean value - If set, doesn't run ansible.
+    -s     If set, runs ansible host setup (requires sudo privileges)."
+    -t     If set, installs control-deps.
+    -w     If set, installs web-deps.
 
 On the first invocation of the install script, supply both the daqling-spack-repo and configuration folder paths.
 
 On subsequent invocations, it is possible to supply only one of these, to change its value.
 
-The `-w` flag can be set to true, if one wishes to install the dependencies required for running the daqling web services. If this flag is not set, only the dependencies for running the daqling control executables will be installed.
+The `-w` flag can be set if one wishes to install the dependencies required for running the daqling web services. If this flag is not set, only the dependencies for running the daqling control executables will be installed.
 
-Below is an example of how the script can be run:
+Below is an example of how the script can be run on first invocation, with host setup (requires sudo privileges):
 
-    ./cmake/install.sh -d /path/to/daqling-spack-repo -c /path/to/configs-folder
+    ./cmake/install.sh -d /path/to/daqling-spack-repo -c /path/to/configs-folder -s
 
-Example installing web-deps:
+Example installing control-deps (suggested in case the host has been already set up to run DAQling by an admin):
 
-    ./cmake/install.sh -d /path/to/daqling-spack-repo -c /path/to/configs-folder -w
+    ./cmake/install.sh /path/to/daqling-spack-repo -c /path/to/configs-folder -t
 
-To run the install script without running ansible, add the -a flag:
+Example installing web-deps (after first invocation):
 
-    ./cmake/install.sh -d /path/to/daqling-spack-repo -c /path/to/configs-folder -a
+    ./cmake/install.sh -w
 
 
 #### (Optional)
