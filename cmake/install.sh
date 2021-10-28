@@ -6,12 +6,13 @@ Help()
    # Display Help
    echo "Installation script for the DAQling framework."
    echo
-   echo "Syntax: install.sh [-h|-d|-c|-w|-a]"
+   echo "Syntax: install.sh [-h|-d|-c|-s|-t|-w]"
    echo "options:"
    echo "-d     Full path to daqling-spack-repos."
    echo "-c     Full path to configs folder to be used by DAQling."
-   echo "-w     Boolean value - If set, installs web deps."
-   echo "-a     Boolean value - If set, doesn't run ansible."
+   echo "-s     If set, runs ansible host setup (requires sudo privileges)."
+   echo "-t     If set, installs control-deps."
+   echo "-w     If set, installs web-deps."
    echo
 }
 
@@ -25,9 +26,10 @@ BASEDIR="$(dirname "$(realpath "$BASH_SOURCE")" )"
 DAQLING_REPO_PATH="$(dirname "$(realpath "${BASEDIR}")" )"
 CONFIG_FILE="${BASEDIR}/setup.cfg"
 export DAQLING_LOCATION=${DAQLING_REPO_PATH}
-RUN_ANSIBLE=true
+HOST_SETUP=false
+INSTALL_CONTROL=false
 INSTALL_WEB=false
-while getopts ":hd:c:wa" option; do
+while getopts ":hd:c:wst" option; do
    case "$option" in
       h) # display Help
          Help
@@ -41,9 +43,12 @@ while getopts ":hd:c:wa" option; do
       w)
         echo "option w - Installing web-deps"
         INSTALL_WEB=true;;
-      a)
-        echo "option a - Not running ansible"
-        RUN_ANSIBLE=false;;
+      s)
+        echo "option s - Setting up host"
+        HOST_SETUP=true;;
+      t)
+        echo "option t - Installing control-deps"
+        INSTALL_CONTROL=true;;
          
    esac
 done
@@ -84,9 +89,11 @@ then
   export CXX=$CUSTOM_GCC_PATH/bin/g++
 fi
 
-if [ "${RUN_ANSIBLE}" = true ] ; then
+if [ "${HOST_SETUP}" = true ] ; then
   ansible-playbook ${DAQLING_REPO_PATH}/ansible/set-up-host.yml --ask-become
-  if [ "${INSTALL_WEB}" = true ] ; then
-    ansible-playbook ${DAQLING_REPO_PATH}/ansible/install-webdeps.yml --ask-become
-  fi
+fi
+if [ "${INSTALL_WEB}" = true ] ; then
+  ansible-playbook ${DAQLING_REPO_PATH}/ansible/install-webdeps.yml
+elif [ "${INSTALL_CONTROL}" = true ] ; then
+  ansible-playbook ${DAQLING_REPO_PATH}/ansible/install-controldeps.yml
 fi
