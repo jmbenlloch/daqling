@@ -75,7 +75,7 @@ The script takes the following arguments:
 
     -d     Full path to daqling-spack-repo.
     -c     Full path to configs folder to be used by DAQling.
-    -s     If set, runs ansible host setup (requires sudo privileges)."
+    -s     If set, runs ansible host setup (requires sudo privileges).
     -t     If set, installs control-deps.
     -w     If set, installs web-deps.
 
