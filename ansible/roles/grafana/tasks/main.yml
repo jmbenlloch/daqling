@@ -1,6 +1,7 @@
 - name: Install Grafana
   yum:
-    name: https://dl.grafana.com/oss/release/grafana-6.2.4-1.x86_64.rpm
+    name: https://dl.grafana.com/oss/release/grafana-8.5.0-1.x86_64.rpm
+    disable_gpg_check: yes
 
 - name: Open port 3000 on firewalld for Grafana
   firewalld:
