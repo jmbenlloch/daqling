@@ -24,10 +24,9 @@
   pip:
     name: "{{packages}}"
     executable: pip3.6
-   vars:
-     packages:
-     - influxdb
-
+  vars:
+    packages:
+    - influxdb
 
 - name: Create DAQlingMetrics database
   influxdb_database:
