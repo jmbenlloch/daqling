@@ -1,5 +1,5 @@
 # Firewall Handlers
 - name: restart firewalld
-  service:
+  systemd:
     name: firewalld
     state: restarted
