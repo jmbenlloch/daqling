@@ -12,7 +12,7 @@ from anytree import RenderTree
 from anytree.search import find_by_attr
 from anytree.importer import DictImporter
 from flask_socketio import SocketIO, send, emit
-from keycloak import Client
+#from keycloak import Client
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from copy import deepcopy
@@ -218,7 +218,7 @@ def logAndEmit(configtype ,type, message):
         app.logger.error("["+configtype+"] "+timestamp+" "+type+": "+message)
     socketio.emit('logChng', "["+configtype+"] "+timestamp+" "+type+": "+message, broadcast=True)
 
-keycloak_client = Client(callback_uri=serverConfigJson['callbackUri'])
+#keycloak_client = Client(callback_uri=serverConfigJson['callbackUri'])
 app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=serverConfigJson['timeout_session_expiration_mins'])
 
