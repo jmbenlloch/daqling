@@ -27,6 +27,11 @@ source ${DAQLING_SPACK_REPO_PATH}/spack/share/spack/setup-env.sh
 spack env activate daqling
 spack find
 spack load cmake
+export CPLUS_INCLUDE_PATH=$CMAKE_PREFIX_PATH/include
+export C_INCLUDE_PATH=$CMAKE_PREFIX_PATH/include
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CMAKE_PREFIX_PATH/lib:$CMAKE_PREFIX_PATH/lib64
+export LIBRARY_PATH=$LD_LIBRARY_PATH
+
 #check if virtualenv exists
 if [ -f ${DAQLING_REPO_PATH}/etc/daqling_venv/bin/activate ]; then
   echo "Activating Python DAQling virtual environment"
