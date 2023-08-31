@@ -33,7 +33,7 @@ build:
 
 # Default compile jobs
 compile:
-    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cibase
+    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cc7
     stage: compilation
     script:
         - mkdir build
@@ -50,7 +50,7 @@ compile:
 
 # Default tests
 test:
-    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cibase
+    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cc7
     stage: testing
     script:
         - cd build/
@@ -62,7 +62,7 @@ test:
         - source cmake/setup.sh
 
 format:
-    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cibase
+    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cc7
     stage: testing
     script:
         - cd build
@@ -74,7 +74,7 @@ format:
         - source cmake/setup.sh
     allow_failure: true
 tidy:
-    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cibase
+    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cc7
     stage: testing
     script:
         - cd build
