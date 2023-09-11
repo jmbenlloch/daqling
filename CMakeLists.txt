@@ -89,7 +89,7 @@ endif (ENABLE_TBB)
 if (ENABLE_BOOST)
   set(boost_version $ENV{BOOST_VERSION})
   set(BOOST_ROOT $ENV{BOOST_ROOT_DIR})
-  find_package(Boost ${boost_version} EXACT REQUIRED COMPONENTS system filesystem regex)
+  find_package(Boost)
   include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 endif (ENABLE_BOOST)
 
