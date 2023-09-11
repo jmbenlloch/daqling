@@ -50,7 +50,7 @@ fi
 #export TBB_VERSION=2019.0
 #export TBB_ROOT_DIR=/opt/tbb-2019_U5
 
-export BOOST_VERSION=1.70
+#export BOOST_VERSION=1.70
 
 if [ -f "/opt/rh/llvm-toolset-7/enable" ]
 then
