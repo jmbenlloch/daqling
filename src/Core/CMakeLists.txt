@@ -27,12 +27,8 @@ target_link_libraries(DaqlingCore
     PUBLIC
         ${DAQLING_DEPS_LIBRARIES}
         ${Boost_LIBRARIES}
-        ${ZMQ_LIBRARIES}
+        ${ZMQ_LIBRARY}
         ${TBB_LIBRARY}
-        # CMAKE bug https://gitlab.kitware.com/cmake/cmake/-/issues/19530
-        #Boost::timer
-        #Boost::program_options
-        #Boost::filesystem
         pthread
 )
 

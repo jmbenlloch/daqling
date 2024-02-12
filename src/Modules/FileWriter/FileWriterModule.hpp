@@ -31,7 +31,7 @@ namespace daqling {
 ERS_DECLARE_ISSUE(module, InvalidFileName, "Invalid File name pattern", ERS_EMPTY)
 
 ERS_DECLARE_ISSUE(module, OfstreamFail, "std::ofstream::fail()", ERS_EMPTY)
-}
+} // namespace daqling
 /**
  * Module for writing your acquired data to file.
  */

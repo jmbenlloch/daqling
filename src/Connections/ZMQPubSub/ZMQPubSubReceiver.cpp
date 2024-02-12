@@ -26,7 +26,7 @@ using namespace daqling::connection;
 REGISTER_RECEIVER(ZMQPubSubReceiver)
 
 ZMQPubSubReceiver::~ZMQPubSubReceiver() {
-  m_socket->setsockopt(ZMQ_LINGER, 1);
+  m_socket->set(zmq::sockopt::linger, 1);
   if (m_private_zmq_context) {
     m_socket.reset();
     delete m_context;
@@ -46,7 +46,7 @@ ZMQPubSubReceiver::ZMQPubSubReceiver(uint chid, const nlohmann::json &j)
       m_context = new zmq::context_t(ioT);
     }
     m_socket = std::make_unique<zmq::socket_t>(*m_context, ZMQ_SUB);
-    m_socket->setsockopt(ZMQ_RCVTIMEO, 1);
+    m_socket->set(zmq::sockopt::rcvtimeo, 1);
     std::string connStr;
     for (auto it : j.at("connections")) {
       if (it.at("transport") == "ipc") {
@@ -64,9 +64,10 @@ ZMQPubSubReceiver::ZMQPubSubReceiver(uint chid, const nlohmann::json &j)
 
     if (j.contains("filter") && j.contains("filter_size")) {
       auto filter = j.at("filter").get<int>();
-      m_socket->setsockopt(ZMQ_SUBSCRIBE, &filter, j.at("filter_size").get<size_t>());
+      m_socket->set(zmq::sockopt::subscribe, std::to_string(filter)); // TODO ostringstream << int
+
     } else {
-      m_socket->setsockopt(ZMQ_SUBSCRIBE, nullptr, 0);
+      m_socket->set(zmq::sockopt::subscribe, "");
     }
     ERS_INFO(" Adding SUBSCRIBER channel for: [" << m_chid << "] connect: " << connStr);
   } catch (ers::Issue &i) {
@@ -75,11 +76,13 @@ ZMQPubSubReceiver::ZMQPubSubReceiver(uint chid, const nlohmann::json &j)
     throw CannotAddChannel(ERS_HERE, e.what());
   }
 }
-void ZMQPubSubReceiver::set_sleep_duration(uint ms) { m_socket->setsockopt(ZMQ_RCVTIMEO, ms); }
+void ZMQPubSubReceiver::set_sleep_duration(uint ms) {
+  m_socket->set(zmq::sockopt::rcvtimeo, static_cast<int>(ms));
+}
 
 bool ZMQPubSubReceiver::receive(DataTypeWrapper &bin) {
   zmq::message_t msg;
-  if (m_socket->recv(&msg, ZMQ_DONTWAIT)) {
+  if (m_socket->recv(msg, zmq::recv_flags::dontwait)) {
     bin.reconstruct_or_store(msg.data(), msg.size());
     ++m_msg_handled;
     return true;
@@ -88,7 +91,7 @@ bool ZMQPubSubReceiver::receive(DataTypeWrapper &bin) {
 }
 bool ZMQPubSubReceiver::sleep_receive(DataTypeWrapper &bin) {
   zmq::message_t msg;
-  if (m_socket->recv(&msg)) {
+  if (m_socket->recv(msg, zmq::recv_flags::none)) {
     bin.reconstruct_or_store(msg.data(), msg.size());
     ++m_msg_handled;
     return true;

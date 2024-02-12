@@ -53,9 +53,9 @@ while getopts ":hd:c:wst" option; do
    esac
 done
 
-## Both configs and spack-repo paths must be supplied when creating config file first time:
-if [ ! -s ${CONFIG_FILE} ] && ([ -z $DAQLING_SPACK_REPO_PATH_VAR ] || [ -z $DAQ_CONFIG_PATH_VAR ]); then
-    echo "Error: Supply both configs and daqling-spack-repo paths to create configs file."
+## Configs path must be supplied when creating config file first time:
+if [ ! -s ${CONFIG_FILE} ] && [ -z $DAQ_CONFIG_PATH_VAR ]; then
+    echo "Error: Supply configs path to create config file."
     exit
 fi
 touch ${CONFIG_FILE}

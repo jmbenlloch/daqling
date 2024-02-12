@@ -6,6 +6,8 @@
     base_dir: "{{ lookup('env','DAQLING_LOCATION') }}"
 
 - name: Open port 5000 on firewalld for Flask
+  become: yes
+  ignore_errors: yes
   firewalld:
     zone: public
     port: 5000/tcp
@@ -13,4 +15,5 @@
     state: enabled
   notify:
     - restart firewalld
-  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  when: ansible_facts['os_family'] == 'RedHat'
+

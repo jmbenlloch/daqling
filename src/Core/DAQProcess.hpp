@@ -120,7 +120,7 @@ public:
 
       m_statistics = std::make_unique<Statistics>(m_config.getMetricsSettings());
 
-      for (auto & [ ch, receiver ] : m_connections.getReceiverMap()) {
+      for (auto &[ch, receiver] : m_connections.getReceiverMap()) {
         m_statistics->registerMetric<std::atomic<size_t>>(
             &receiver->getPcqSize(), "ReceiverCh" + std::to_string(ch) + "-QueueSizeGuess",
             daqling::core::metrics::LAST_VALUE);
@@ -128,7 +128,7 @@ public:
             &receiver->getMsgsHandled(), "ReceiverCh" + std::to_string(ch) + "-NumMessages",
             daqling::core::metrics::RATE);
       }
-      for (auto & [ ch, sender ] : m_connections.getSenderMap()) {
+      for (auto &[ch, sender] : m_connections.getSenderMap()) {
         m_statistics->registerMetric<std::atomic<size_t>>(
             &sender->getPcqSize(), "SenderCh" + std::to_string(ch) + "-QueueSizeGuess",
             daqling::core::metrics::LAST_VALUE);
@@ -158,7 +158,7 @@ protected:
    */
   template <typename Function, typename... Args>
   bool registerCommand(const std::string &cmd, const std::string &transition_state,
-                       const std::string &target_state, Function &&f, Args &&... args) {
+                       const std::string &target_state, Function &&f, Args &&...args) {
     return m_commands
         .emplace(cmd, std::make_tuple(std::bind(f, args...), transition_state, target_state))
         .second;

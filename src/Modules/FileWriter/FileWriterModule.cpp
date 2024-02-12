@@ -121,7 +121,7 @@ void FileWriterModule::configure() {
 
   if (m_statistics) {
     // Register statistical variables
-    for (auto & [ chid, metrics ] : m_channelMetrics) {
+    for (auto &[chid, metrics] : m_channelMetrics) {
       m_statistics->registerMetric<std::atomic<size_t>>(&metrics.bytes_written,
                                                         "BytesWritten_chid" + std::to_string(chid),
                                                         daqling::core::metrics::RATE);
@@ -148,7 +148,7 @@ void FileWriterModule::start(unsigned run_num) {
     // For each channel, construct a context of a payload queue, a consumer thread, and a producer
     // thread.
     std::array<unsigned int, 2> tids = {{threadid++, threadid++}};
-    const auto & [ it, success ] =
+    const auto &[it, success] =
         m_channelContexts.emplace(chid, std::forward_as_tuple(queue_size, tids));
     ERS_DEBUG(0, " success: " << success);
     assert(success);
@@ -169,7 +169,7 @@ void FileWriterModule::start(unsigned run_num) {
 void FileWriterModule::stop() {
   DAQProcess::stop();
   m_stopWriters.store(true);
-  for (auto & [ chid, ctx ] : m_channelContexts) {
+  for (auto &[chid, ctx] : m_channelContexts) {
     ERS_DEBUG(0, " stopping context[" << chid << "]");
     while (!std::get<ThreadContext>(ctx).consumer.get_readiness()) {
       std::this_thread::sleep_for(1ms);
@@ -306,7 +306,7 @@ void FileWriterModule::monitor_runner() {
   std::map<uint64_t, uint64_t> prev_value;
   while (m_run) {
     std::this_thread::sleep_for(1s);
-    for (auto & [ chid, metrics ] : m_channelMetrics) {
+    for (auto &[chid, metrics] : m_channelMetrics) {
       ERS_INFO("Bytes written (channel "
                << chid
                << "): " << static_cast<double>(metrics.bytes_written - prev_value[chid]) / 1000000

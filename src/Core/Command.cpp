@@ -287,7 +287,7 @@ void daqling::core::Command::setupServer(unsigned port) {
     m_method_pointers.insert(std::make_pair("start", new start));
     m_method_pointers.insert(std::make_pair("stop", new stop));
     m_method_pointers.insert(std::make_pair("custom", new custom));
-    for (auto const & [ name, pointer ] : m_method_pointers) {
+    for (auto const &[name, pointer] : m_method_pointers) {
       m_registry.addMethod(name, pointer);
     }
 

@@ -103,7 +103,7 @@ bool Statistics::unsetStatsConnection() {
     m_stat_thread.join();
   }
   if (m_zmq_publisher) {
-    m_stat_socket->setsockopt(ZMQ_LINGER, 1);
+    m_stat_socket->set(zmq::sockopt::linger, 1);
     m_stat_socket.reset();
     m_stats_context.reset();
     m_is_stats_setup = false;

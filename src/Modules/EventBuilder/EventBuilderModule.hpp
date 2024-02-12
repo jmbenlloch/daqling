@@ -25,7 +25,7 @@ ERS_DECLARE_ISSUE(module, BrokenSequenceNumber,
                   "Sequence number for channel " << ch << " is broken! Previous = " << prev_seq
                                                  << " while current = " << seq_number,
                   ((unsigned)ch)((unsigned)prev_seq)((unsigned)seq_number))
-}
+} // namespace daqling
 
 class EventBuilderModule : public daqling::core::DAQProcess {
 

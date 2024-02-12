@@ -25,7 +25,7 @@ using namespace daqling::connection;
 
 REGISTER_SENDER(ZMQPairSender)
 ZMQPairSender::~ZMQPairSender() {
-  m_socket->setsockopt(ZMQ_LINGER, 1);
+  m_socket->set(zmq::sockopt::linger, 1);
   if (m_private_zmq_context) {
     m_socket.reset();
     delete m_context;
@@ -66,7 +66,7 @@ bool ZMQPairSender::send(DataTypeWrapper &bin) {
   DataType *any_data = bin.getDataTypePtr();
   any_data->detach();
   zmq::message_t message(any_data->data(), any_data->size(), any_data->free(), any_data->hint());
-  if (m_socket->send(std::move(message))) {
+  if (m_socket->send(std::move(message), zmq::send_flags::none)) {
     ++m_msg_handled;
     return true;
   }

@@ -42,7 +42,7 @@ static void from_json(const json &j, std::vector<process> &ps) {
   }
 }
 
-int main(int /*unused*/, char const * /*unused*/ []) {
+int main(int /*unused*/, char const * /*unused*/[]) {
   json j = {{{"name", "Luke"}, {"type", "Jedi"}},
             {{"name", "Han"}, {"type", "Mercenary"}},
             {{"name", "Leia"}, {"type", "Princess"}}};

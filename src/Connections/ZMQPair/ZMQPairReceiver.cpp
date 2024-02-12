@@ -26,7 +26,7 @@ using namespace daqling::connection;
 
 REGISTER_RECEIVER(ZMQPairReceiver)
 ZMQPairReceiver::~ZMQPairReceiver() {
-  m_socket->setsockopt(ZMQ_LINGER, 1);
+  m_socket->set(zmq::sockopt::linger, 1);
   if (m_private_zmq_context) {
     m_socket.reset();
     delete m_context;
@@ -64,11 +64,13 @@ ZMQPairReceiver::ZMQPairReceiver(uint chid, const nlohmann::json &j)
     throw CannotAddChannel(ERS_HERE, e.what());
   }
 }
-void ZMQPairReceiver::set_sleep_duration(uint ms) { m_socket->setsockopt(ZMQ_RCVTIMEO, ms); }
+void ZMQPairReceiver::set_sleep_duration(uint ms) {
+  m_socket->set(zmq::sockopt::rcvtimeo, static_cast<int>(ms));
+}
 
 bool ZMQPairReceiver::receive(DataTypeWrapper &bin) {
   zmq::message_t msg;
-  if (m_socket->recv(&msg, ZMQ_DONTWAIT)) {
+  if (m_socket->recv(msg, zmq::recv_flags::dontwait)) {
     bin.reconstruct_or_store(msg.data(), msg.size());
     ++m_msg_handled;
     return true;
@@ -77,7 +79,7 @@ bool ZMQPairReceiver::receive(DataTypeWrapper &bin) {
 }
 bool ZMQPairReceiver::sleep_receive(DataTypeWrapper &bin) {
   zmq::message_t msg;
-  if (m_socket->recv(&msg)) {
+  if (m_socket->recv(msg, zmq::recv_flags::none)) {
     bin.reconstruct_or_store(msg.data(), msg.size());
     ++m_msg_handled;
     return true;

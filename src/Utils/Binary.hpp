@@ -30,6 +30,7 @@
 #include <cassert>
 #include <functional>
 #include <iomanip>
+#include <optional>
 #include <vector>
 
 namespace daqling {
@@ -178,8 +179,8 @@ inline std::ostream &operator<<(std::ostream &out, const daqling::utilities::Bin
         std::string str(c - i % 16, c + 1);
 
         // Replace unprintable characters with a '.'
-        std::replace_if(str.begin(), str.end(), [&loc](auto c) { return !std::isprint(c, loc); },
-                        '.');
+        std::replace_if(
+            str.begin(), str.end(), [&loc](auto c) { return !std::isprint(c, loc); }, '.');
 
         return str;
       });

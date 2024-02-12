@@ -120,24 +120,22 @@ public:
       zmq::message_t message(influx_msg.str().size() - 1);
       memcpy(message.data(), influx_msg.str().data(), influx_msg.str().size() - 1);
       ERS_DEBUG(0, " MSG " << influx_msg.str());
-      bool rc = m_stat_socket->send(message);
-      if (!rc) {
+      auto res = m_stat_socket->send(message, zmq::send_flags::none);
+      if (!res.value()) {
         ERS_WARNING("Failed to publish metrics");
       }
     }
     if (m_influxDb) {
 #ifndef BUILD_WITHOUT_CPR
 
-      std::int32_t status_code;
-      std::string text;
-      cpr::PostCallback(
-          [&status_code, &text](cpr::Response r) {
-            status_code = r.status_code;
-            text = r.text;
-          },
-          cpr::Url{m_influxDb_uri + m_influxDb_name}, cpr::Body{influx_msg.str()},
-          cpr::Header{{"Content-Type", "text/plain"}}, cpr::Timeout{1000});
-      ERS_DEBUG(0, "InfluxDB response: " << status_code << "\t" << text);
+      auto future_response =
+          cpr::PostCallback([](cpr::Response r) { return r; },
+                            cpr::Url{m_influxDb_uri + m_influxDb_name}, cpr::Body{influx_msg.str()},
+                            cpr::Header{{"Content-Type", "text/plain"}}, cpr::Timeout{1000});
+      if (future_response.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
+        ERS_DEBUG(0, "InfluxDB response: " << future_response.get().status_code << "\t"
+                                           << future_response.get().text);
+      }
 #else
       throw NoHTTPSupport(ERS_HERE);
 #endif

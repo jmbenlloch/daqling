@@ -1,0 +1,5 @@
+FROM gitlab-registry.cern.ch/linuxsupport/alma9-base:latest
+RUN dnf install -y epel-release && \
+dnf install -y cmake gcc-c++ git boost-devel xmlrpc-c-devel cppzmq-devel libasan libubsan clang-tools-extra && \
+dnf clean all && \
+rm -rf /tmp/*
