@@ -10,7 +10,7 @@ IF(CLANG_TIDY) #AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     # FIXME Make finding this program more portable
     GET_FILENAME_COMPONENT(CLANG_TIDY ${CLANG_TIDY} REALPATH)
     GET_FILENAME_COMPONENT(CLANG_DIR ${CLANG_TIDY} DIRECTORY)
-    FIND_PROGRAM(RUN_CLANG_TIDY NAMES "run-clang-tidy.py" "run-clang-tidy-4.0.py" HINTS ${CMAKE_SOURCE_DIR}/cmake ${CLANG_DIR}/../share/clang/ /usr/bin/)
+    FIND_PROGRAM(RUN_CLANG_TIDY NAMES "run-clang-tidy" HINTS /usr/bin/)
     IF(RUN_CLANG_TIDY)
         MESSAGE(STATUS "Found ${CLANG_TIDY}, adding linting targets")
 	# write a .clang-tidy file in the binary dir to disable checks for created files
@@ -27,14 +27,24 @@ IF(CLANG_TIDY) #AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         ENDIF()
 
         ADD_CUSTOM_TARGET(
-            lint COMMAND
-            ${RUN_CLANG_TIDY} -fix -format -header-filter=${CMAKE_SOURCE_DIR} -extra-arg=-Wno-unknown-warning-option -j${NPROC}
+            lint
+            COMMAND python3 ../cmake/compile_commands_filter.py ${CMAKE_BINARY_DIR}/compile_commands.json
+            COMMAND ${RUN_CLANG_TIDY} -fix -format
+            -header-filter='.*'
+            -config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
+            -extra-arg=-Wno-unknown-warning-option
+            -j${NPROC}
             COMMENT "Auto fixing problems in all source files"
         )
 
         ADD_CUSTOM_TARGET(
-            check-lint COMMAND
-            ${RUN_CLANG_TIDY} -header-filter=${CMAKE_SOURCE_DIR} -extra-arg=-Wno-unknown-warning-option -j${NPROC}
+            check-lint
+            COMMAND python3 ../cmake/compile_commands_filter.py ${CMAKE_BINARY_DIR}/compile_commands.json
+            COMMAND ${RUN_CLANG_TIDY}
+            -header-filter='.*'
+            -config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
+            -extra-arg=-Wno-unknown-warning-option
+            -j${NPROC}
             | tee ${CMAKE_BINARY_DIR}/check_lint_file.txt
             # WARNING: fix to stop with error if there are problems
             COMMAND ! grep -c ": error: " ${CMAKE_BINARY_DIR}/check_lint_file.txt > /dev/null

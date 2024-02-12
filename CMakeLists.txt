@@ -65,7 +65,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 #Find ZMQ Libraries
 find_library(ZMQ_LIBRARY NAMES zmq)
-set(ZMQ_LIBRARIES ${ZMQ_LIBRARY})
 
 # Include Threads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -98,8 +97,25 @@ if(BUILD_WITHOUT_CPR)
 else()
   set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} cpr curl)
 endif()
-# set(USE_SYSTEM_CURL ON)
-# set(BUILD_CPR_TESTS OFF)
+set(CPR_USE_SYSTEM_CURL ON)
+
+include(FetchContent)
+FetchContent_Declare(ers SYSTEM GIT_REPOSITORY https://gitlab.cern.ch/ep-dt-di/daq/ers.git
+                         GIT_TAG 73cb9a5bd101addb6b723bcd808e4298daaab72c)
+
+FetchContent_Declare(json SYSTEM GIT_REPOSITORY https://github.com/nlohmann/json.git
+                          GIT_TAG v3.11.2)
+
+FetchContent_Declare(cpr SYSTEM GIT_REPOSITORY https://github.com/libcpr/cpr.git
+                         GIT_TAG 1.10.4)
+
+FetchContent_MakeAvailable(ers json cpr)
+
+include_directories(SYSTEM ${ers_SOURCE_DIR})
+include_directories(SYSTEM ${json_SOURCE_DIR}/include)
+include_directories(SYSTEM ${cpr_SOURCE_DIR}/include ${cpr_BINARY_DIR}/cpr_generated_includes)
+include_directories(SYSTEM folly)
+include_directories(SYSTEM readerwriterqueue)
 
 add_compile_definitions(FOLLY_NO_CONFIG) # Required for building with Folly library
 
@@ -118,8 +134,7 @@ set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} ers)
 # https://cmake.org/cmake/help/v3.0/module/FindXMLRPC.html
 find_package(XMLRPC 1.51.06 EXACT REQUIRED c++2 abyss-server)
 set(DAQLING_DEPS_LIBRARIES ${DAQLING_DEPS_LIBRARIES} ${XMLRPC_LIBRARIES})
-
-find_package(CURL QUIET REQUIRED)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lxmlrpc_util++ -lxmlrpc_server++")
 
 # Set standard build flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wzero-as-null-pointer-constant -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Wredundant-decls -Wsign-conversion -Wstrict-null-sentinel -Wstrict-overflow=5 -Wundef -Werror -Wformat-security -fdiagnostics-color=auto -Wno-overloaded-virtual")

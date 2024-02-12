@@ -1,0 +1,6 @@
+[submodule "folly"]
+	path = folly
+	url = https://github.com/facebook/folly.git
+[submodule "readerwriterqueue"]
+	path = readerwriterqueue
+	url = https://github.com/cameron314/readerwriterqueue.git

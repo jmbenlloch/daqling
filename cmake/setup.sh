@@ -4,8 +4,8 @@ if [ -s ${CONFIG_FILE} ]
 then
   . ${CONFIG_FILE}
 else
-  echo "No config file - Exiting."
-  return 1
+  echo "No config file. Creating default"
+  echo "DAQ_CONFIG_DIR=$PWD/configs" >> $CONFIG_FILE
 fi
 
 DAQLING_REPO_PATH="$(dirname "$(realpath "${BASEDIR}")" )"
@@ -22,35 +22,11 @@ alias daqtree='python3 $PWD/$daqtree_path'
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DAQ_BUILD_DIR/lib
 export TDAQ_ERS_STREAM_LIBS=DaqlingStreams
 
-echo "Activating Spack DAQling environment"
-source ${DAQLING_SPACK_REPO_PATH}/spack/share/spack/setup-env.sh
-spack env activate daqling
-spack find
-spack load cmake
-export CPLUS_INCLUDE_PATH=$CMAKE_PREFIX_PATH/include
-export C_INCLUDE_PATH=$CMAKE_PREFIX_PATH/include
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CMAKE_PREFIX_PATH/lib:$CMAKE_PREFIX_PATH/lib64
-export LIBRARY_PATH=$LD_LIBRARY_PATH
-
 #check if virtualenv exists
 if [ -f ${DAQLING_REPO_PATH}/etc/daqling_venv/bin/activate ]; then
   echo "Activating Python DAQling virtual environment"
   source ${DAQLING_REPO_PATH}/etc/daqling_venv/bin/activate
 fi
-if [ ! -z $CUSTOM_GCC_PATH ]
-then 
-  echo "Custom compiler, installed from OHPC."
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CUSTOM_GCC_PATH/lib64/
-  #export PATH=$PATH:$CUSTOM_GCC_PATH/bin
-
-  #export CC=$CUSTOM_GCC_PATH/bin/gcc
-  export CXX=$CUSTOM_GCC_PATH/bin/g++
-fi
-
-#export TBB_VERSION=2019.0
-#export TBB_ROOT_DIR=/opt/tbb-2019_U5
-
-#export BOOST_VERSION=1.70
 
 if [ -f "/opt/rh/llvm-toolset-7/enable" ]
 then

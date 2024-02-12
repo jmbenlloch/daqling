@@ -11,7 +11,7 @@
     state: enabled
   notify:
     - restart firewalld
-  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  when: ansible_facts['os_family'] == 'RedHat'
 
 - name: Enable and restart InfluxDB service
   systemd:
@@ -23,7 +23,7 @@
 - name: Install influxdb python module
   pip:
     name: "{{packages}}"
-    executable: pip3.6
+    executable: pip3
   vars:
     packages:
     - influxdb

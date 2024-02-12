@@ -19,7 +19,7 @@
 #include "BoostAsioUdpIssues.hpp"
 #include "Utils/ConnectionMacros.hpp"
 #include "Utils/Ers.hpp"
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 using namespace daqling::connection;
 

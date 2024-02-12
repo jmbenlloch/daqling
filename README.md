@@ -16,7 +16,14 @@ To contact the developers: daqling-developers@cern.ch (only for "daqling-users" 
 
 In order to build the framework, dependencies must be installed.
 
-#### Installing the packages.
+#### (NEW) Installing the packages for FetchContent-based build
+
+For AlmaLinux and RHEL 8,9:
+
+    dnf install -y epel-release
+    dnf install -y cmake gcc-c++ git boost-devel xmlrpc-c-devel cppzmq-devel libasan libubsan clang-tools-extra
+
+#### (DEPRECATED) Installing the packages with Spack
 
 ##### Prerequisites
 
@@ -44,7 +51,7 @@ For Ubuntu (Server):
 
     sudo apt install build-essential cmake
 
-#### Run the install script
+##### Run the install script
 
 The install script should take care of the rest:
 
@@ -61,7 +68,8 @@ To setup the host with the system libraries and tools, follow the steps below:
 
 1. Install Ansible:
 ```
-sudo yum install -y ansible
+dnf install -y python3-pip
+pip install ansible
 ```
 Note: to set up an Ubuntu server follow the same procedure, using `apt` instead of `yum`.
 

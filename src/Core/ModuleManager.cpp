@@ -209,7 +209,7 @@ bool ModuleManager::command(const std::string &cmd, const std::string &arg,
 std::unordered_set<std::string>
 ModuleManager::CommandRegistered(const std::string &com, std::unordered_set<std::string> modargs) {
   std::unordered_set<std::string> ret_set;
-  for (auto const & [ key, mod ] : m_modloaders) {
+  for (auto const &[key, mod] : m_modloaders) {
     if (modargs.empty() || modargs.find(mod.m_module_type) != modargs.end()) {
       if (mod.m_module_loader->isCommandRegistered(com)) {
         ret_set.insert(key);
@@ -252,7 +252,7 @@ std::string ModuleManager::getState(const std::string &modarg) {
 }
 std::string ModuleManager::getStatesAsString() {
   std::vector<std::string> vec;
-  for (auto const & [ key, mod ] : m_modloaders) {
+  for (auto const &[key, mod] : m_modloaders) {
     vec.push_back(mod.m_module_status);
   }
   std::string state = "booted";
@@ -273,7 +273,7 @@ std::string ModuleManager::getStatesAsString() {
 
 std::vector<std::string> ModuleManager::getIndividualStates() {
   std::vector<std::string> ret;
-  for (auto const & [ key, mod ] : m_modloaders) {
+  for (auto const &[key, mod] : m_modloaders) {
     ret.push_back(key + " , " + mod.m_module_status);
   }
   return ret;
@@ -282,7 +282,7 @@ std::unordered_set<std::string>
 ModuleManager::getModulesEligibleForCommand(std::unordered_set<std::string> modargs,
                                             std::unordered_set<std::string> states) {
   std::unordered_set<std::string> res_set;
-  for (auto const & [ key, mod ] : m_modloaders) {
+  for (auto const &[key, mod] : m_modloaders) {
     if (states.find(mod.m_module_status) != states.end() &&
         (modargs.empty() || modargs.find(mod.m_module_type) != modargs.end())) {
       res_set.insert(key);
@@ -294,7 +294,7 @@ std::unordered_set<std::string>
 ModuleManager::getModulesEligibleForCommand(std::unordered_set<std::string> modargs,
                                             const std::string &state) {
   std::unordered_set<std::string> res_set;
-  for (auto const & [ key, mod ] : m_modloaders) {
+  for (auto const &[key, mod] : m_modloaders) {
     if (state == mod.m_module_status &&
         (modargs.empty() || modargs.find(mod.m_module_type) != modargs.end())) {
       res_set.insert(key);

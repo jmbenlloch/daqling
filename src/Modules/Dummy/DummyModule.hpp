@@ -22,7 +22,7 @@ namespace daqling {
 #include <ers/Issue.h>
 
 ERS_DECLARE_ISSUE(module, DummyIssue, "DummyIssue message", ERS_EMPTY)
-}
+} // namespace daqling
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class DummyModule : public daqling::core::DAQProcess {
   void foobar(const std::string &arg);

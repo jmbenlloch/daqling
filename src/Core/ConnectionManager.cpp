@@ -120,13 +120,13 @@ bool ConnectionManager::removeChannel(const std::string &name) {
   if (m_sub_managers.find(name) != m_sub_managers.end()) {
     auto subManager = m_sub_managers[name];
     while (!subManager->getReceiverMap().empty()) {
-      for (auto & [ ch, receiver ] : subManager->getReceiverMap()) {
+      for (auto &[ch, receiver] : subManager->getReceiverMap()) {
         subManager->removeReceiverChannel(ch);
         m_receiver_channels--;
       }
     }
     while (!subManager->getSenderMap().empty()) {
-      for (auto & [ ch, sender ] : subManager->getSenderMap()) {
+      for (auto &[ch, sender] : subManager->getSenderMap()) {
         subManager->removeSenderChannel(ch);
         m_sender_channels--;
       }

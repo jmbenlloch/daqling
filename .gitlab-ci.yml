@@ -4,6 +4,18 @@ stages:
     - testing
 
 
+# # Building image
+# build-image:
+#     stage: build-image
+#     script:
+
+#         - docker build --tag gitlab-registry.cern.ch/ep-dt-di/daq/daqling:fc-al9 .
+#         - docker push gitlab-registry.cern.ch/ep-dt-di/daq/daqling:fc-al9
+#     before_script:
+#         - docker info
+#     when: manual
+
+
 build:
   stage: build-image
   image:
@@ -12,7 +24,7 @@ build:
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/etc/Dockerfile --destination $CI_REGISTRY_IMAGE:cc7
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/etc/Dockerfile --destination $CI_REGISTRY_IMAGE:fc-al9
   only:
     - triggers
     # variables:
@@ -21,7 +33,9 @@ build:
 
 # Default compile jobs
 compile:
-    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cc7
+    variables:
+        GIT_SUBMODULE_STRATEGY: recursive
+    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:fc-al9
     stage: compilation
     script:
         - mkdir build
@@ -38,7 +52,7 @@ compile:
 
 # Default tests
 test:
-    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cc7
+    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:fc-al9
     stage: testing
     script:
         - cd build/
@@ -50,7 +64,7 @@ test:
         - source cmake/setup.sh
 
 format:
-    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cc7
+    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:fc-al9
     stage: testing
     script:
         - cd build
@@ -61,8 +75,9 @@ format:
         - ./cmake/install.sh -d /daqling-spack-repo -c configs/ -a
         - source cmake/setup.sh
     allow_failure: true
+
 tidy:
-    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:cc7
+    image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:fc-al9
     stage: testing
     script:
         - cd build

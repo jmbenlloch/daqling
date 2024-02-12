@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <string>
 #include <thread>
 
 #include <zmq.hpp>
@@ -39,21 +40,24 @@ int main(int argc, char *argv[]) {
   }
 
   uint8_t tag = 126;
-  subscriber.setsockopt(ZMQ_SUBSCRIBE, &tag, sizeof(tag));
+  std::ostringstream oss;
+  oss << tag;
+  subscriber.set(zmq::sockopt::subscribe, oss.str());
   //   subscriber.setsockopt(ZMQ_SUBSCRIBE, "", 0);
   std::cout << "sock opt" << std::endl;
 
   while (true) {
     zmq::message_t msg;
-    std::cout << "-----------\nReceived " << subscriber.recv(&msg) << std::endl;
+    auto rv = subscriber.recv(msg, zmq::recv_flags::none);
+    std::cout << "-----------\nReceived " << rv.value() << std::endl;
     std::cout << "-> size " << msg.size() << std::endl;
 
     data_t d = {0, 0, 0};
     // memcpy(&d, msg.data(), msg.size());
     d = *static_cast<data_t *>(msg.data());
 
-    std::cout << static_cast<int>(d.tag) << std::endl;
-    std::cout << d.whatever << std::endl;
+    std::cout << "-> tag " << static_cast<int>(d.tag) << std::endl;
+    std::cout << "-> whatever " << d.whatever << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(1));
   }
   return 0;

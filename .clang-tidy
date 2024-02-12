@@ -1,3 +1,12 @@
-Checks: '-*,modernize-*,performance-*,portability-*,bugprone-*,google-*,-google-build-namespaces,-google-runtime-references,-google-build-using-namespace,-google-readability-todo,-google-explicit-constructor,analyzer-*,misc-*,-misc-definitions-in-headers,cppcoreguidelines-*,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,diagnostic-*,readability-*,-readability-identifier-naming'
+Checks: '-*,
+modernize-*,-modernize-use-trailing-return-type,
+performance-*,
+portability-*,
+bugprone-*,
+google-*,-google-build-namespaces,-google-runtime-references,-google-build-using-namespace,-google-readability-todo,-google-explicit-constructor,analyzer-*,
+misc-*,-misc-definitions-in-headers,
+cppcoreguidelines-*,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+diagnostic-*,
+readability-*,-readability-identifier-naming'
 HeaderFilterRegex: '.*'
 WarningsAsErrors: '*'

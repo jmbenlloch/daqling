@@ -18,8 +18,8 @@
 #pragma once
 
 #include "Core/Queue.hpp"
-#include "moody/readerwriterqueue.h"
 #include "nlohmann/json.hpp"
+#include "readerwriterqueue.h"
 
 namespace daqling {
 namespace queue {

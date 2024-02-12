@@ -54,7 +54,7 @@ private:
     // header
     zmq::message_t topic(m_name.size());
     memcpy(topic.data(), m_name.data(), m_name.size());
-    m_socket->send(topic, ZMQ_SNDMORE);
+    m_socket->send(topic, zmq::send_flags::sndmore);
 
     // content
     // create json object from issue:
@@ -71,6 +71,6 @@ private:
     std::string str = json_.dump();
     zmq::message_t message(str.size());
     memcpy(message.data(), str.data(), str.size());
-    m_socket->send(message);
+    m_socket->send(message, zmq::send_flags::none);
   }
 };

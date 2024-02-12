@@ -23,6 +23,7 @@
 #include "Utils/Singleton.hpp"
 #include "nlohmann/json.hpp"
 #include <dlfcn.h>
+#include <optional>
 #include <string>
 
 namespace daqling {
