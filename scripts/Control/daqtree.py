@@ -45,7 +45,7 @@ parser.add_argument('--remote', dest='json_source', action='store_const',
                     help='Gets remote json-configs from database, default is local file.')
 parser.add_argument('json_identifier', metavar='config_name', type=str, 
                     help='JSON configuration file or name of db configs-set for running DAQling.')
-parser.add_argument('--service_config', metavar='CONFIG', type=str, nargs=1, 
+parser.add_argument('--service_config', metavar='CONFIG', type=str,
                     default=env['DAQ_SCRIPT_DIR']+'Configuration/config/service-config.json', 
                     help='JSON configuration file for config service.')
 args = parser.parse_args()
