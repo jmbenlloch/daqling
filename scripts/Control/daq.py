@@ -106,7 +106,7 @@ parser.add_argument('json_identifier', metavar='config_name', type=str,
 parser.add_argument('arg', metavar='command', type=str, nargs='?', 
                     default='complete',
                     help="Available commands: 'remove' 'add' 'configure' 'complete'.")
-parser.add_argument('--service_config', metavar='CONFIG', type=str, nargs=1, 
+parser.add_argument('--service_config', metavar='CONFIG', type=str, 
                     default=env['DAQ_SCRIPT_DIR']+'Configuration/config/service-config.json', 
                     help='JSON configuration file for config service.')
 args = parser.parse_args()
