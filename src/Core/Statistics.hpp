@@ -127,14 +127,20 @@ public:
     }
     if (m_influxDb) {
 #ifndef BUILD_WITHOUT_CPR
-
       auto future_response =
           cpr::PostCallback([](cpr::Response r) { return r; },
                             cpr::Url{m_influxDb_uri + m_influxDb_name}, cpr::Body{influx_msg.str()},
-                            cpr::Header{{"Content-Type", "text/plain"}}, cpr::Timeout{1000});
-      if (future_response.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
-        ERS_DEBUG(0, "InfluxDB response: " << future_response.get().status_code << "\t"
-                                           << future_response.get().text);
+                            cpr::Header{{"Content-Type", "text/plain"}}, cpr::Timeout{100});
+      if (future_response.wait_for(std::chrono::milliseconds(100)) == std::future_status::ready) {
+        auto response = future_response.get();
+        ERS_DEBUG(0, "InfluxDB response: " << response.status_code << " " << response.text);
+        if(response.status_code == 0)
+          ERS_WARNING(response.error.message);
+        else if (response.status_code >= 400) {
+          ERS_WARNING("Error [" << response.status_code << "] making request");
+        }
+      } else {
+        ERS_WARNING("cpr::PostCallback timeout: response not ready");
       }
 #else
       throw NoHTTPSupport(ERS_HERE);
