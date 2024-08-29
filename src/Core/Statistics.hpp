@@ -134,7 +134,7 @@ public:
       if (future_response.wait_for(std::chrono::milliseconds(100)) == std::future_status::ready) {
         auto response = future_response.get();
         ERS_DEBUG(0, "InfluxDB response: " << response.status_code << " " << response.text);
-        if(response.status_code == 0)
+        if (response.status_code == 0)
           ERS_WARNING(response.error.message);
         else if (response.status_code >= 400) {
           ERS_WARNING("Error [" << response.status_code << "] making request");
