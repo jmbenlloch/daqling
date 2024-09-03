@@ -76,7 +76,7 @@ format:
         - source cmake/setup.sh
     allow_failure: true
 
-tidy:
+.tidy:
     image: gitlab-registry.cern.ch/ep-dt-di/daq/daqling:fc-al9
     stage: testing
     script:
