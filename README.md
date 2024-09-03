@@ -16,51 +16,12 @@ To contact the developers: daqling-developers@cern.ch (only for "daqling-users" 
 
 In order to build the framework, dependencies must be installed.
 
-#### (NEW) Installing the packages for FetchContent-based build
+#### Installing the packages for FetchContent-based build
 
 For AlmaLinux and RHEL 8,9:
 
     dnf install -y epel-release
     dnf install -y cmake gcc-c++ git boost-devel xmlrpc-c-devel cppzmq-devel libasan libubsan clang-tools-extra
-
-#### (DEPRECATED) Installing the packages with Spack
-
-##### Prerequisites
-
-Clone the DAQling Spack repository, containing Spack and custom packages.
-
-The project is found at https://gitlab.cern.ch/ep-dt-di/daq/daqling-spack-repo
-
-Use `--recurse-submodules` to initialize and update the Spack sub-module.
-
-    git clone --recurse-submodules https://:@gitlab.cern.ch:8443/ep-dt-di/daq/daqling-spack-repo.git
-
-A GCC C++17 enabled compiler is required.
-
-For CERN CentOS 7:
-
-    yum install http://build.openhpc.community/OpenHPC:/1.3/CentOS_7/x86_64/ohpc-release-1.3-1.el7.x86_64.rpm
-    yum install gnu8-compilers-ohpc cmake
-    export PATH=$PATH:/opt/ohpc/pub/compiler/gcc/8.3.0/bin
-
-For CentOS 8:
-
-    yum install gcc-c++ libasan libubsan cmake
-
-For Ubuntu (Server):
-
-    sudo apt install build-essential cmake
-
-##### Run the install script
-
-The install script should take care of the rest:
-
-    cd daqling-spack-repo/
-    ./Install.sh
-
-Dependencies installation does not require root access, unless you are installing on CentOS 7.
-
-Now all the dependencies required by DAQling will be installed in a spack environment inside this repository.
 
 ### Configure the host for running the framework
 
@@ -167,7 +128,7 @@ It then allows to control the components via standard commands such as `start` (
 
 `daqpy -h` shows the help menu.
 
-### (NEW) DAQ control tree
+### DAQ control tree
 
 `daqtree` is a command line tool that allows to control the data acquisition system as a "control tree", with advanced Finite State Machine (FSM) options.
 It showcases the use of the `nodetree` and `daqcontrol` libraries, which can be used in any other Python control tool.
@@ -230,10 +191,10 @@ DAQling has been developed by the EP-DT-DI section at CERN and is maintained by:
 
 - Enrico Gamberini, CERN, @engamber
 - Roland Sipos, CERN, @rsipos
-- Marco Boretto, CERN, @mboretto
   
 The following authors, in alphabetical order, have contributed to DAQling:
 
+- Marco Boretto, CERN, @mboretto
 - Wojciech Brylinski, Warsaw University of Technology, @wobrylin
 - Zbynek Kral, Czech Technical University in Prague, @zkral
 - Jens Noerby Kristensen, CERN, @jkristen
