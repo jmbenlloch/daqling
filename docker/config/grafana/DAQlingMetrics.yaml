@@ -1,0 +1,13 @@
+apiVersion: 1
+
+datasources:
+- name: DAQlingMetrics
+  type: influxdb
+  access: proxy
+  url: http://influx:8086
+  database: daqling
+  user: user
+  password: user
+  jsonData:
+  httpMode: GET
+  isDefault: true

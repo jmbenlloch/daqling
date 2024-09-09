@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  daqling:
+    image: daqling
+    restart: always
+    #    volumes:
+    #   - /home/jmbenlloch/next/daqling:/home/next/daqling
+
+  influx:
+    image: influxdb:1.8.10 
+    restart: always
+    environment:
+      INFLUXDB_DB: daqling
+      INFLUXDB_USER: user
+      INFLUXDB_USER_PASSWORD: user
+      INFLUXDB_ADMIN_USER: admin
+      INFLUXDB_ADMIN_PASSWORD: admin
+      INFLUXDB_HTTP_AUTH_ENABLED: true
+      # run with:  influx -username admin -password admin
+
+  grafana:
+    image: grafana/grafana:8.5.27-ubuntu
+    volumes:
+      - ./config/grafana/DAQlingMetrics.yaml:/etc/grafana/provisioning/datasources/DAQlingMetrics.yaml
+      - ./config/grafana/default.yaml:/etc/grafana/provisioning/dashboards/default.yaml
+      - ./config/grafana/Demo.json:/var/lib/grafana/dashboards/Demo.json
+    ports:
+      - 3000:3000
