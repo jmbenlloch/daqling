@@ -33,13 +33,13 @@
     src: supervisord.service
     dest: /etc/systemd/system/
 
-- name: Enabling supervisord service
-  systemd:
-    name: supervisord
-    enabled: yes
-    daemon_reload: yes
-  notify:
-    - restart supervisord
+#- name: Enabling supervisord service
+#  systemd:
+#    name: supervisord
+#    enabled: yes
+#    daemon_reload: yes
+#  notify:
+#    - restart supervisord
 
 - name: Create /log folder
   file:
