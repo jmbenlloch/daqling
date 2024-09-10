@@ -6,12 +6,20 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <thread>
 
 #define PORT 6123
 #define BUFFERSIZE 950000
 
-// Driver code
+void readEquipment();
+
 int main() {
+  std::thread t1(readEquipment);
+  t1.join();
+  return 0;
+}
+
+void readEquipment() {
   int sockfd;
   char buffer[BUFFERSIZE];
   int position = 0;
@@ -65,5 +73,4 @@ int main() {
       }
     }
   }
-  return 0;
 }
