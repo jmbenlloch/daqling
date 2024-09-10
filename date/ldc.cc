@@ -2,6 +2,7 @@
 #include "readerwriterqueue.h"
 #include <arpa/inet.h>
 #include <bits/stdc++.h>
+#include <chrono>
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,16 +14,122 @@
 #define PORT 6123
 #define BUFFERSIZE 950000
 
+struct equipmentDataType {
+  int eventID;
+  int equipmentID;
+  std::vector<char> data;
+};
+
 void readEquipment(char *buffer, moodycamel::ReaderWriterQueue<std::pair<int, int>> *queue);
-void readPackets(char *buffer, moodycamel::ReaderWriterQueue<std::pair<int, int>> *queue);
+void readPackets(char *buffer, moodycamel::ReaderWriterQueue<std::pair<int, int>> *queue,
+                 moodycamel::ReaderWriterQueue<equipmentDataType> *readyFragments);
+void readSubEvents(moodycamel::ReaderWriterQueue<equipmentDataType> *readyFragments);
+std::vector<char> addLDCHeader(std::map<int, std::vector<char>> equipmentsData, int eventID,
+                               int runNumber);
 
 int main() {
   moodycamel::ReaderWriterQueue<std::pair<int, int>> q(100);
+  moodycamel::ReaderWriterQueue<equipmentDataType> readyFragments(100);
   char buffer[BUFFERSIZE];
   std::thread t1(readEquipment, buffer, &q);
-  std::thread t2(readPackets, buffer, &q);
+  std::thread t2(readPackets, buffer, &q, &readyFragments);
+  std::thread t3(readSubEvents, &readyFragments);
   t1.join();
   return 0;
+}
+
+void readSubEvents(moodycamel::ReaderWriterQueue<equipmentDataType> *readyFragments) {
+  std::map<int, std::map<int, std::vector<char>>> subevents;
+
+  equipmentDataType subevent;
+  while (true) {
+    if (readyFragments->try_dequeue(subevent)) {
+      printf("subevent reader: size: %d\n", subevent.data.size());
+      for (int i = 0; i < subevent.data.size(); i++) {
+        printf("%02x ", subevent.data[i]);
+      }
+      printf("\n");
+
+      // check subevent map contains the eventID
+      if (subevents.find(subevent.eventID) == subevents.end()) {
+        std::map<int, std::vector<char>> equipmentMap;
+        subevents[subevent.eventID] = equipmentMap;
+      }
+      subevents[subevent.eventID][subevent.equipmentID] = subevent.data;
+
+      // check if all equipment data is present
+      int nEquipments = 1;
+      if (subevents[subevent.eventID].size() == nEquipments) {
+        printf("eventID: %d\n", subevent.eventID);
+        printf("equipmentID: %d\n", subevent.equipmentID);
+
+        std::vector<char> ldcData =
+            addLDCHeader(subevents[subevent.eventID], subevent.eventID, 12345789);
+        printf("ldcdata: \n");
+        for (int i = 0; i < ldcData.size(); i++) {
+          printf("%02x ", ldcData[i]);
+        }
+        printf("\n");
+      }
+    }
+  }
+}
+
+std::vector<char> addLDCHeader(std::map<int, std::vector<char>> equipmentsData, int eventID,
+                               int runNumber) {
+  int ldcID = 1;
+
+  // Get the current time from the system clock
+  auto now = std::chrono::system_clock::now();
+  auto duration = now.time_since_epoch();
+  auto timestampSec = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+  auto timestampUSec = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+
+  // Calculate the total size of the equipment data
+  int totalSizeEquipmentData = 0;
+  for (const auto &[key, value] : equipmentsData) {
+    totalSizeEquipmentData += value.size();
+  }
+
+  // Build LDC header
+  eventHeaderStruct ldcHeader{
+      .eventSize = eventSizeType(totalSizeEquipmentData + 20 * 4),
+      .eventMagic = eventMagicType(EVENT_MAGIC_NUMBER),
+      .eventHeadSize = 80,
+      .eventVersion = eventVersionType(EVENT_CURRENT_VERSION),
+      .eventType = eventTypeType(PHYSICS_EVENT),
+      .eventRunNb = eventRunNbType(runNumber),
+      .eventId = {eventID, 0},
+      .eventTypeAttribute = {0, 0, ORIGINAL_EVENT},
+      .eventLdcId = eventLdcIdType(ldcID),
+      .eventGdcId = eventGdcIdType(GDC_VOID),
+      .eventTimestampSec = eventTimestampSecType(timestampSec),
+      .eventTimestampUsec = eventTimestampUsecType(timestampUSec),
+  };
+
+  std::vector<char> ldcData(totalSizeEquipmentData + 20 * 4);
+
+  int position = 80;
+  for (const auto &[key, data] : equipmentsData) {
+    int size = data.size();
+    std::memcpy(ldcData.data() + position, data.data(), size);
+    position += size;
+  }
+
+  std::memcpy(ldcData.data(), &ldcHeader.eventSize, sizeof(int));
+  std::memcpy(ldcData.data() + 4, &ldcHeader.eventMagic, sizeof(int));
+  std::memcpy(ldcData.data() + 8, &ldcHeader.eventHeadSize, sizeof(int));
+  std::memcpy(ldcData.data() + 12, &ldcHeader.eventVersion, sizeof(int));
+  std::memcpy(ldcData.data() + 16, &ldcHeader.eventType, sizeof(int));
+  std::memcpy(ldcData.data() + 20, &ldcHeader.eventRunNb, sizeof(int));
+  std::memcpy(ldcData.data() + 24, &ldcHeader.eventId[0], sizeof(int));
+  std::memcpy(ldcData.data() + 60, &ldcHeader.eventTypeAttribute[2], sizeof(int));
+  std::memcpy(ldcData.data() + 64, &ldcHeader.eventLdcId, sizeof(int));
+  std::memcpy(ldcData.data() + 68, &ldcHeader.eventGdcId, sizeof(int));
+  std::memcpy(ldcData.data() + 72, &ldcHeader.eventTimestampSec, sizeof(int));
+  std::memcpy(ldcData.data() + 76, &ldcHeader.eventTimestampUsec, sizeof(int));
+
+  return ldcData;
 }
 
 std::vector<char> addEquipmentHeader(std::vector<char> *fragments, int length) {
@@ -53,7 +160,8 @@ std::vector<char> addEquipmentHeader(std::vector<char> *fragments, int length) {
   return equipmentData;
 }
 
-void readPackets(char *buffer, moodycamel::ReaderWriterQueue<std::pair<int, int>> *queue) {
+void readPackets(char *buffer, moodycamel::ReaderWriterQueue<std::pair<int, int>> *queue,
+                 moodycamel::ReaderWriterQueue<equipmentDataType> *readyFragments) {
   int eventID = 0;
   int expectedSeqCounter = 0;
   std::vector<char> fragments;
@@ -70,11 +178,15 @@ void readPackets(char *buffer, moodycamel::ReaderWriterQueue<std::pair<int, int>
           printf("end word\n");
           expectedSeqCounter = 0;
           eventID++;
-          std::vector<char> equipmentData = addEquipmentHeader(&fragments, fragments.size());
+          equipmentDataType equipmentData;
+          equipmentData.eventID = eventID;
+          equipmentData.equipmentID = 2;
+          equipmentData.data = addEquipmentHeader(&fragments, fragments.size());
+          readyFragments->enqueue(equipmentData);
           // print equipment data
           printf("data with header:\n");
-          for (int i = 0; i < equipmentData.size(); i++) {
-            printf("%02x ", equipmentData[i]);
+          for (int i = 0; i < equipmentData.data.size(); i++) {
+            printf("%02x ", equipmentData.data[i]);
           }
           printf("\n");
           fragments.clear();

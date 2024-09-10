@@ -82,32 +82,15 @@ typedef unsigned long32 eventRunNbType;
 typedef unsigned long32 eventIdType[EVENT_ID_WORDS];
 
 /* System attributes assignment */
-#define ATTR_SUPER_EVENT 68                  /* Super event               */
-#define ATTR_ORIGINAL_EVENT 73               /* All original payloads     */
+#define SUPER_EVENT 0x00000010
+#define ORIGINAL_EVENT 0x00000200
 
 /* ---------- LDC and GDC identifier ---------- */
 typedef unsigned long32 eventHostIdType;
 typedef eventHostIdType eventLdcIdType;
 typedef eventHostIdType eventGdcIdType;
-#define LDC_ID ((eventHostIdType) - 1)    /* Unloaded ID            */
-#define GDC_ID ((eventHostIdType) - 1)    /* Unloaded ID            */
-
-/* ---------- Timestamps ----------
-
-   The timestamp of the event is associated to:
-
-   - Trigger arrived on the LDC
-   - First sub-event arrived on the GDC
-   - Event ready when monitoring by detector
-
-   The timestamp is split into seconds and microseconds.
-
-   Please note that the typical accuracy of the Unix clock is on
-   the order of the millisecond.
-
-   For more details on the subject, see the man page for gettimeofday
-   and the description of the Unix standard type struct timeval
-*/
+#define LDC_VOID ((eventHostIdType) - 1) /* Unloaded ID            */
+#define GDC_VOID ((eventHostIdType) - 1) /* Unloaded ID            */
 
 /* ---------- Seconds timestamp ----------
 
@@ -129,22 +112,18 @@ typedef eventHostIdType eventGdcIdType;
    around Jan 18, 19:14:07, 2038...
 */
 typedef unsigned long32 eventTimestampSecType;
-
-/* Microseconds: range [0..999999]
- */
 typedef unsigned long32 eventTimestampUsecType;
 
-#define EVENT_TRIGGER_PATTERN_BYTES    16
-#define EVENT_TRIGGER_PATTERN_WORDS    ((EVENT_TRIGGER_PATTERN_BYTES)>>2)
+#define EVENT_TRIGGER_PATTERN_BYTES 16
+#define EVENT_TRIGGER_PATTERN_WORDS ((EVENT_TRIGGER_PATTERN_BYTES) >> 2)
 typedef unsigned long32 eventTriggerPatternType[EVENT_TRIGGER_PATTERN_WORDS];
 
 #define EVENT_DETECTOR_PATTERN_BYTES 4
-#define EVENT_DETECTOR_PATTERN_WORDS (EVENT_DETECTOR_PATTERN_BYTES>>2)
+#define EVENT_DETECTOR_PATTERN_WORDS (EVENT_DETECTOR_PATTERN_BYTES >> 2)
 typedef unsigned long32 eventDetectorPatternType[EVENT_DETECTOR_PATTERN_WORDS];
 
-#define ALL_ATTRIBUTE_WORDS    3
+#define ALL_ATTRIBUTE_WORDS 3
 typedef unsigned long32 eventTypeAttributeType[ALL_ATTRIBUTE_WORDS];
-
 
 /* ---------- The event header structure ---------- */
 struct eventHeaderStruct {
