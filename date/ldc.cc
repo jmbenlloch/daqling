@@ -1,3 +1,4 @@
+#include "event.h"
 #include "readerwriterqueue.h"
 #include <arpa/inet.h>
 #include <bits/stdc++.h>
@@ -24,6 +25,34 @@ int main() {
   return 0;
 }
 
+std::vector<char> addEquipmentHeader(std::vector<char> *fragments, int length) {
+  equipmentHeaderStruct equipmentHeader{
+      .equipmentSize = equipmentSizeType(length + 7 * 4), // add header size
+      .equipmentType = equipmentTypeType(23),             // add equipment type
+      .equipmentId = equipmentIdType(2),                  // add equipment id
+      .equipmentBasicElementSize = 4,
+  };
+
+  // print length
+  printf("add header: length: %d\n", length);
+
+  std::vector<char> equipmentData(length + 7 * 4);
+  // copy(equipmentData[28:], subevent)
+  //  Copy data flipping endianness
+  for (int i = 0; i < length / 4; i++) {
+    equipmentData[28 + i * 4] = (*fragments)[i * 4 + 3];
+    equipmentData[28 + i * 4 + 1] = (*fragments)[i * 4 + 2];
+    equipmentData[28 + i * 4 + 2] = (*fragments)[i * 4 + 1];
+    equipmentData[28 + i * 4 + 3] = (*fragments)[i * 4];
+  }
+  std::memcpy(equipmentData.data(), &equipmentHeader.equipmentSize, sizeof(int));
+  std::memcpy(equipmentData.data() + 4, &equipmentHeader.equipmentType, sizeof(int));
+  std::memcpy(equipmentData.data() + 8, &equipmentHeader.equipmentId, sizeof(int));
+  std::memcpy(equipmentData.data() + 24, &equipmentHeader.equipmentBasicElementSize, sizeof(int));
+
+  return equipmentData;
+}
+
 void readPackets(char *buffer, moodycamel::ReaderWriterQueue<std::pair<int, int>> *queue) {
   int eventID = 0;
   int expectedSeqCounter = 0;
@@ -41,6 +70,13 @@ void readPackets(char *buffer, moodycamel::ReaderWriterQueue<std::pair<int, int>
           printf("end word\n");
           expectedSeqCounter = 0;
           eventID++;
+          std::vector<char> equipmentData = addEquipmentHeader(&fragments, fragments.size());
+          // print equipment data
+          printf("data with header:\n");
+          for (int i = 0; i < equipmentData.size(); i++) {
+            printf("%02x ", equipmentData[i]);
+          }
+          printf("\n");
           fragments.clear();
         }
       } else {
@@ -56,6 +92,11 @@ void readPackets(char *buffer, moodycamel::ReaderWriterQueue<std::pair<int, int>
         // Copy the packet to the fragments vector
         fragments.insert(fragments.end(), buffer + position, buffer + position + size);
         printf("fragments size: %d\n", fragments.size());
+
+        // print fragments
+        for (int i = 0; i < fragments.size(); i++) {
+          printf("%02x ", fragments[i]);
+        }
 
         expectedSeqCounter++;
       }
