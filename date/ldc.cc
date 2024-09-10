@@ -1,3 +1,4 @@
+#include "readerwriterqueue.h"
 #include <arpa/inet.h>
 #include <bits/stdc++.h>
 #include <netinet/in.h>
@@ -5,23 +6,39 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <thread>
+#include <unistd.h>
 
 #define PORT 6123
 #define BUFFERSIZE 950000
 
-void readEquipment();
+void readEquipment(char * buffer, moodycamel::ReaderWriterQueue<int> * queue);
+void readPackets(char * buffer, moodycamel::ReaderWriterQueue<int> * queue);
 
 int main() {
-  std::thread t1(readEquipment);
+  moodycamel::ReaderWriterQueue<int> q(100); // Reserve space for at least 100 elements up front
+  char buffer[BUFFERSIZE];
+  std::thread t1(readEquipment, buffer, &q);
+  std::thread t2(readPackets, buffer, &q);
   t1.join();
   return 0;
 }
 
-void readEquipment() {
+void readPackets(char * buffer, moodycamel::ReaderWriterQueue<int> * queue) {
+    while (true){
+        int position;
+        if (queue->try_dequeue(position)) {
+            printf("2-position: %d\n", position);
+            for (int i = position; i < position + 9500; i++) {
+                printf("%02x ", buffer[i]);
+            }
+            std::cout << std::endl;
+        }
+    }
+}
+
+void readEquipment(char * buffer, moodycamel::ReaderWriterQueue<int> * queue) {
   int sockfd;
-  char buffer[BUFFERSIZE];
   int position = 0;
   const char *hello = "Hello from server";
   struct sockaddr_in servaddr, cliaddr;
@@ -61,13 +78,14 @@ void readEquipment() {
                  (struct sockaddr *)&cliaddr, &len);
 
     if (equipmentIP.sin_addr.s_addr == cliaddr.sin_addr.s_addr) { // check if the IP is the same
-      position += 9500;
-      // printf("position: %d\n", position);
+      queue->enqueue(position);
+       printf("1-position: %d\n", position);
       for (int i = position; i < position + 9500; i++) {
-        printf("%02x ", buffer[i]);
+//        printf("%02x ", buffer[i]);
         // printf("position %d: %02x\n", position, buffer[i]);
       }
-      std::cout << std::endl;
+     // std::cout << std::endl;
+      position += 9500;
       if (position >= BUFFERSIZE) {
         position = 0;
       }
