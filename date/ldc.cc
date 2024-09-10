@@ -65,6 +65,22 @@ void readSubEvents(moodycamel::ReaderWriterQueue<equipmentDataType> *readyFragme
 
         std::vector<char> ldcData =
             addLDCHeader(subevents[subevent.eventID], subevent.eventID, 12345789);
+
+        // open output file
+        FILE *outputFile;
+        outputFile = fopen("output.ldc", "wb");
+        if (outputFile == NULL) {
+          printf("Error opening file!\n");
+          exit(1);
+        }
+
+        // Write the struct data to the file
+        size_t num_written = fwrite(ldcData.data(), ldcData.size(), 1, outputFile);
+        printf("num_written: %d\n", num_written);
+
+        // Close the file
+        fclose(outputFile);
+
         printf("ldcdata: \n");
         for (int i = 0; i < ldcData.size(); i++) {
           printf("%02x ", ldcData[i]);
@@ -82,8 +98,10 @@ std::vector<char> addLDCHeader(std::map<int, std::vector<char>> equipmentsData, 
   // Get the current time from the system clock
   auto now = std::chrono::system_clock::now();
   auto duration = now.time_since_epoch();
-  auto timestampSec = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-  auto timestampUSec = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+  auto timestampSec = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+  auto timestampUSec = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+  printf("timestampSec: %ld\n", timestampSec);
+  printf("timestampUSec: %ld\n", timestampUSec);
 
   // Calculate the total size of the equipment data
   int totalSizeEquipmentData = 0;
