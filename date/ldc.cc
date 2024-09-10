@@ -12,11 +12,11 @@
 #define PORT 6123
 #define BUFFERSIZE 950000
 
-void readEquipment(char * buffer, moodycamel::ReaderWriterQueue<int> * queue);
-void readPackets(char * buffer, moodycamel::ReaderWriterQueue<int> * queue);
+void readEquipment(char *buffer, moodycamel::ReaderWriterQueue<std::pair<int, int>> *queue);
+void readPackets(char *buffer, moodycamel::ReaderWriterQueue<std::pair<int, int>> *queue);
 
 int main() {
-  moodycamel::ReaderWriterQueue<int> q(100); // Reserve space for at least 100 elements up front
+  moodycamel::ReaderWriterQueue<std::pair<int, int>> q(100);
   char buffer[BUFFERSIZE];
   std::thread t1(readEquipment, buffer, &q);
   std::thread t2(readPackets, buffer, &q);
@@ -24,20 +24,50 @@ int main() {
   return 0;
 }
 
-void readPackets(char * buffer, moodycamel::ReaderWriterQueue<int> * queue) {
-    while (true){
-        int position;
-        if (queue->try_dequeue(position)) {
-            printf("2-position: %d\n", position);
-            for (int i = position; i < position + 9500; i++) {
-                printf("%02x ", buffer[i]);
-            }
-            std::cout << std::endl;
+void readPackets(char *buffer, moodycamel::ReaderWriterQueue<std::pair<int, int>> *queue) {
+  int eventID = 0;
+  int expectedSeqCounter = 0;
+  std::vector<char> fragments;
+  while (true) {
+    std::pair<int, int> dataPosition;
+    if (queue->try_dequeue(dataPosition)) {
+      printf("2-position: %d, %d\n", dataPosition.first, dataPosition.second);
+      int position = dataPosition.first;
+      int size = dataPosition.second;
+      if (size == 4) {
+        int end_word;
+        std::memcpy(&end_word, buffer + position, sizeof(int));
+        if (end_word == 0xfafafafa) {
+          printf("end word\n");
+          expectedSeqCounter = 0;
+          eventID++;
+          fragments.clear();
         }
+      } else {
+        int seq_counter;
+        std::memcpy(&seq_counter, buffer + position, sizeof(int));
+        printf("seq_counter: %d\n", seq_counter);
+        if (seq_counter != expectedSeqCounter) {
+          printf("event: %d\n", eventID);
+          printf("Error! Packet mismatch, expected sequence counter %d, found %d\n",
+                 expectedSeqCounter, seq_counter);
+        }
+
+        // Copy the packet to the fragments vector
+        fragments.insert(fragments.end(), buffer + position, buffer + position + size);
+        printf("fragments size: %d\n", fragments.size());
+
+        expectedSeqCounter++;
+      }
+      // for (int i = dataPosition.first; i < dataPosition.first + dataPosition.second; i++) {
+      //   printf("%02x ", buffer[i]);
+      // }
+      // std::cout << std::endl;
     }
+  }
 }
 
-void readEquipment(char * buffer, moodycamel::ReaderWriterQueue<int> * queue) {
+void readEquipment(char *buffer, moodycamel::ReaderWriterQueue<std::pair<int, int>> *queue) {
   int sockfd;
   int position = 0;
   const char *hello = "Hello from server";
@@ -78,13 +108,17 @@ void readEquipment(char * buffer, moodycamel::ReaderWriterQueue<int> * queue) {
                  (struct sockaddr *)&cliaddr, &len);
 
     if (equipmentIP.sin_addr.s_addr == cliaddr.sin_addr.s_addr) { // check if the IP is the same
-      queue->enqueue(position);
-       printf("1-position: %d\n", position);
+      std::pair<int, int> dataPosition;
+      dataPosition.first = position;
+      dataPosition.second = n;
+      queue->enqueue(dataPosition);
+
+      printf("1-position: %d\n", position);
       for (int i = position; i < position + 9500; i++) {
-//        printf("%02x ", buffer[i]);
+        //        printf("%02x ", buffer[i]);
         // printf("position %d: %02x\n", position, buffer[i]);
       }
-     // std::cout << std::endl;
+      // std::cout << std::endl;
       position += 9500;
       if (position >= BUFFERSIZE) {
         position = 0;
